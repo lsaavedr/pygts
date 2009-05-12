@@ -26,11 +26,9 @@
 
 """A module for constructing and manipulating triangulated surfaces.
 
-Pygts is a python binding for the GNU Triangulated Surface (GTS) 
+PyGTS is a python binding for the GNU Triangulated Surface (GTS) 
 Library, which may be used to build, manipulate, and perform
 computations on triangulated surfaces.
-
-Download from http://aolab.phys.dal.ca/~tomduck/projects/pygts/dist
 
 The following geometric primitives are provided:
 
@@ -99,7 +97,7 @@ The difference between two Surfaces s1 and s2 is given by:
 Etc.
 
 It is also possible to read in GTS data files and plot surfaces to
-the screen.  See the example programs packaged with pygts for
+the screen.  See the example programs packaged with PyGTS for
 more information.
 """
 
