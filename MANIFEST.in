@@ -1,0 +1,4 @@
+include README.developers LICENSE ChangeLog
+recursive-include src *.h
+recursive-include examples *.py seashell.gts
+recursive-include doc *.html
