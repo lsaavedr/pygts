@@ -1,0 +1,1126 @@
+<html><head><title>Python: module gts</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>gts</strong></big></big></font></td
+></tr></table>
+    <p><tt>A&nbsp;module&nbsp;for&nbsp;constructing&nbsp;and&nbsp;manipulating&nbsp;triangulated&nbsp;surfaces.<br>
+&nbsp;<br>
+Pygts&nbsp;is&nbsp;a&nbsp;python&nbsp;binding&nbsp;for&nbsp;the&nbsp;GNU&nbsp;Triangulated&nbsp;<a href="#Surface">Surface</a>&nbsp;(GTS)&nbsp;<br>
+Library,&nbsp;which&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;build,&nbsp;manipulate,&nbsp;and&nbsp;perform<br>
+computations&nbsp;on&nbsp;triangulated&nbsp;surfaces.<br>
+&nbsp;<br>
+Download&nbsp;from&nbsp;<a href="http://aolab.phys.dal.ca/~tomduck/projects/pygts/dist">http://aolab.phys.dal.ca/~tomduck/projects/pygts/dist</a><br>
+&nbsp;<br>
+The&nbsp;following&nbsp;geometric&nbsp;primitives&nbsp;are&nbsp;provided:<br>
+&nbsp;<br>
+&nbsp;&nbsp;<a href="#Point">Point</a>&nbsp;-&nbsp;a&nbsp;point&nbsp;in&nbsp;3D&nbsp;space<br>
+&nbsp;&nbsp;<a href="#Vertex">Vertex</a>&nbsp;-&nbsp;a&nbsp;<a href="#Point">Point</a>&nbsp;in&nbsp;3D&nbsp;space&nbsp;that&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;define&nbsp;a&nbsp;<a href="#Segment">Segment</a><br>
+&nbsp;&nbsp;<a href="#Segment">Segment</a>&nbsp;-&nbsp;a&nbsp;line&nbsp;defined&nbsp;by&nbsp;two&nbsp;<a href="#Vertex">Vertex</a>&nbsp;end-points<br>
+&nbsp;&nbsp;<a href="#Edge">Edge</a>&nbsp;-&nbsp;a&nbsp;<a href="#Segment">Segment</a>&nbsp;that&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;define&nbsp;the&nbsp;edge&nbsp;of&nbsp;a&nbsp;<a href="#Triangle">Triangle</a><br>
+&nbsp;&nbsp;<a href="#Triangle">Triangle</a>&nbsp;-&nbsp;a&nbsp;triangle&nbsp;defined&nbsp;by&nbsp;three&nbsp;Edges<br>
+&nbsp;&nbsp;<a href="#Face">Face</a>&nbsp;-&nbsp;a&nbsp;<a href="#Triangle">Triangle</a>&nbsp;that&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;define&nbsp;a&nbsp;face&nbsp;on&nbsp;a&nbsp;<a href="#Surface">Surface</a><br>
+&nbsp;&nbsp;<a href="#Surface">Surface</a>&nbsp;-&nbsp;a&nbsp;surface&nbsp;composed&nbsp;of&nbsp;Faces<br>
+&nbsp;<br>
+A&nbsp;tetrahedron&nbsp;is&nbsp;assembled&nbsp;from&nbsp;these&nbsp;primitives&nbsp;as&nbsp;follows.&nbsp;&nbsp;First,<br>
+create&nbsp;Vertices&nbsp;for&nbsp;each&nbsp;of&nbsp;the&nbsp;tetrahedron's&nbsp;points:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;import&nbsp;gts<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v1&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(1,1,1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v2&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(-1,-1,1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v3&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(-1,1,-1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v4&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(1,-1,-1)<br>
+&nbsp;<br>
+Next,&nbsp;connect&nbsp;the&nbsp;four&nbsp;vertices&nbsp;to&nbsp;create&nbsp;six&nbsp;unique&nbsp;Edges:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e1&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v1,v2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e2&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v2,v3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e3&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v3,v1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e4&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v1,v4)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e5&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v4,v2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e6&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v4,v3)<br>
+&nbsp;<br>
+The&nbsp;four&nbsp;triangular&nbsp;faces&nbsp;are&nbsp;composed&nbsp;using&nbsp;three&nbsp;edges&nbsp;each:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f1&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e1,e2,e3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f2&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e1,e4,e5)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f3&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e2,e5,e6)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f4&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e3,e4,e6)<br>
+&nbsp;<br>
+Finally,&nbsp;the&nbsp;surface&nbsp;is&nbsp;assembled&nbsp;from&nbsp;the&nbsp;faces:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s&nbsp;=&nbsp;gts.<a href="#Surface">Surface</a>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;face&nbsp;in&nbsp;[f1,f2,f3,f4]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s.add(face)<br>
+&nbsp;<br>
+Some&nbsp;care&nbsp;must&nbsp;be&nbsp;taken&nbsp;in&nbsp;the&nbsp;orientation&nbsp;of&nbsp;the&nbsp;faces.&nbsp;&nbsp;In&nbsp;the&nbsp;above<br>
+example,&nbsp;the&nbsp;surface&nbsp;normals&nbsp;are&nbsp;pointing&nbsp;inward,&nbsp;and&nbsp;so&nbsp;the&nbsp;surface<br>
+technically&nbsp;defines&nbsp;a&nbsp;void,&nbsp;rather&nbsp;than&nbsp;a&nbsp;solid.&nbsp;&nbsp;To&nbsp;create&nbsp;a&nbsp;<br>
+tetrahedron&nbsp;with&nbsp;surface&nbsp;normals&nbsp;pointing&nbsp;outward,&nbsp;use&nbsp;the&nbsp;following<br>
+instead:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f1.revert()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s&nbsp;=&nbsp;<a href="#Surface">Surface</a>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;face&nbsp;in&nbsp;[f1,f2,f3,f4]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;not&nbsp;face.is_compatible(s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;face.revert()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s.add(face)<br>
+&nbsp;<br>
+Once&nbsp;the&nbsp;<a href="#Surface">Surface</a>&nbsp;is&nbsp;constructed,&nbsp;there&nbsp;are&nbsp;many&nbsp;different&nbsp;operations&nbsp;that<br>
+can&nbsp;be&nbsp;performed.&nbsp;&nbsp;For&nbsp;example,&nbsp;the&nbsp;volume&nbsp;can&nbsp;be&nbsp;calculated&nbsp;using:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s.volume()<br>
+&nbsp;<br>
+The&nbsp;difference&nbsp;between&nbsp;two&nbsp;Surfaces&nbsp;s1&nbsp;and&nbsp;s2&nbsp;is&nbsp;given&nbsp;by:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s3&nbsp;=&nbsp;s2.difference(s1)<br>
+&nbsp;<br>
+Etc.<br>
+&nbsp;<br>
+It&nbsp;is&nbsp;also&nbsp;possible&nbsp;to&nbsp;read&nbsp;in&nbsp;GTS&nbsp;data&nbsp;files&nbsp;and&nbsp;plot&nbsp;surfaces&nbsp;to<br>
+the&nbsp;screen.&nbsp;&nbsp;See&nbsp;the&nbsp;example&nbsp;programs&nbsp;packaged&nbsp;with&nbsp;pygts&nbsp;for<br>
+more&nbsp;information.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="gts.html#Object">Object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="gts.html#Point">Point</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="gts.html#Vertex">Vertex</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="gts.html#Segment">Segment</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="gts.html#Edge">Edge</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="gts.html#Surface">Surface</a>
+</font></dt><dt><font face="helvetica, arial"><a href="gts.html#Triangle">Triangle</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="gts.html#Face">Face</a>
+</font></dt></dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Edge">class <strong>Edge</strong></a>(<a href="gts.html#Segment">Segment</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Edge">Edge</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Edge">Edge</a></dd>
+<dd><a href="gts.html#Segment">Segment</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Edge-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Edge-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Edge-contacts"><strong>contacts</strong></a>(...)</dt><dd><tt>Returns&nbsp;number&nbsp;of&nbsp;sets&nbsp;of&nbsp;connected&nbsp;triangles&nbsp;share&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e<br>
+as&nbsp;a&nbsp;contact&nbsp;<a href="#Edge">Edge</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;e.<a href="#Edge-contacts">contacts</a>().</tt></dd></dl>
+
+<dl><dt><a name="Edge-face_number"><strong>face_number</strong></a>(...)</dt><dd><tt>Returns&nbsp;number&nbsp;of&nbsp;faces&nbsp;using&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;e.<a href="#Edge-face_number">face_number</a>(s).</tt></dd></dl>
+
+<dl><dt><a name="Edge-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;is&nbsp;not&nbsp;degenerate&nbsp;or&nbsp;duplicate.<br>
+False&nbsp;otherwise.&nbsp;&nbsp;Degeneracy&nbsp;implies&nbsp;e.v1.id&nbsp;==&nbsp;e.v2.id.<br>
+&nbsp;<br>
+Signature:&nbsp;e.<a href="#Edge-is_ok">is_ok</a>().</tt></dd></dl>
+
+<dl><dt><a name="Edge-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;is&nbsp;not&nbsp;part&nbsp;of&nbsp;any&nbsp;<a href="#Triangle">Triangle</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;e.<a href="#Edge-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7566e0&gt;<dd><tt>T.<a href="#Edge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Segment">Segment</a>:<br>
+<dl><dt><a name="Edge-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Edge-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Edge-connects"><strong>connects</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s1&nbsp;connects&nbsp;Vertices&nbsp;v1&nbsp;and&nbsp;v2.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Edge-connects">connects</a>(v1,v2).</tt></dd></dl>
+
+<dl><dt><a name="Edge-intersection"><strong>intersection</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;intersection&nbsp;of&nbsp;<a href="#Segment">Segment</a>&nbsp;s&nbsp;with&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+&nbsp;<br>
+This&nbsp;function&nbsp;is&nbsp;geometrically&nbsp;robust&nbsp;in&nbsp;the&nbsp;sense&nbsp;that&nbsp;it&nbsp;will<br>
+return&nbsp;None&nbsp;if&nbsp;s&nbsp;and&nbsp;t&nbsp;do&nbsp;not&nbsp;intersect&nbsp;and&nbsp;will&nbsp;return&nbsp;a<br>
+<a href="#Vertex">Vertex</a>&nbsp;if&nbsp;they&nbsp;do.&nbsp;However,&nbsp;the&nbsp;point&nbsp;coordinates&nbsp;are&nbsp;subject<br>
+to&nbsp;round-off&nbsp;errors.&nbsp;&nbsp;None&nbsp;will&nbsp;be&nbsp;returned&nbsp;if&nbsp;s&nbsp;is&nbsp;contained<br>
+in&nbsp;the&nbsp;plane&nbsp;defined&nbsp;by&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Edge-intersection">intersection</a>(t)&nbsp;or&nbsp;s.<a href="#Edge-intersection">intersection</a>(t,boundary).<br>
+&nbsp;<br>
+If&nbsp;boundary&nbsp;is&nbsp;True&nbsp;(default),&nbsp;the&nbsp;boundary&nbsp;of&nbsp;s&nbsp;is&nbsp;taken&nbsp;into<br>
+account.<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;summit&nbsp;of&nbsp;t&nbsp;(if&nbsp;boundary&nbsp;is&nbsp;True),&nbsp;one&nbsp;of&nbsp;the&nbsp;endpoints<br>
+of&nbsp;s,&nbsp;a&nbsp;new&nbsp;<a href="#Vertex">Vertex</a>&nbsp;at&nbsp;the&nbsp;intersection&nbsp;of&nbsp;s&nbsp;with&nbsp;t,&nbsp;or&nbsp;None&nbsp;if<br>
+s&nbsp;and&nbsp;t&nbsp;don't&nbsp;intersect.</tt></dd></dl>
+
+<dl><dt><a name="Edge-intersects"><strong>intersects</strong></a>(...)</dt><dd><tt>Checks&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s1&nbsp;intersects&nbsp;with&nbsp;<a href="#Segment">Segment</a>&nbsp;s2.<br>
+Returns&nbsp;1&nbsp;if&nbsp;they&nbsp;intersect,&nbsp;0&nbsp;if&nbsp;an&nbsp;endpoint&nbsp;of&nbsp;one&nbsp;<a href="#Segment">Segment</a>&nbsp;lies<br>
+on&nbsp;the&nbsp;other&nbsp;<a href="#Segment">Segment</a>,&nbsp;-1&nbsp;otherwise<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Edge-intersects">intersects</a>(s2).</tt></dd></dl>
+
+<dl><dt><a name="Edge-midvertex"><strong>midvertex</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#Vertex">Vertex</a>&nbsp;at&nbsp;the&nbsp;mid-point&nbsp;of&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Edge-midvertex">midvertex</a>().</tt></dd></dl>
+
+<dl><dt><a name="Edge-touches"><strong>touches</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s1&nbsp;touches&nbsp;<a href="#Segment">Segment</a>&nbsp;s2<br>
+(i.e.,&nbsp;they&nbsp;share&nbsp;a&nbsp;common&nbsp;<a href="#Vertex">Vertex</a>).&nbsp;&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Edge-touches">touches</a>(s2).</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Segment">Segment</a>:<br>
+<dl><dt><strong>v1</strong></dt>
+<dd><tt>Vertex&nbsp;1</tt></dd>
+</dl>
+<dl><dt><strong>v2</strong></dt>
+<dd><tt>Vertex&nbsp;2</tt></dd>
+</dl>
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Face">class <strong>Face</strong></a>(<a href="gts.html#Triangle">Triangle</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Face">Face</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Face">Face</a></dd>
+<dd><a href="gts.html#Triangle">Triangle</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Face-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Face-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Face-is_compatible"><strong>is_compatible</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;is&nbsp;compatible&nbsp;with&nbsp;all&nbsp;neighbors&nbsp;in&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;f.<a href="#Face-is_compatible">is_compatible</a>(s).</tt></dd></dl>
+
+<dl><dt><a name="Face-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;is&nbsp;non-degenerate&nbsp;and&nbsp;non-duplicate.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;f.<a href="#Face-is_ok">is_ok</a>()</tt></dd></dl>
+
+<dl><dt><a name="Face-is_on"><strong>is_on</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;is&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s.&nbsp;&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;f.<a href="#Face-is_on">is_on</a>(s).</tt></dd></dl>
+
+<dl><dt><a name="Face-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;is&nbsp;not&nbsp;part&nbsp;of&nbsp;any&nbsp;<a href="#Surface">Surface</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;f.<a href="#Face-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<dl><dt><a name="Face-neighbor_number"><strong>neighbor_number</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;number&nbsp;of&nbsp;neighbors&nbsp;of&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;belonging&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;f.<a href="#Face-neighbor_number">neighbor_number</a>(s).</tt></dd></dl>
+
+<dl><dt><a name="Face-neighbors"><strong>neighbors</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;neighbors&nbsp;of&nbsp;this&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;belonging&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;f.<a href="#Face-neighbors">neighbors</a>(s).</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756a20&gt;<dd><tt>T.<a href="#Face-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Triangle">Triangle</a>:<br>
+<dl><dt><a name="Face-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Face-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Face-angle"><strong>angle</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;angle&nbsp;(radians)&nbsp;between&nbsp;Triangles&nbsp;t1&nbsp;and&nbsp;t2<br>
+&nbsp;<br>
+Signature:&nbsp;t1.<a href="#Face-angle">angle</a>(t2)</tt></dd></dl>
+
+<dl><dt><a name="Face-area"><strong>area</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;area&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-area">area</a>()</tt></dd></dl>
+
+<dl><dt><a name="Face-circumcenter"><strong>circumcenter</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;<a href="#Vertex">Vertex</a>&nbsp;at&nbsp;the&nbsp;center&nbsp;of&nbsp;the&nbsp;circumscribing&nbsp;circle&nbsp;of<br>
+this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t,&nbsp;or&nbsp;None&nbsp;if&nbsp;the&nbsp;circumscribing&nbsp;circle&nbsp;is&nbsp;not<br>
+defined.<br>
+&nbsp;<br>
+Signature:&nbsp;t.circumcircle_center()</tt></dd></dl>
+
+<dl><dt><a name="Face-common_edge"><strong>common_edge</strong></a>(...)</dt><dd><tt>Returns&nbsp;<a href="#Edge">Edge</a>&nbsp;common&nbsp;to&nbsp;both&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t1&nbsp;and&nbsp;other&nbsp;t2.<br>
+Returns&nbsp;None&nbsp;if&nbsp;the&nbsp;triangles&nbsp;do&nbsp;not&nbsp;share&nbsp;an&nbsp;<a href="#Edge">Edge</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;t1.<a href="#Face-common_edge">common_edge</a>(t2)</tt></dd></dl>
+
+<dl><dt><a name="Face-normal"><strong>normal</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;oriented&nbsp;normal&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+as&nbsp;the&nbsp;cross-product&nbsp;of&nbsp;two&nbsp;edges,&nbsp;using&nbsp;the&nbsp;left-hand&nbsp;rule.&nbsp;&nbsp;The<br>
+normal&nbsp;is&nbsp;not&nbsp;normalized.&nbsp;&nbsp;If&nbsp;this&nbsp;triangle&nbsp;is&nbsp;part&nbsp;of&nbsp;a&nbsp;closed&nbsp;and<br>
+oriented&nbsp;surface,&nbsp;the&nbsp;normal&nbsp;points&nbsp;to&nbsp;the&nbsp;outside&nbsp;of&nbsp;the&nbsp;surface.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-normal">normal</a>()</tt></dd></dl>
+
+<dl><dt><a name="Face-opposite"><strong>opposite</strong></a>(...)</dt><dd><tt>Returns&nbsp;<a href="#Vertex">Vertex</a>&nbsp;opposite&nbsp;to&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;or&nbsp;<a href="#Edge">Edge</a>&nbsp;opposite&nbsp;to&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v<br>
+for&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-opposite">opposite</a>(e)&nbsp;or&nbsp;t.<a href="#Face-opposite">opposite</a>(v)</tt></dd></dl>
+
+<dl><dt><a name="Face-orientation"><strong>orientation</strong></a>(...)</dt><dd><tt>Determines&nbsp;orientation&nbsp;of&nbsp;the&nbsp;plane&nbsp;(x,y)&nbsp;projection&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-orientation">orientation</a>()<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;positive&nbsp;value&nbsp;if&nbsp;Points&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3&nbsp;in&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+appear&nbsp;in&nbsp;counterclockwise&nbsp;order,&nbsp;a&nbsp;negative&nbsp;value&nbsp;if&nbsp;they&nbsp;appear<br>
+in&nbsp;clockwise&nbsp;order&nbsp;and&nbsp;zero&nbsp;if&nbsp;they&nbsp;are&nbsp;colinear.</tt></dd></dl>
+
+<dl><dt><a name="Face-perimeter"><strong>perimeter</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;perimeter&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-perimeter">perimeter</a>()</tt></dd></dl>
+
+<dl><dt><a name="Face-quality"><strong>quality</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;quality&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+The&nbsp;quality&nbsp;of&nbsp;a&nbsp;triangle&nbsp;is&nbsp;defined&nbsp;as&nbsp;the&nbsp;ratio&nbsp;of&nbsp;the&nbsp;square<br>
+root&nbsp;of&nbsp;its&nbsp;surface&nbsp;area&nbsp;to&nbsp;its&nbsp;perimeter&nbsp;relative&nbsp;to&nbsp;this&nbsp;same<br>
+ratio&nbsp;for&nbsp;an&nbsp;equilateral&nbsp;triangle&nbsp;with&nbsp;the&nbsp;same&nbsp;area.&nbsp;&nbsp;The&nbsp;quality<br>
+is&nbsp;then&nbsp;one&nbsp;for&nbsp;an&nbsp;equilateral&nbsp;triangle&nbsp;and&nbsp;tends&nbsp;to&nbsp;zero&nbsp;for&nbsp;a<br>
+very&nbsp;stretched&nbsp;triangle.<br>
+Signature:&nbsp;t.<a href="#Face-quality">quality</a>()</tt></dd></dl>
+
+<dl><dt><a name="Face-revert"><strong>revert</strong></a>(...)</dt><dd><tt>Changes&nbsp;the&nbsp;orientation&nbsp;of&nbsp;triangle&nbsp;t,&nbsp;turning&nbsp;it&nbsp;inside&nbsp;out.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-revert">revert</a>()</tt></dd></dl>
+
+<dl><dt><a name="Face-vertices"><strong>vertices</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;three&nbsp;oriented&nbsp;set&nbsp;of&nbsp;vertices&nbsp;in&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-orientation">orientation</a>()</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Triangle">Triangle</a>:<br>
+<dl><dt><strong>e1</strong></dt>
+<dd><tt>Edge&nbsp;1</tt></dd>
+</dl>
+<dl><dt><strong>e2</strong></dt>
+<dd><tt>Edge&nbsp;2</tt></dd>
+</dl>
+<dl><dt><strong>e3</strong></dt>
+<dd><tt>Edge&nbsp;3</tt></dd>
+</dl>
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Object">class <strong>Object</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Base&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Object-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Object-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Object-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Object-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Object-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Object">Object</a>&nbsp;o&nbsp;is&nbsp;not&nbsp;attached&nbsp;to&nbsp;another&nbsp;<a href="#Object">Object</a>.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Trace:&nbsp;o.<a href="#Object-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756040&gt;<dd><tt>T.<a href="#Object-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Point">class <strong>Point</strong></a>(<a href="gts.html#Object">Object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Point">Point</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Point">Point</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Point-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Point-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Point-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Point-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Point-closest"><strong>closest</strong></a>(...)</dt><dd><tt>Set&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;to&nbsp;the&nbsp;<a href="#Point">Point</a>&nbsp;on&nbsp;<a href="#Segment">Segment</a>&nbsp;s<br>
+or&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;closest&nbsp;to&nbsp;the&nbsp;<a href="#Point">Point</a>&nbsp;p2<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-closest">closest</a>(s,p2)&nbsp;or&nbsp;p.<a href="#Point-closest">closest</a>(t,p2)<br>
+&nbsp;<br>
+Returns&nbsp;the&nbsp;(modified)&nbsp;<a href="#Point">Point</a>&nbsp;p.</tt></dd></dl>
+
+<dl><dt><a name="Point-distance"><strong>distance</strong></a>(...)</dt><dd><tt>Returns&nbsp;Euclidean&nbsp;distance&nbsp;between&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;and&nbsp;other&nbsp;<a href="#Point">Point</a>&nbsp;p2,<br>
+<a href="#Segment">Segment</a>&nbsp;s,&nbsp;or&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+Signature:&nbsp;p.<a href="#Point-distance">distance</a>(p2),&nbsp;p.<a href="#Point-distance">distance</a>(s)&nbsp;or&nbsp;p.<a href="#Point-distance">distance</a>(t)</tt></dd></dl>
+
+<dl><dt><a name="Point-distance2"><strong>distance2</strong></a>(...)</dt><dd><tt>Returns&nbsp;squared&nbsp;Euclidean&nbsp;distance&nbsp;between&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;and&nbsp;<a href="#Point">Point</a>&nbsp;p2,<br>
+<a href="#Segment">Segment</a>&nbsp;s,&nbsp;or&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-distance2">distance2</a>(p2),&nbsp;p.<a href="#Point-distance2">distance2</a>(s),&nbsp;or&nbsp;p.<a href="#Point-distance2">distance2</a>(t)</tt></dd></dl>
+
+<dl><dt><a name="Point-get"><strong>get</strong></a>(...)</dt><dd><tt>Gets&nbsp;x,&nbsp;y,&nbsp;and&nbsp;z&nbsp;coordinates&nbsp;of&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-get">get</a>(x,y,z)</tt></dd></dl>
+
+<dl><dt><a name="Point-is_in"><strong>is_in</strong></a>(...)</dt><dd><tt>Tests&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;inside&nbsp;or&nbsp;outside&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+The&nbsp;planar&nbsp;projection&nbsp;(x,y)&nbsp;of&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;tested&nbsp;against&nbsp;the<br>
+planar&nbsp;projection&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;p.in_circle(p1,p2,p3)&nbsp;or&nbsp;p.in_circle(t)&nbsp;<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;+1&nbsp;if&nbsp;p&nbsp;lies&nbsp;inside,&nbsp;-1&nbsp;if&nbsp;p&nbsp;lies&nbsp;outside,&nbsp;and&nbsp;0<br>
+if&nbsp;p&nbsp;lies&nbsp;on&nbsp;the&nbsp;triangle.</tt></dd></dl>
+
+<dl><dt><a name="Point-is_in_circle"><strong>is_in_circle</strong></a>(...)</dt><dd><tt>Tests&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;inside&nbsp;or&nbsp;outside&nbsp;circumcircle.<br>
+The&nbsp;planar&nbsp;projection&nbsp;(x,y)&nbsp;of&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;tested&nbsp;against&nbsp;the<br>
+circumcircle&nbsp;defined&nbsp;by&nbsp;the&nbsp;planar&nbsp;projection&nbsp;of&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3,<br>
+or&nbsp;alternatively&nbsp;the&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+&nbsp;<br>
+Signature:&nbsp;p.in_circle(p1,p2,p3)&nbsp;or&nbsp;p.in_circle(t)&nbsp;<br>
+&nbsp;<br>
+Returns&nbsp;+1&nbsp;if&nbsp;p&nbsp;lies&nbsp;inside,&nbsp;-1&nbsp;if&nbsp;p&nbsp;lies&nbsp;outside,&nbsp;and&nbsp;0&nbsp;if&nbsp;p&nbsp;lies<br>
+on&nbsp;the&nbsp;circle.&nbsp;&nbsp;The&nbsp;Points&nbsp;p1,&nbsp;p2,&nbsp;and&nbsp;p3&nbsp;must&nbsp;be&nbsp;in<br>
+counterclockwise&nbsp;order,&nbsp;or&nbsp;the&nbsp;sign&nbsp;of&nbsp;the&nbsp;result&nbsp;will&nbsp;be&nbsp;reversed.</tt></dd></dl>
+
+<dl><dt><a name="Point-is_in_rectangle"><strong>is_in_rectangle</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;in&nbsp;box&nbsp;with&nbsp;bottom-left&nbsp;and&nbsp;upper-right<br>
+Points&nbsp;p1&nbsp;and&nbsp;p2.<br>
+&nbsp;<br>
+Signature:&nbsp;p.is_in_rectange(p1,p2)</tt></dd></dl>
+
+<dl><dt><a name="Point-is_inside"><strong>is_inside</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;inside&nbsp;or&nbsp;outside&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;p.in_inside(s)</tt></dd></dl>
+
+<dl><dt><a name="Point-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;OK.&nbsp;&nbsp;False&nbsp;otherwise.<br>
+This&nbsp;method&nbsp;is&nbsp;useful&nbsp;for&nbsp;unit&nbsp;testing&nbsp;and&nbsp;debugging.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-is_ok">is_ok</a>().</tt></dd></dl>
+
+<dl><dt><a name="Point-orientation_3d"><strong>orientation_3d</strong></a>(...)</dt><dd><tt>Determines&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;above,&nbsp;below&nbsp;or&nbsp;on&nbsp;plane&nbsp;of&nbsp;3&nbsp;Points<br>
+p1,&nbsp;p2&nbsp;and&nbsp;p3.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-orientation_3d">orientation_3d</a>(p1,p2,p3)<br>
+&nbsp;<br>
+Below&nbsp;is&nbsp;defined&nbsp;so&nbsp;that&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3&nbsp;appear&nbsp;in&nbsp;counterclockwise<br>
+order&nbsp;when&nbsp;viewed&nbsp;from&nbsp;above&nbsp;the&nbsp;plane.<br>
+&nbsp;<br>
+The&nbsp;return&nbsp;value&nbsp;is&nbsp;positive&nbsp;if&nbsp;p4&nbsp;lies&nbsp;below&nbsp;the&nbsp;plane,&nbsp;negative<br>
+if&nbsp;p4&nbsp;lies&nbsp;above&nbsp;the&nbsp;plane,&nbsp;and&nbsp;zero&nbsp;if&nbsp;the&nbsp;four&nbsp;points&nbsp;are<br>
+coplanar.&nbsp;&nbsp;The&nbsp;value&nbsp;is&nbsp;an&nbsp;approximation&nbsp;of&nbsp;six&nbsp;times&nbsp;the&nbsp;signed<br>
+volume&nbsp;of&nbsp;the&nbsp;tetrahedron&nbsp;defined&nbsp;by&nbsp;the&nbsp;four&nbsp;points.</tt></dd></dl>
+
+<dl><dt><a name="Point-orientation_3d_sos"><strong>orientation_3d_sos</strong></a>(...)</dt><dd><tt>Determines&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;above,&nbsp;below&nbsp;or&nbsp;on&nbsp;plane&nbsp;of&nbsp;3&nbsp;Points<br>
+p1,&nbsp;p2&nbsp;and&nbsp;p3.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-orientation_3d_sos">orientation_3d_sos</a>(p1,p2,p3)<br>
+&nbsp;<br>
+Below&nbsp;is&nbsp;defined&nbsp;so&nbsp;that&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3&nbsp;appear&nbsp;in&nbsp;counterclockwise<br>
+order&nbsp;when&nbsp;viewed&nbsp;from&nbsp;above&nbsp;the&nbsp;plane.<br>
+&nbsp;<br>
+The&nbsp;return&nbsp;value&nbsp;is&nbsp;+1&nbsp;if&nbsp;p4&nbsp;lies&nbsp;below&nbsp;the&nbsp;plane,&nbsp;and&nbsp;-1&nbsp;if&nbsp;p4<br>
+lies&nbsp;above&nbsp;the&nbsp;plane.&nbsp;&nbsp;Simulation&nbsp;of&nbsp;Simplicity&nbsp;(SoS)&nbsp;is&nbsp;used&nbsp;to<br>
+break&nbsp;ties&nbsp;when&nbsp;the&nbsp;orientation&nbsp;is&nbsp;degenerate&nbsp;(i.e.&nbsp;the&nbsp;point&nbsp;lies<br>
+on&nbsp;the&nbsp;plane&nbsp;definedby&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3).</tt></dd></dl>
+
+<dl><dt><a name="Point-rotate"><strong>rotate</strong></a>(...)</dt><dd><tt>Rotates&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;around&nbsp;vector&nbsp;dx,dy,dz&nbsp;by&nbsp;angle&nbsp;a.<br>
+The&nbsp;sense&nbsp;of&nbsp;the&nbsp;rotation&nbsp;is&nbsp;given&nbsp;by&nbsp;the&nbsp;right-hand-rule.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-rotate">rotate</a>(dx=0,dy=0,dz=0,a=0)</tt></dd></dl>
+
+<dl><dt><a name="Point-scale"><strong>scale</strong></a>(...)</dt><dd><tt>Scales&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;by&nbsp;vector&nbsp;dx,dy,dz.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-scale">scale</a>(dx=1,dy=1,dz=1)</tt></dd></dl>
+
+<dl><dt><a name="Point-set"><strong>set</strong></a>(...)</dt><dd><tt>Sets&nbsp;x,&nbsp;y,&nbsp;and&nbsp;z&nbsp;coordinates&nbsp;of&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-set">set</a>(x,y,z)</tt></dd></dl>
+
+<dl><dt><a name="Point-translate"><strong>translate</strong></a>(...)</dt><dd><tt>Translates&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;by&nbsp;vector&nbsp;dx,dy,dz.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Point-translate">translate</a>(dx=0,dy=0,dz=0)</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>x</strong></dt>
+<dd><tt>x&nbsp;value</tt></dd>
+</dl>
+<dl><dt><strong>y</strong></dt>
+<dd><tt>y&nbsp;value</tt></dd>
+</dl>
+<dl><dt><strong>z</strong></dt>
+<dd><tt>z&nbsp;value</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756160&gt;<dd><tt>T.<a href="#Point-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><a name="Point-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Object">Object</a>&nbsp;o&nbsp;is&nbsp;not&nbsp;attached&nbsp;to&nbsp;another&nbsp;<a href="#Object">Object</a>.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Trace:&nbsp;o.<a href="#Point-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Segment">class <strong>Segment</strong></a>(<a href="gts.html#Object">Object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Segment">Segment</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Segment">Segment</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Segment-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Segment-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Segment-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Segment-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Segment-connects"><strong>connects</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s1&nbsp;connects&nbsp;Vertices&nbsp;v1&nbsp;and&nbsp;v2.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Segment-connects">connects</a>(v1,v2).</tt></dd></dl>
+
+<dl><dt><a name="Segment-intersection"><strong>intersection</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;intersection&nbsp;of&nbsp;<a href="#Segment">Segment</a>&nbsp;s&nbsp;with&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+&nbsp;<br>
+This&nbsp;function&nbsp;is&nbsp;geometrically&nbsp;robust&nbsp;in&nbsp;the&nbsp;sense&nbsp;that&nbsp;it&nbsp;will<br>
+return&nbsp;None&nbsp;if&nbsp;s&nbsp;and&nbsp;t&nbsp;do&nbsp;not&nbsp;intersect&nbsp;and&nbsp;will&nbsp;return&nbsp;a<br>
+<a href="#Vertex">Vertex</a>&nbsp;if&nbsp;they&nbsp;do.&nbsp;However,&nbsp;the&nbsp;point&nbsp;coordinates&nbsp;are&nbsp;subject<br>
+to&nbsp;round-off&nbsp;errors.&nbsp;&nbsp;None&nbsp;will&nbsp;be&nbsp;returned&nbsp;if&nbsp;s&nbsp;is&nbsp;contained<br>
+in&nbsp;the&nbsp;plane&nbsp;defined&nbsp;by&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Segment-intersection">intersection</a>(t)&nbsp;or&nbsp;s.<a href="#Segment-intersection">intersection</a>(t,boundary).<br>
+&nbsp;<br>
+If&nbsp;boundary&nbsp;is&nbsp;True&nbsp;(default),&nbsp;the&nbsp;boundary&nbsp;of&nbsp;s&nbsp;is&nbsp;taken&nbsp;into<br>
+account.<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;summit&nbsp;of&nbsp;t&nbsp;(if&nbsp;boundary&nbsp;is&nbsp;True),&nbsp;one&nbsp;of&nbsp;the&nbsp;endpoints<br>
+of&nbsp;s,&nbsp;a&nbsp;new&nbsp;<a href="#Vertex">Vertex</a>&nbsp;at&nbsp;the&nbsp;intersection&nbsp;of&nbsp;s&nbsp;with&nbsp;t,&nbsp;or&nbsp;None&nbsp;if<br>
+s&nbsp;and&nbsp;t&nbsp;don't&nbsp;intersect.</tt></dd></dl>
+
+<dl><dt><a name="Segment-intersects"><strong>intersects</strong></a>(...)</dt><dd><tt>Checks&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s1&nbsp;intersects&nbsp;with&nbsp;<a href="#Segment">Segment</a>&nbsp;s2.<br>
+Returns&nbsp;1&nbsp;if&nbsp;they&nbsp;intersect,&nbsp;0&nbsp;if&nbsp;an&nbsp;endpoint&nbsp;of&nbsp;one&nbsp;<a href="#Segment">Segment</a>&nbsp;lies<br>
+on&nbsp;the&nbsp;other&nbsp;<a href="#Segment">Segment</a>,&nbsp;-1&nbsp;otherwise<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Segment-intersects">intersects</a>(s2).</tt></dd></dl>
+
+<dl><dt><a name="Segment-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s&nbsp;is&nbsp;not&nbsp;degenerate&nbsp;or&nbsp;duplicate.<br>
+False&nbsp;otherwise.&nbsp;&nbsp;Degeneracy&nbsp;implies&nbsp;s.v1.id&nbsp;==&nbsp;s.v2.id.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Segment-is_ok">is_ok</a>().</tt></dd></dl>
+
+<dl><dt><a name="Segment-midvertex"><strong>midvertex</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#Vertex">Vertex</a>&nbsp;at&nbsp;the&nbsp;mid-point&nbsp;of&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Segment-midvertex">midvertex</a>().</tt></dd></dl>
+
+<dl><dt><a name="Segment-touches"><strong>touches</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Segment">Segment</a>&nbsp;s1&nbsp;touches&nbsp;<a href="#Segment">Segment</a>&nbsp;s2<br>
+(i.e.,&nbsp;they&nbsp;share&nbsp;a&nbsp;common&nbsp;<a href="#Vertex">Vertex</a>).&nbsp;&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Segment-touches">touches</a>(s2).</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>v1</strong></dt>
+<dd><tt>Vertex&nbsp;1</tt></dd>
+</dl>
+<dl><dt><strong>v2</strong></dt>
+<dd><tt>Vertex&nbsp;2</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756560&gt;<dd><tt>T.<a href="#Segment-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><a name="Segment-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Object">Object</a>&nbsp;o&nbsp;is&nbsp;not&nbsp;attached&nbsp;to&nbsp;another&nbsp;<a href="#Object">Object</a>.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Trace:&nbsp;o.<a href="#Segment-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Surface">class <strong>Surface</strong></a>(<a href="gts.html#Object">Object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Surface">Surface</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Surface">Surface</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Surface-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Surface-__iter__"><strong>__iter__</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-__iter__">__iter__</a>()&nbsp;&lt;==&gt;&nbsp;iter(x)</tt></dd></dl>
+
+<dl><dt><a name="Surface-add"><strong>add</strong></a>(...)</dt><dd><tt>Adds&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-add">add</a>(f)</tt></dd></dl>
+
+<dl><dt><a name="Surface-area"><strong>area</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;area&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+The&nbsp;area&nbsp;is&nbsp;taken&nbsp;as&nbsp;the&nbsp;sum&nbsp;of&nbsp;the&nbsp;signed&nbsp;areas&nbsp;of&nbsp;the&nbsp;Faces&nbsp;of&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-area">area</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-center_of_area"><strong>center_of_area</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;center&nbsp;of&nbsp;area&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-center_of_area">center_of_area</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-center_of_mass"><strong>center_of_mass</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;center&nbsp;of&nbsp;mass&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-center_of_mass">center_of_mass</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-copy"><strong>copy</strong></a>(...)</dt><dd><tt>Copys&nbsp;all&nbsp;Faces,&nbsp;Edges&nbsp;and&nbsp;Vertices&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s2&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s1.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Surface-copy">copy</a>(s2)<br>
+&nbsp;<br>
+Returns&nbsp;s1.</tt></dd></dl>
+
+<dl><dt><a name="Surface-difference"><strong>difference</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;difference&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;with&nbsp;<a href="#Surface">Surface</a>&nbsp;s2.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Surface-difference">difference</a>(s2)</tt></dd></dl>
+
+<dl><dt><a name="Surface-face_indices"><strong>face_indices</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;3-tuples&nbsp;containing&nbsp;<a href="#Vertex">Vertex</a>&nbsp;indices&nbsp;for&nbsp;each&nbsp;<a href="#Face">Face</a><br>
+in&nbsp;<a href="#Surface">Surface</a>&nbsp;s.&nbsp;&nbsp;The&nbsp;index&nbsp;for&nbsp;each&nbsp;<a href="#Vertex">Vertex</a>&nbsp;in&nbsp;a&nbsp;face&nbsp;corresponds&nbsp;to<br>
+where&nbsp;it&nbsp;is&nbsp;found&nbsp;in&nbsp;the&nbsp;<a href="#Vertex">Vertex</a>&nbsp;tuple&nbsp;vs.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-face_indices">face_indices</a>(vs)</tt></dd></dl>
+
+<dl><dt><a name="Surface-intersection"><strong>intersection</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;intersection&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;with&nbsp;<a href="#Surface">Surface</a>&nbsp;s2.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Surface-intersection">intersection</a>(s2)</tt></dd></dl>
+
+<dl><dt><a name="Surface-is_closed"><strong>is_closed</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;closed,&nbsp;False&nbsp;otherwise.<br>
+Note&nbsp;that&nbsp;a&nbsp;closed&nbsp;<a href="#Surface">Surface</a>&nbsp;is&nbsp;also&nbsp;a&nbsp;manifold.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-is_closed">is_closed</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-is_manifold"><strong>is_manifold</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;a&nbsp;manifold,&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-is_manifold">is_manifold</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;OK.&nbsp;&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-is_ok">is_ok</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-is_orientable"><strong>is_orientable</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;Faces&nbsp;in&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;have&nbsp;compatible&nbsp;orientation,<br>
+False&nbsp;otherwise.<br>
+Note&nbsp;that&nbsp;a&nbsp;closed&nbsp;surface&nbsp;is&nbsp;also&nbsp;a&nbsp;manifold.&nbsp;&nbsp;Note&nbsp;that&nbsp;an<br>
+orientable&nbsp;surface&nbsp;is&nbsp;also&nbsp;a&nbsp;manifold.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-is_orientable">is_orientable</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-is_self_intersecting"><strong>is_self_intersecting</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;self-intersecting.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-is_self_intersecting">is_self_intersecting</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-merge"><strong>merge</strong></a>(...)</dt><dd><tt>Adds&nbsp;faces&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s2&nbsp;which&nbsp;do&nbsp;not&nbsp;belong&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;to&nbsp;s1.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Surface-merge">merge</a>(s2)</tt></dd></dl>
+
+<dl><dt><a name="Surface-next"><strong>next</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-next">next</a>()&nbsp;-&gt;&nbsp;the&nbsp;next&nbsp;value,&nbsp;or&nbsp;raise&nbsp;StopIteration</tt></dd></dl>
+
+<dl><dt><a name="Surface-quality_stats"><strong>quality_stats</strong></a>(...)</dt><dd><tt>Returns&nbsp;quality&nbsp;statistics&nbsp;for&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;f&nbsp;in&nbsp;a&nbsp;dict.<br>
+The&nbsp;statistics&nbsp;include&nbsp;the&nbsp;{min,&nbsp;max,&nbsp;sum,&nbsp;sum2,&nbsp;mean,&nbsp;stddev,<br>
+and&nbsp;n}&nbsp;for&nbsp;populations&nbsp;of&nbsp;face_quality,&nbsp;face_area,&nbsp;edge_length,<br>
+and&nbsp;edge_angle.&nbsp;&nbsp;Each&nbsp;of&nbsp;these&nbsp;names&nbsp;are&nbsp;dictionary&nbsp;keys.<br>
+See&nbsp;<a href="#Triangle">Triangle</a>.quality()&nbsp;for&nbsp;an&nbsp;explanation&nbsp;of&nbsp;the&nbsp;face_quality.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-quality_stats">quality_stats</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-read"><strong>read</strong></a>(...)</dt><dd><tt>Adds&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;the&nbsp;data&nbsp;read&nbsp;from&nbsp;File&nbsp;f.<br>
+The&nbsp;File&nbsp;data&nbsp;must&nbsp;be&nbsp;stored&nbsp;in&nbsp;GTS&nbsp;format&nbsp;(e.g.,&nbsp;by&nbsp;using.<br>
+s.<a href="#Surface-write">write</a>())<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-read">read</a>(f)</tt></dd></dl>
+
+<dl><dt><a name="Surface-remove"><strong>remove</strong></a>(...)</dt><dd><tt>Removes&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-remove">remove</a>(f)</tt></dd></dl>
+
+<dl><dt><a name="Surface-rotate"><strong>rotate</strong></a>(...)</dt><dd><tt>Rotates&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;about&nbsp;vector&nbsp;dx,dy,dz&nbsp;and&nbsp;angle&nbsp;a.<br>
+The&nbsp;sense&nbsp;of&nbsp;the&nbsp;rotation&nbsp;is&nbsp;given&nbsp;by&nbsp;the&nbsp;right-hand-rule.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-rotate">rotate</a>(dx,dy,dz,a)</tt></dd></dl>
+
+<dl><dt><a name="Surface-scale"><strong>scale</strong></a>(...)</dt><dd><tt>Scales&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;by&nbsp;vector&nbsp;dx,dy,dz.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-scale">scale</a>(dx=1,dy=1,dz=1)</tt></dd></dl>
+
+<dl><dt><a name="Surface-split"><strong>split</strong></a>(...)</dt><dd><tt>Splits&nbsp;a&nbsp;surface&nbsp;into&nbsp;a&nbsp;tuple&nbsp;of&nbsp;connected&nbsp;and&nbsp;manifold&nbsp;components.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-split">split</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-stats"><strong>stats</strong></a>(...)</dt><dd><tt>Returns&nbsp;statistics&nbsp;for&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;f&nbsp;in&nbsp;a&nbsp;dict.<br>
+The&nbsp;stats&nbsp;include&nbsp;n_faces,&nbsp;n_incompatible_faces,,&nbsp;n_boundary_edges,<br>
+n_non_manifold_edges,&nbsp;and&nbsp;the&nbsp;statisics&nbsp;{min,&nbsp;max,&nbsp;sum,&nbsp;sum2,&nbsp;mean,<br>
+stddev,&nbsp;and&nbsp;n}&nbsp;for&nbsp;populations&nbsp;of&nbsp;edges_per_vertex&nbsp;and<br>
+faces_per_edge.&nbsp;&nbsp;Each&nbsp;of&nbsp;these&nbsp;names&nbsp;are&nbsp;dictionary&nbsp;keys.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-stats">stats</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-strip"><strong>strip</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;strips,&nbsp;where&nbsp;each&nbsp;strip&nbsp;is&nbsp;a&nbsp;tuple&nbsp;of&nbsp;Faces<br>
+that&nbsp;are&nbsp;successive&nbsp;and&nbsp;have&nbsp;one&nbsp;edge&nbsp;in&nbsp;common.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-split">split</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-tessellate"><strong>tessellate</strong></a>(...)</dt><dd><tt>Tessellate&nbsp;each&nbsp;face&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;with&nbsp;4&nbsp;triangles.<br>
+The&nbsp;number&nbsp;of&nbsp;triangles&nbsp;is&nbsp;increased&nbsp;by&nbsp;a&nbsp;factor&nbsp;of&nbsp;4.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-tessellate">tessellate</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-translate"><strong>translate</strong></a>(...)</dt><dd><tt>Translates&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;by&nbsp;vector&nbsp;dx,dy,dz.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-translate">translate</a>(dx=0,dy=0,dz=0)</tt></dd></dl>
+
+<dl><dt><a name="Surface-union"><strong>union</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;union&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;with&nbsp;<a href="#Surface">Surface</a>&nbsp;s2.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Surface-union">union</a>(s2)</tt></dd></dl>
+
+<dl><dt><a name="Surface-vertices"><strong>vertices</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;containing&nbsp;the&nbsp;vertices&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-vertices">vertices</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-volume"><strong>volume</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;signed&nbsp;volume&nbsp;of&nbsp;the&nbsp;domain&nbsp;bounded&nbsp;by&nbsp;the&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-volume">volume</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-write"><strong>write</strong></a>(...)</dt><dd><tt>Saves&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;to&nbsp;File&nbsp;f&nbsp;in&nbsp;GTS&nbsp;ascii&nbsp;format.<br>
+All&nbsp;the&nbsp;lines&nbsp;beginning&nbsp;with&nbsp;#!&nbsp;are&nbsp;ignored.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-write">write</a>(f)</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>Nedges</strong></dt>
+<dd><tt>The&nbsp;number&nbsp;of&nbsp;unique&nbsp;edges</tt></dd>
+</dl>
+<dl><dt><strong>Nfaces</strong></dt>
+<dd><tt>The&nbsp;number&nbsp;of&nbsp;unique&nbsp;faces</tt></dd>
+</dl>
+<dl><dt><strong>Nvertices</strong></dt>
+<dd><tt>The&nbsp;number&nbsp;of&nbsp;unique&nbsp;vertices</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756b80&gt;<dd><tt>T.<a href="#Surface-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><a name="Surface-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Surface-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Object">Object</a>&nbsp;o&nbsp;is&nbsp;not&nbsp;attached&nbsp;to&nbsp;another&nbsp;<a href="#Object">Object</a>.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Trace:&nbsp;o.<a href="#Surface-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Triangle">class <strong>Triangle</strong></a>(<a href="gts.html#Object">Object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Triangle">Triangle</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Triangle">Triangle</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Triangle-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Triangle-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Triangle-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Triangle-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Triangle-angle"><strong>angle</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;angle&nbsp;(radians)&nbsp;between&nbsp;Triangles&nbsp;t1&nbsp;and&nbsp;t2<br>
+&nbsp;<br>
+Signature:&nbsp;t1.<a href="#Triangle-angle">angle</a>(t2)</tt></dd></dl>
+
+<dl><dt><a name="Triangle-area"><strong>area</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;area&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-area">area</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-circumcenter"><strong>circumcenter</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;<a href="#Vertex">Vertex</a>&nbsp;at&nbsp;the&nbsp;center&nbsp;of&nbsp;the&nbsp;circumscribing&nbsp;circle&nbsp;of<br>
+this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t,&nbsp;or&nbsp;None&nbsp;if&nbsp;the&nbsp;circumscribing&nbsp;circle&nbsp;is&nbsp;not<br>
+defined.<br>
+&nbsp;<br>
+Signature:&nbsp;t.circumcircle_center()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-common_edge"><strong>common_edge</strong></a>(...)</dt><dd><tt>Returns&nbsp;<a href="#Edge">Edge</a>&nbsp;common&nbsp;to&nbsp;both&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t1&nbsp;and&nbsp;other&nbsp;t2.<br>
+Returns&nbsp;None&nbsp;if&nbsp;the&nbsp;triangles&nbsp;do&nbsp;not&nbsp;share&nbsp;an&nbsp;<a href="#Edge">Edge</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;t1.<a href="#Triangle-common_edge">common_edge</a>(t2)</tt></dd></dl>
+
+<dl><dt><a name="Triangle-is_compatible"><strong>is_compatible</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;triangle&nbsp;t1&nbsp;and&nbsp;other&nbsp;t2&nbsp;are&nbsp;compatible;<br>
+otherwise&nbsp;False.<br>
+&nbsp;<br>
+Checks&nbsp;if&nbsp;this&nbsp;triangle&nbsp;t1&nbsp;and&nbsp;other&nbsp;t2,&nbsp;which&nbsp;share&nbsp;a&nbsp;common<br>
+<a href="#Edge">Edge</a>,&nbsp;can&nbsp;be&nbsp;part&nbsp;of&nbsp;the&nbsp;same&nbsp;surface&nbsp;without&nbsp;conflict&nbsp;in&nbsp;the<br>
+surface&nbsp;normal&nbsp;orientation.<br>
+&nbsp;<br>
+Signature:&nbsp;t1.<a href="#Triangle-is_compatible">is_compatible</a>(t2)</tt></dd></dl>
+
+<dl><dt><a name="Triangle-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;is&nbsp;non-degenerate&nbsp;and&nbsp;non-duplicate.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-is_ok">is_ok</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-normal"><strong>normal</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;oriented&nbsp;normal&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+as&nbsp;the&nbsp;cross-product&nbsp;of&nbsp;two&nbsp;edges,&nbsp;using&nbsp;the&nbsp;left-hand&nbsp;rule.&nbsp;&nbsp;The<br>
+normal&nbsp;is&nbsp;not&nbsp;normalized.&nbsp;&nbsp;If&nbsp;this&nbsp;triangle&nbsp;is&nbsp;part&nbsp;of&nbsp;a&nbsp;closed&nbsp;and<br>
+oriented&nbsp;surface,&nbsp;the&nbsp;normal&nbsp;points&nbsp;to&nbsp;the&nbsp;outside&nbsp;of&nbsp;the&nbsp;surface.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-normal">normal</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-opposite"><strong>opposite</strong></a>(...)</dt><dd><tt>Returns&nbsp;<a href="#Vertex">Vertex</a>&nbsp;opposite&nbsp;to&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;or&nbsp;<a href="#Edge">Edge</a>&nbsp;opposite&nbsp;to&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v<br>
+for&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-opposite">opposite</a>(e)&nbsp;or&nbsp;t.<a href="#Triangle-opposite">opposite</a>(v)</tt></dd></dl>
+
+<dl><dt><a name="Triangle-orientation"><strong>orientation</strong></a>(...)</dt><dd><tt>Determines&nbsp;orientation&nbsp;of&nbsp;the&nbsp;plane&nbsp;(x,y)&nbsp;projection&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-orientation">orientation</a>()<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;positive&nbsp;value&nbsp;if&nbsp;Points&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3&nbsp;in&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+appear&nbsp;in&nbsp;counterclockwise&nbsp;order,&nbsp;a&nbsp;negative&nbsp;value&nbsp;if&nbsp;they&nbsp;appear<br>
+in&nbsp;clockwise&nbsp;order&nbsp;and&nbsp;zero&nbsp;if&nbsp;they&nbsp;are&nbsp;colinear.</tt></dd></dl>
+
+<dl><dt><a name="Triangle-perimeter"><strong>perimeter</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;perimeter&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-perimeter">perimeter</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-quality"><strong>quality</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;quality&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+The&nbsp;quality&nbsp;of&nbsp;a&nbsp;triangle&nbsp;is&nbsp;defined&nbsp;as&nbsp;the&nbsp;ratio&nbsp;of&nbsp;the&nbsp;square<br>
+root&nbsp;of&nbsp;its&nbsp;surface&nbsp;area&nbsp;to&nbsp;its&nbsp;perimeter&nbsp;relative&nbsp;to&nbsp;this&nbsp;same<br>
+ratio&nbsp;for&nbsp;an&nbsp;equilateral&nbsp;triangle&nbsp;with&nbsp;the&nbsp;same&nbsp;area.&nbsp;&nbsp;The&nbsp;quality<br>
+is&nbsp;then&nbsp;one&nbsp;for&nbsp;an&nbsp;equilateral&nbsp;triangle&nbsp;and&nbsp;tends&nbsp;to&nbsp;zero&nbsp;for&nbsp;a<br>
+very&nbsp;stretched&nbsp;triangle.<br>
+Signature:&nbsp;t.<a href="#Triangle-quality">quality</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-revert"><strong>revert</strong></a>(...)</dt><dd><tt>Changes&nbsp;the&nbsp;orientation&nbsp;of&nbsp;triangle&nbsp;t,&nbsp;turning&nbsp;it&nbsp;inside&nbsp;out.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-revert">revert</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-vertices"><strong>vertices</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;three&nbsp;oriented&nbsp;set&nbsp;of&nbsp;vertices&nbsp;in&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-orientation">orientation</a>()</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>e1</strong></dt>
+<dd><tt>Edge&nbsp;1</tt></dd>
+</dl>
+<dl><dt><strong>e2</strong></dt>
+<dd><tt>Edge&nbsp;2</tt></dd>
+</dl>
+<dl><dt><strong>e3</strong></dt>
+<dd><tt>Edge&nbsp;3</tt></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756800&gt;<dd><tt>T.<a href="#Triangle-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><a name="Triangle-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Object">Object</a>&nbsp;o&nbsp;is&nbsp;not&nbsp;attached&nbsp;to&nbsp;another&nbsp;<a href="#Object">Object</a>.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Trace:&nbsp;o.<a href="#Triangle-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Vertex">class <strong>Vertex</strong></a>(<a href="gts.html#Point">Point</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Vertex">Vertex</a>&nbsp;<a href="__builtin__.html#object">object</a><br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="gts.html#Vertex">Vertex</a></dd>
+<dd><a href="gts.html#Point">Point</a></dd>
+<dd><a href="gts.html#Object">Object</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Vertex-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Vertex-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
+
+<dl><dt><a name="Vertex-contacts"><strong>contacts</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;number&nbsp;of&nbsp;sets&nbsp;of&nbsp;connected&nbsp;Triangles&nbsp;sharing&nbsp;this<br>
+<a href="#Vertex">Vertex</a>&nbsp;v.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-contacts">contacts</a>().<br>
+&nbsp;<br>
+If&nbsp;sever&nbsp;is&nbsp;True&nbsp;(default:&nbsp;False)&nbsp;and&nbsp;v&nbsp;is&nbsp;a&nbsp;contact&nbsp;vertex&nbsp;then<br>
+the&nbsp;vertex&nbsp;is&nbsp;replaced&nbsp;in&nbsp;each&nbsp;<a href="#Triangle">Triangle</a>&nbsp;with&nbsp;clones.</tt></dd></dl>
+
+<dl><dt><a name="Vertex-encroaches"><strong>encroaches</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v&nbsp;is&nbsp;strictly&nbsp;contained&nbsp;in&nbsp;the<br>
+diametral&nbsp;circle&nbsp;of&nbsp;<a href="#Edge">Edge</a>&nbsp;e.&nbsp;&nbsp;False&nbsp;otherwise.<br>
+&nbsp;<br>
+Only&nbsp;the&nbsp;projection&nbsp;onto&nbsp;the&nbsp;x-y&nbsp;plane&nbsp;is&nbsp;considered.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-encroaches">encroaches</a>(e)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-faces"><strong>faces</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;Faces&nbsp;that&nbsp;have&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v.<br>
+&nbsp;<br>
+If&nbsp;a&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;given,&nbsp;only&nbsp;Vertices&nbsp;on&nbsp;s&nbsp;are&nbsp;considered.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-faces">faces</a>()&nbsp;or&nbsp;v.<a href="#Vertex-faces">faces</a>(s).</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_boundary"><strong>is_boundary</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v&nbsp;is&nbsp;used&nbsp;by&nbsp;a&nbsp;boundary&nbsp;<a href="#Edge">Edge</a>&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-is_boundary">is_boundary</a>().</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_connected"><strong>is_connected</strong></a>(...)</dt><dd><tt>Return&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v1&nbsp;is&nbsp;connected&nbsp;to&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v2<br>
+by&nbsp;a&nbsp;<a href="#Segment">Segment</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;v1.<a href="#Vertex-is_connected">is_connected</a>().</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v&nbsp;is&nbsp;OK.&nbsp;&nbsp;False&nbsp;otherwise.<br>
+This&nbsp;method&nbsp;is&nbsp;useful&nbsp;for&nbsp;unit&nbsp;testing&nbsp;and&nbsp;debugging.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-is_ok">is_ok</a>().</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v&nbsp;is&nbsp;not&nbsp;the&nbsp;endpoint&nbsp;of&nbsp;any&nbsp;<a href="#Segment">Segment</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-is_unattached">is_unattached</a>().</tt></dd></dl>
+
+<dl><dt><a name="Vertex-neighbors"><strong>neighbors</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;Vertices&nbsp;attached&nbsp;to&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v<br>
+by&nbsp;a&nbsp;<a href="#Segment">Segment</a>.<br>
+&nbsp;<br>
+If&nbsp;a&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;given,&nbsp;only&nbsp;Vertices&nbsp;on&nbsp;s&nbsp;are&nbsp;considered.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-neighbors">neighbors</a>()&nbsp;or&nbsp;v.<a href="#Vertex-neighbors">neighbors</a>(s).</tt></dd></dl>
+
+<dl><dt><a name="Vertex-replace"><strong>replace</strong></a>(...)</dt><dd><tt>Replaces&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v1&nbsp;with&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v2&nbsp;in&nbsp;all&nbsp;segments&nbsp;that&nbsp;have&nbsp;v1.<br>
+<a href="#Vertex">Vertex</a>&nbsp;v1&nbsp;itself&nbsp;is&nbsp;left&nbsp;unchanged.<br>
+&nbsp;<br>
+Signature:&nbsp;v1.<a href="#Vertex-replace">replace</a>(v2).</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7563e0&gt;<dd><tt>T.<a href="#Vertex-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+<hr>
+Methods inherited from <a href="gts.html#Point">Point</a>:<br>
+<dl><dt><a name="Vertex-__cmp__"><strong>__cmp__</strong></a>(...)</dt><dd><tt>x.<a href="#Vertex-__cmp__">__cmp__</a>(y)&nbsp;&lt;==&gt;&nbsp;cmp(x,y)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-closest"><strong>closest</strong></a>(...)</dt><dd><tt>Set&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;to&nbsp;the&nbsp;<a href="#Point">Point</a>&nbsp;on&nbsp;<a href="#Segment">Segment</a>&nbsp;s<br>
+or&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;closest&nbsp;to&nbsp;the&nbsp;<a href="#Point">Point</a>&nbsp;p2<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-closest">closest</a>(s,p2)&nbsp;or&nbsp;p.<a href="#Vertex-closest">closest</a>(t,p2)<br>
+&nbsp;<br>
+Returns&nbsp;the&nbsp;(modified)&nbsp;<a href="#Point">Point</a>&nbsp;p.</tt></dd></dl>
+
+<dl><dt><a name="Vertex-distance"><strong>distance</strong></a>(...)</dt><dd><tt>Returns&nbsp;Euclidean&nbsp;distance&nbsp;between&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;and&nbsp;other&nbsp;<a href="#Point">Point</a>&nbsp;p2,<br>
+<a href="#Segment">Segment</a>&nbsp;s,&nbsp;or&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+Signature:&nbsp;p.<a href="#Vertex-distance">distance</a>(p2),&nbsp;p.<a href="#Vertex-distance">distance</a>(s)&nbsp;or&nbsp;p.<a href="#Vertex-distance">distance</a>(t)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-distance2"><strong>distance2</strong></a>(...)</dt><dd><tt>Returns&nbsp;squared&nbsp;Euclidean&nbsp;distance&nbsp;between&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;and&nbsp;<a href="#Point">Point</a>&nbsp;p2,<br>
+<a href="#Segment">Segment</a>&nbsp;s,&nbsp;or&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-distance2">distance2</a>(p2),&nbsp;p.<a href="#Vertex-distance2">distance2</a>(s),&nbsp;or&nbsp;p.<a href="#Vertex-distance2">distance2</a>(t)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-get"><strong>get</strong></a>(...)</dt><dd><tt>Gets&nbsp;x,&nbsp;y,&nbsp;and&nbsp;z&nbsp;coordinates&nbsp;of&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-get">get</a>(x,y,z)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_in"><strong>is_in</strong></a>(...)</dt><dd><tt>Tests&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;inside&nbsp;or&nbsp;outside&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+The&nbsp;planar&nbsp;projection&nbsp;(x,y)&nbsp;of&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;tested&nbsp;against&nbsp;the<br>
+planar&nbsp;projection&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
+&nbsp;<br>
+Signature:&nbsp;p.in_circle(p1,p2,p3)&nbsp;or&nbsp;p.in_circle(t)&nbsp;<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;+1&nbsp;if&nbsp;p&nbsp;lies&nbsp;inside,&nbsp;-1&nbsp;if&nbsp;p&nbsp;lies&nbsp;outside,&nbsp;and&nbsp;0<br>
+if&nbsp;p&nbsp;lies&nbsp;on&nbsp;the&nbsp;triangle.</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_in_circle"><strong>is_in_circle</strong></a>(...)</dt><dd><tt>Tests&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;inside&nbsp;or&nbsp;outside&nbsp;circumcircle.<br>
+The&nbsp;planar&nbsp;projection&nbsp;(x,y)&nbsp;of&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;tested&nbsp;against&nbsp;the<br>
+circumcircle&nbsp;defined&nbsp;by&nbsp;the&nbsp;planar&nbsp;projection&nbsp;of&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3,<br>
+or&nbsp;alternatively&nbsp;the&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
+&nbsp;<br>
+Signature:&nbsp;p.in_circle(p1,p2,p3)&nbsp;or&nbsp;p.in_circle(t)&nbsp;<br>
+&nbsp;<br>
+Returns&nbsp;+1&nbsp;if&nbsp;p&nbsp;lies&nbsp;inside,&nbsp;-1&nbsp;if&nbsp;p&nbsp;lies&nbsp;outside,&nbsp;and&nbsp;0&nbsp;if&nbsp;p&nbsp;lies<br>
+on&nbsp;the&nbsp;circle.&nbsp;&nbsp;The&nbsp;Points&nbsp;p1,&nbsp;p2,&nbsp;and&nbsp;p3&nbsp;must&nbsp;be&nbsp;in<br>
+counterclockwise&nbsp;order,&nbsp;or&nbsp;the&nbsp;sign&nbsp;of&nbsp;the&nbsp;result&nbsp;will&nbsp;be&nbsp;reversed.</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_in_rectangle"><strong>is_in_rectangle</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;in&nbsp;box&nbsp;with&nbsp;bottom-left&nbsp;and&nbsp;upper-right<br>
+Points&nbsp;p1&nbsp;and&nbsp;p2.<br>
+&nbsp;<br>
+Signature:&nbsp;p.is_in_rectange(p1,p2)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-is_inside"><strong>is_inside</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;inside&nbsp;or&nbsp;outside&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+False&nbsp;otherwise.<br>
+&nbsp;<br>
+Signature:&nbsp;p.in_inside(s)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-orientation_3d"><strong>orientation_3d</strong></a>(...)</dt><dd><tt>Determines&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;above,&nbsp;below&nbsp;or&nbsp;on&nbsp;plane&nbsp;of&nbsp;3&nbsp;Points<br>
+p1,&nbsp;p2&nbsp;and&nbsp;p3.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-orientation_3d">orientation_3d</a>(p1,p2,p3)<br>
+&nbsp;<br>
+Below&nbsp;is&nbsp;defined&nbsp;so&nbsp;that&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3&nbsp;appear&nbsp;in&nbsp;counterclockwise<br>
+order&nbsp;when&nbsp;viewed&nbsp;from&nbsp;above&nbsp;the&nbsp;plane.<br>
+&nbsp;<br>
+The&nbsp;return&nbsp;value&nbsp;is&nbsp;positive&nbsp;if&nbsp;p4&nbsp;lies&nbsp;below&nbsp;the&nbsp;plane,&nbsp;negative<br>
+if&nbsp;p4&nbsp;lies&nbsp;above&nbsp;the&nbsp;plane,&nbsp;and&nbsp;zero&nbsp;if&nbsp;the&nbsp;four&nbsp;points&nbsp;are<br>
+coplanar.&nbsp;&nbsp;The&nbsp;value&nbsp;is&nbsp;an&nbsp;approximation&nbsp;of&nbsp;six&nbsp;times&nbsp;the&nbsp;signed<br>
+volume&nbsp;of&nbsp;the&nbsp;tetrahedron&nbsp;defined&nbsp;by&nbsp;the&nbsp;four&nbsp;points.</tt></dd></dl>
+
+<dl><dt><a name="Vertex-orientation_3d_sos"><strong>orientation_3d_sos</strong></a>(...)</dt><dd><tt>Determines&nbsp;if&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;is&nbsp;above,&nbsp;below&nbsp;or&nbsp;on&nbsp;plane&nbsp;of&nbsp;3&nbsp;Points<br>
+p1,&nbsp;p2&nbsp;and&nbsp;p3.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-orientation_3d_sos">orientation_3d_sos</a>(p1,p2,p3)<br>
+&nbsp;<br>
+Below&nbsp;is&nbsp;defined&nbsp;so&nbsp;that&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3&nbsp;appear&nbsp;in&nbsp;counterclockwise<br>
+order&nbsp;when&nbsp;viewed&nbsp;from&nbsp;above&nbsp;the&nbsp;plane.<br>
+&nbsp;<br>
+The&nbsp;return&nbsp;value&nbsp;is&nbsp;+1&nbsp;if&nbsp;p4&nbsp;lies&nbsp;below&nbsp;the&nbsp;plane,&nbsp;and&nbsp;-1&nbsp;if&nbsp;p4<br>
+lies&nbsp;above&nbsp;the&nbsp;plane.&nbsp;&nbsp;Simulation&nbsp;of&nbsp;Simplicity&nbsp;(SoS)&nbsp;is&nbsp;used&nbsp;to<br>
+break&nbsp;ties&nbsp;when&nbsp;the&nbsp;orientation&nbsp;is&nbsp;degenerate&nbsp;(i.e.&nbsp;the&nbsp;point&nbsp;lies<br>
+on&nbsp;the&nbsp;plane&nbsp;definedby&nbsp;p1,&nbsp;p2&nbsp;and&nbsp;p3).</tt></dd></dl>
+
+<dl><dt><a name="Vertex-rotate"><strong>rotate</strong></a>(...)</dt><dd><tt>Rotates&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;around&nbsp;vector&nbsp;dx,dy,dz&nbsp;by&nbsp;angle&nbsp;a.<br>
+The&nbsp;sense&nbsp;of&nbsp;the&nbsp;rotation&nbsp;is&nbsp;given&nbsp;by&nbsp;the&nbsp;right-hand-rule.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-rotate">rotate</a>(dx=0,dy=0,dz=0,a=0)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-scale"><strong>scale</strong></a>(...)</dt><dd><tt>Scales&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;by&nbsp;vector&nbsp;dx,dy,dz.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-scale">scale</a>(dx=1,dy=1,dz=1)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-set"><strong>set</strong></a>(...)</dt><dd><tt>Sets&nbsp;x,&nbsp;y,&nbsp;and&nbsp;z&nbsp;coordinates&nbsp;of&nbsp;this&nbsp;<a href="#Point">Point</a>&nbsp;p.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-set">set</a>(x,y,z)</tt></dd></dl>
+
+<dl><dt><a name="Vertex-translate"><strong>translate</strong></a>(...)</dt><dd><tt>Translates&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;by&nbsp;vector&nbsp;dx,dy,dz.<br>
+&nbsp;<br>
+Signature:&nbsp;p.<a href="#Vertex-translate">translate</a>(dx=0,dy=0,dz=0)</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="gts.html#Point">Point</a>:<br>
+<dl><dt><strong>x</strong></dt>
+<dd><tt>x&nbsp;value</tt></dd>
+</dl>
+<dl><dt><strong>y</strong></dt>
+<dd><tt>y&nbsp;value</tt></dd>
+</dl>
+<dl><dt><strong>z</strong></dt>
+<dd><tt>z&nbsp;value</tt></dd>
+</dl>
+<hr>
+Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
+<dl><dt><strong>id</strong></dt>
+<dd><tt>GTS&nbsp;object&nbsp;id</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-get_mayavi_coords_and_triangles"><strong>get_mayavi_coords_and_triangles</strong></a>(s)</dt><dd><tt>Returns&nbsp;surface&nbsp;data&nbsp;in&nbsp;format&nbsp;used&nbsp;by&nbsp;mayavi.<br>
+&nbsp;<br>
+Four&nbsp;tuples&nbsp;are&nbsp;returned.&nbsp;&nbsp;The&nbsp;first&nbsp;three&nbsp;are&nbsp;the&nbsp;x,&nbsp;y,&nbsp;and&nbsp;z<br>
+coordinates&nbsp;for&nbsp;each&nbsp;<a href="#Vertex">Vertex</a>&nbsp;on&nbsp;the&nbsp;<a href="#Surface">Surface</a>.&nbsp;&nbsp;The&nbsp;last&nbsp;is&nbsp;a&nbsp;list&nbsp;of&nbsp;<br>
+tuples,&nbsp;one&nbsp;for&nbsp;each&nbsp;<a href="#Face">Face</a>&nbsp;on&nbsp;the&nbsp;<a href="#Surface">Surface</a>,&nbsp;containing&nbsp;3&nbsp;indices&nbsp;linking<br>
+the&nbsp;<a href="#Face">Face</a>&nbsp;Vertices&nbsp;to&nbsp;the&nbsp;coordinate&nbsp;lists.</tt></dd></dl>
+ <dl><dt><a name="-sphere"><strong>sphere</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;unit&nbsp;sphere&nbsp;generated&nbsp;by&nbsp;recursive&nbsp;subdivision.<br>
+First&nbsp;approximation&nbsp;is&nbsp;an&nbsp;isocahedron;&nbsp;each&nbsp;level&nbsp;of&nbsp;refinement<br>
+(geodesation_order)&nbsp;increases&nbsp;the&nbsp;number&nbsp;of&nbsp;triangles&nbsp;by&nbsp;a&nbsp;factor<br>
+of&nbsp;4.<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-sphere">sphere</a>(geodesation_order)</tt></dd></dl>
+ <dl><dt><a name="-tetrahedron"><strong>tetrahedron</strong></a>()</dt><dd><tt>Returns&nbsp;a&nbsp;tetrahedron&nbsp;of&nbsp;side&nbsp;length&nbsp;2*sqrt(2)&nbsp;centered&nbsp;at&nbsp;origin.<br>
+&nbsp;<br>
+The&nbsp;edges&nbsp;of&nbsp;the&nbsp;tetrahedron&nbsp;are&nbsp;perpendicular&nbsp;to&nbsp;the&nbsp;cardinal<br>
+directions.</tt></dd></dl>
+</td></tr></table>
+</body></html>

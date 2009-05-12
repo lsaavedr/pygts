@@ -1,0 +1,115 @@
+
+PyGTS - A python module for the manipulation of triangulated surfaces
+
+  Copyright (C) 2009 Thomas J. Duck
+  All rights reserved.
+
+  Thomas J. Duck <tom.duck@dal.ca>
+  Department of Physics and Atmospheric Science,
+  Dalhousie University, Halifax, Nova Scotia, Canada, B3H 3J5
+
+
+CONTENTS
+
+  1. LICENSE
+  2. SOFTWARE DESCRIPTION
+  3. IMPORTANT FILES
+  4. BUILD ENVIRONMENT
+  5. INSTALLATION INSTRUCTIONS
+  6. DOCUMENTATION
+  7. STATUS
+
+
+1. LICENSE
+
+  Usage of this library is subject to the GNU Library General Public 
+  Licence (LGPL) version 2 or higher.  See the file "LICENSE" for 
+  information on the terms & conditions for usage of this software, 
+  and a DISCLAIMER OF ALL WARRANTIES.
+
+
+2. SOFTWARE DESCRIPTION
+
+  PyGTS is a python package used to construct, manipulate, and perform
+  computations on triangulated surfaces.  It is a hand-crafted and 
+  "pythonic" binding for the GNU Triangulated Surface (GTS) Library.
+
+
+3. IMPORTANT FILES
+
+  README - This file
+  README.developers - Information for PyGTS developers/authors
+  LICENSE - The software's license terms
+  setup.py - The module setup script
+  
+  src/* - PyGTS source files
+
+  test/test.py - Unit tests for PyGTS
+  doc/gts.html - Documentation for python module gts
+
+  examples/tetrahedron.py - plots a tetrahedron
+  examples/boolean.py - demonstrates boolean operations
+  examples/plotgts.py - plots a gts file
+  examples/seashell.gts - a sample gts file to use with plotgts.py
+
+
+4. BUILD ENVIRONMENT
+
+  PyGTS should, in principle, work with any python distribution with
+  version 2.2 or greater, and on any unix-like operating system
+  (including linux and Mac OS X).  The possibility for use with
+  Windows is unknown.
+
+  PyGTS is known to work with the following python versions and platforms:
+ 
+    python 2.5 - Debian Linux (Lenny), Mac OS X (10.4)
+
+  The setup.py script requires the following utility:
+
+    pkg-config - http://pkg-config.freedesktop.org/wiki/  
+
+  The following libraries are required to build PyGTS:
+
+    gts - http://gts.sourceforge.net/
+    glib - http://library.gnome.org/devel/glib/index.html
+
+  PyGTS has been verified to work with GTS 0.7.6.
+
+  The following python package (and all of its dependencies) is required
+  to run the examples:
+
+    mayavi - http://pypi.python.org/pypi/Mayavi/3.2.0
+
+
+5. INSTALLATION INSTRUCTIONS
+
+  To build the softare, type the following on the command line:
+
+    python setup.py build
+
+  Install the software (as root) by typing:
+
+    python setup.py install
+
+  Run the test.py script to test your installation:
+
+    cd test
+    python test.py
+
+  You may also want to run the example programs as a further test:
+
+    cd examples
+    python tetrahedron.py
+    python plotgts.py seashell.gts
+
+
+6. DOCUMENTATION
+
+  The documentation/api is provided in the python module.  To access it,
+  type:
+
+    1) "pydoc gts" - under bash to obtain a 'man'-like help file
+    2) "pydoc -w gts" - under bash to write the file gts.html
+    3) "help(gts)" - at the python prompt, after importing gts
+
+  A pre-compiled gts.html file is given in the doc/ directory.

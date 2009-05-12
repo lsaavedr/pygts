@@ -1,0 +1,367 @@
+
+PYGTS OVERVIEW FOR DEVELOPERS
+
+  Copyright (C) 2009 Thomas J. Duck
+  All rights reserved.
+
+  Thomas J. Duck <tom.duck@dal.ca>
+  Department of Physics and Atmospheric Science,
+  Dalhousie University, Halifax, Nova Scotia, Canada, B3H 3J5
+
+
+CONTENTS
+
+  1. INTRODUCTION
+  2. IMPLEMENTATION STATUS
+
+
+1. INTRODUCTION
+
+  This overview assumes that you have some familiarity with GTS.  See
+
+       http://gts.sourceforge.net/reference/book1.html
+
+  for the GTS Library Reference Manual.  It would also help to understand 
+  how extension types in python are defined and implemented.  See
+
+       http://docs.python.org/extending/newtypes.html
+
+  for a good tutorial on Defining New Types.
+
+       The objective is to allow python to access GTS types in a 
+  transparent fashion.  The programming is done in C, the language that 
+  the standard python interpreter is programmed in.  We encapsulate the 
+  GtsObject, GtsPoint, and GtsVertex types etc in corresponding 
+  PygtsObject, PygtsPoint and PygtsVertex classes, etc.  Note that type 
+  and class mean the same thing in python.
+
+       Python and GTS have different approaches to the management of 
+  object life-cycles.  Python uses reference counting: Once an object's 
+  reference count is reduced to zero, it is freed.  In GTS, on the other 
+  hand, each object such as GtsVertex, GtsEdge, and GtsFace, maintains a 
+  list of objects it is attached to.  The object is freed when the last 
+  object its attachment list is freed.  This can be seen as an alternative 
+  implementation of reference counting.  We need to merge the two approaches.
+
+       Aside: GTS has intriniscally unattached objects, like 
+       GtsPoint, GtsSegment, GtsTriangle, and GtsSurface.  These 
+       are rather more straight-forward to handle.  It is also 
+       possible to free an object that is attached to others, in 
+       which case those others are all freed as well.  We will 
+       deliberately avoid doing this in order to maintain a simple 
+       approach to the reference-counting problem.
+
+       The various python types are defined in object.h, point.h, vertex.h, 
+  etc, and implemented in object.c, point.c, vertex.c, etc.  The inheritance 
+  tree is as follows:
+  
+      PygtsObject +-- PygtsPoint -- PygtsVertex
+                  |
+                  +-- PygtsSegment -- PygtsEdge
+                  |
+                  +-- PygtsTriangle -- PygtsFace
+                  |
+                  +-- PygtsSurface
+
+  The files are, for the most part, structured in the same way.  The top 
+  section in each is titled "Methods exported python", and it ends with a 
+  methods table.  This section is where most of the GTS functions are hooked 
+  in.  Next comes the "Attributes exported to python" and its methods table, 
+  and then the "Python type methods" section which ends with a table defining
+  the python type.  The "Python type methods" section is where object
+  allocation occurs for both the python and GTS objects.  Last comes the
+  "PyGTS functions" section which is used to define protected functions
+  used by PyGTS.  For example, there are the pygts_xxx_check() functions
+  which are used for type-checking, and the pygts_xxx_is_ok() funtions
+  which inspect the python and encapsulated GTS objects for correctness.
+
+      This next bit is important.
+  
+      Each python object encapsulates a pointer to a GTS object.  For GTS
+  objects that can be attached, a private "parent" object is also
+  encapsulated.  By doing this, we can make sure that an attachment always 
+  exists, and so an object cannot be deallocated without our say-so.  We also 
+  maintain a separate table of active python objects that are indexed using 
+  their encapsulated GTS object.  This allows us to maintain a one-to-one
+  correspondence between PyGTS and GTS objects.  The problem of one
+  GTS object being encapsulated by more than one PyGTS object is 
+  intentionally avoided.
+
+       Sometimes it is necessary to differentiate encapsulated parent objects 
+  from other attachments.  To do so, we can define special parent subtypes.  
+  This is the approach taken, for example, with vertices, where the 
+  complexities of the vertex replacement operation require such 
+  differentiation.
+
+       In general, the interface is made to be as "pythonic" as possible.
+  GTS functions are combined into single python methods where it makes sense.
+  In some cases a simpler version of the interface is provided.  Also, methods 
+  are preferred over functions.  For example, the difference, union and
+  intersection operations are provided as methods to PygtsSurface, and are
+  composed from more general GTS functions.
+
+      The main module file is pygts.c, and it handles binding the new
+  types into python.  It also creates the "object table" described above.
+  The C extensions are compiled into _gts.so, and its types are imported 
+  into the main module file gts.py.  This allows the incorporation of
+  top-level documentation and the inclusion of functions written in
+  pure python.
+
+
+2. IMPLEMENTATION STATUS
+
+  GTS functions and the corresponding python methods in module gts, 
+  if implemented, are given below.  Not all of the functions will be 
+  implemented in python.  Some are combined into a single method (as
+  appropriate), while others may be unnecessary or irrelevant.  It 
+  should also be pointed out that PyGTS implements methods that are
+  not provided by GTS.
+
+    gts_point_set():                      Point.set()
+    gts_point_is_in_rectangle():          Point.is_in_rectangle()
+    gts_segment_triangle_intersection():  Segment.intersection()
+    gts_point_transform():                Point.rotate()
+                                          Point.scale()
+                                          Point.translate()
+    gts_point_distance():                 Point.distance()
+    gts_point_distance2():                Point.distance2()
+    gts_point_orientation_3d():           Point.orientation_3d()
+    gts_point_orientation_3d_sos():       Point.orientation_3d()
+    gts_point_in_circle():                Point.is_in_circle()
+    gts_point_in_triangle_circle():       Point.is_in_circle()
+    gts_point_is_in_triangle():           Point.is_in()
+    gts_point_orientation():              *** What should the signature be?
+    gts_point_orientation_sos():          *** What should the signature be?
+    gts_point_segment_distance2():        Point.distance2()
+    gts_point_segment_distance():         Point.distance()
+    gts_point_segment_closest():          Point.closest()
+    gts_point_triangle_distance():        Point.distance()
+    gts_point_triangle_closest():         Point.closest()
+    gts_point_triangle_distance2():       Point.distance2()
+    gts_point_is_inside_surface():        Point.is_inside()
+
+    gts_vertex_is_unattached():           Vertex.is_unattached()
+    gts_vertex_is_boundary():             Vertex.is_boundary()
+    gts_vertex_is_contact():              Vertex.is_contact()
+    gts_vertices_are_connected():         Vertex.is_connected()
+    gts_vertex_replace():                 Vertex.replace()
+    gts_vertex_neighbors():               Vertex.neighbors()
+    gts_vertex_triangles():
+    gts_vertex_faces():                   Vertex.faces()
+    gts_vertex_fan_oriented():
+    gts_vertex_encroaches_edge():         Vertex.encroaches()
+    gts_vertices_from_segments():
+    gts_vertices_merge():
+
+    gts_segments_are_identical():         N/A (duplicates are prevented)
+    gts_segments_are_intersecting():      Segment.intersects()
+    gts_segment_is_duplicate():           N/A (prevented using object table)
+    gts_segment_is_ok():                  Segment.is_ok()
+    gts_segment_connect():                Segment.connects()
+    gts_segments_touch():                 Segment.touches()
+    gts_segments_from_vertices():
+    gts_segment_midvertex():              Segment.midvertex()
+
+    gts_edge_replace():
+    gts_edge_is_unattached():             Edge.is_unattached()
+    gts_edge_is_duplicate():              N/A (prevented using object table)
+    gts_edge_has_parent_surface():
+    gts_edge_has_any_parent_surface():
+    gts_edge_is_boundary():
+    gts_edge_is_contact():                Edge.contacts()
+    gts_edge_belongs_to_tetrahedron():
+    gts_edge_face_number():               Edge.face_number()
+    gts_edge_manifold_faces():
+    gts_edge_is_encroached():
+    gts_edges_merge():                    N/A (duplicate edges not allowed)
+    gts_edges_from_vertices():
+    gts_edge_swap():
+
+    gts_triangle_set():
+    gts_triangle_area():                  Triangle.area()
+    gts_triangle_perimeter():             Triangle.perimeter()
+    gts_triangle_quality():               Triangle.quality()
+    gts_triangle_normal():                Triangle.normal()
+    gts_triangle_revert():                Triangle.revert()
+    gts_triangle_orientation():           Triangle.orientation()
+    gts_triangle_is_duplicate():          N/A (prevented using object table)
+    gts_triangles_angle():                Triangle.angle()
+    gts_triangles_are_compatible():       Triangle.is_compatible()
+    gts_triangle_enclosing():
+    gts_triangles_common_edge():          Triangle.common_edge()
+    gts_triangle_neighbor_number():       Use face.neighbor_number()
+    gts_triangle_neighbors():             Use face.neighbors()
+    gts_triangle_vertices_edges():
+    gts_triangle_vertex_opposite():       Triangle.opposite()
+    gts_triangle_edge_opposite():         Triangle.opposite()
+    gts_triangle_vertices():              Triangle.vertices()
+    gts_triangle_vertex():
+    gts_triangle_is_ok():                 Triangle.is_ok()
+    gts_triangle_use_edges():
+    gts_triangle_circumcircle_center():   Triangle.circumcenter()
+    gts_triangle_is_stabbed():
+    gts_triangles_are_folded():
+    gts_triangles_from_edges():
+    gts_triangle_interpolate_height():
+
+    gts_face_has_parent_surface():        Face.is_on()
+    gts_face_neighbor_number():           Face.neighbor_number()
+    gts_face_neighbors():                 Face.neighbors()
+    gts_face_foreach_neighbor():          Use Face.neighbors()
+    gts_face_is_compatible():             Face.is_compatible()
+    gts_faces_from_edges():
+
+    gts_surface_add_face():               Surface.add()
+    gts_surface_remove_face():            Surface.remove()
+    gts_surface_copy():                   Surface.copy()
+    gts_surface_merge():                  Surface.merge()
+    gts_surface_read():                   Surface.read()
+    gts_surface_is_manifold():            Surface.is_manifold()
+    gts_surface_is_orientable():          Surface.is_orientable()
+    gts_surface_is_closed():              Surface.is_closed()
+    gts_surface_vertex_number():          Surface.Nvertices
+    gts_surface_edge_number():            Surface.Nedges
+    gts_surface_face_number():            Surface.Nfaces
+    gts_surface_boundary():
+    gts_surface_area():                   Surface.area()
+    gts_surface_volume():                 Surface.volume()
+    gts_surface_center_of_mass():         Surface.center_of_mass()
+    gts_surface_center_of_area():         Surface.center_of_area()
+    gts_surface_stats():                  Surface.stats()
+    gts_surface_quality_stats():          Surface.quality_stats()
+    gts_surface_print_stats():            Seems unnecessary
+    gts_surface_write():                  Surface.write()
+    gts_surface_write_oogl():
+    gts_surface_write_oogl_boundary():
+    gts_surface_write_vtk():
+    gts_surface_foreach_vertex():         Use Surface.vertices()
+    gts_surface_foreach_edge():           
+    gts_surface_foreach_face():           Use iteration over faces
+    gts_surface_foreach_face_remove():
+    gts_surface_foreach_intersecting_face():
+    gts_surface_traverse_next():          Use iteration over faces
+    gts_surface_distance():
+    gts_surface_strip():                  Surface.strip()
+    gts_surface_tessellate():             Surface.tessellate()
+    gts_surface_generate_sphere():        sphere()
+    gts_surface_split():                  Surface.split()
+
+
+    gts_surface_inter_boolean():          Surface.difference()
+                                          Surface.intersection()
+                                          Surface.union()
+    gts_surface_is_self_intersecting():   Surface.is_self_intersecting()
+
+    gts_surface_coarsen():
+    gts_coarsen_stop_number():
+    gts_coarsen_stop_cost():
+    gts_volume_optimized_vertex():
+    gts_volume_optimized_cost():
+    gts_edge_collapse_is_valid():
+    gts_edge_collapse_creates_fold():
+
+    gts_cluster_add():
+    gts_cluster_update():
+    gts_cluster_grid_add_triangle():
+    gts_cluster_grid_update():
+
+    gts_iso_slice_fill():
+    gts_iso_slice_fill_cartesian():
+    gts_isosurface_slice():
+    gts_isosurface_cartesian():
+    gts_isosurface_tetra():
+    gts_isosurface_tetra_bounded():
+    gts_isosurface_tetra_bcl():
+
+    gts_point_locate():
+    gts_delaunay_add_vertex():
+    gts_delaunay_add_vertex_to_face():
+    gts_delaunay_remove_vertex():
+    gts_delaunay_add_constraint():
+    gts_delaunay_remove_hull():
+    gts_delaunay_conform():
+    gts_delaunay_refine():
+
+    gts_vertex_gaussian_curvature():
+    gts_vertex_mean_curvature_normal():
+    gts_vertex_principal_curvatures():
+    gts_vertex_principal_directions():
+
+    gts_split_collapse():
+    gts_split_expand():
+    gts_split_height():
+    gts_split_traverse():
+
+    gts_psurface_add_vertex():
+    gts_psurface_remove_vertex():
+    gts_psurface_set_vertex_number():
+    gts_psurface_get_vertex_number():
+    gts_psurface_min_vertex_number():
+    gts_psurface_max_vertex_number():
+    gts_psurface_foreach_vertex():
+    gts_psurface_open():
+    gts_psurface_read_vertex():
+    gts_psurface_close():
+    gts_psurface_write():
+
+    gts_hsplit_collapse():
+    gts_hsplit_expand():
+    gts_hsplit_force_expand():
+
+    gts_hsurface_traverse():
+    gts_hsurface_height():
+    gts_hsurface_foreach():
+
+    gts_gnode_degree():
+    gts_gnode_foreach_edge():
+    gts_gnode_foreach_neighbor():
+    gts_gnode_weight():
+    gts_gnode_move_cost():
+
+    gts_gedge_weight():
+    gts_gedge_connects():
+
+    gts_graph_read():
+    gts_graph_read_jostle():
+    gts_graph_write():
+    gts_graph_write_dot():
+    gts_graph_print_stats():
+    gts_graph_foreach_edge():
+
+    gts_graph_traverse_next():
+    gts_graph_traverse_what_next():
+    gts_graph_edges_cut():
+    gts_graph_edges_cut_weight():
+    gts_graph_distance_sum():
+    gts_graph_farthest():
+    gts_graph_weight():
+
+    gts_surface_graph_surface():
+
+    gts_wgraph_weight_max():
+
+    gts_gnode_split_collapse():
+    gts_gnode_split_expand():
+
+    gts_pgraph_add_node():
+    gts_pgraph_remove_node():
+    gts_pgraph_down():
+    gts_pgraph_set_node_number():
+    gts_pgraph_get_node_number():
+    gts_pgraph_max_node_number():
+    gts_pgraph_min_node_number():
+    gts_pgraph_foreach_node():
+
+    gts_graph_ggg_bisection():
+    gts_graph_bfgg_bisection():
+    gts_graph_bisection_kl_refine():
+    gts_graph_bisection_bkl_refine():
+    gts_graph_recursive_bisection():
+    gts_graph_bubble_partition():
+    gts_graph_edges_cut():
+    gts_graph_edges_cut_weight():
+    gts_graph_partition_edges_cut():
+    gts_graph_partition_balance():
+    gts_graph_partition_clone():
+    gts_graph_partition_print_stats():
+    gts_graph_partition_edges_cut_weight():

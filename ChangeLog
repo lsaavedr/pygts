@@ -1,0 +1,45 @@
+2009-05-11  Thomas J. Duck  <tom.duck@dal.ca>
+
+	* Version 0.1.3
+	
+	* Added methods Point.is_inside(), Vertex.encroaches(),
+	Triangle.circumcenter(), Face.is_on(), Surface.stats(),
+	Surface.quality_stats(), Surface.is_self_intersecting()
+	
+	
+2009-05-10  Thomas J. Duck  <tom.duck@dal.ca>
+
+	* Version 0.1.2
+
+	* Added methods Vertex.is_connected(), Vertex.neighbors(), 
+	Vertex.faces(), Segment.intersects(), Segment.connects(), 
+	Segment.touches(), Segment.midvertex(), Edge.contacts(), 
+	Edge.face_number(), Triangle.common_edge(), Triangle.opposite(),
+	Face.neighbors(), Surface.remove(), Surface.strip(), 
+	Surface.tessellate()
+
+	* Renamed function Tetrahedron() to tetrahedron()
+
+	* Added function sphere()
+
+	* Fixed bug in Surface.translate(); was translating 1 unit in 
+	each direction by default
+
+	* Added example boolean.py
+
+	
+2009-05-05  Thomas J. Duck  <tom.duck@dal.ca>
+
+	* Version 0.1.1
+
+	* Added "Implementation Status" to README.developers to track
+	which GTS functions are supported
+
+	* Added Vertex.is_boundary() and Segment.intersection()
+	
+	
+2009-05-03  Thomas J. Duck  <tom.duck@dal.ca>
+
+	* Version 0.1.0
+	
+	* Initial release, announced on GTS mailing list
