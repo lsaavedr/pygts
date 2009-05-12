@@ -31,6 +31,7 @@ from distutils.core import setup, Extension
 import commands
 import sys
 
+VERSION = '0.1.3'
 
 PYGTS_DEBUG = '1'  # '1' for on, '0' for off
 
@@ -65,21 +66,33 @@ else:
         LIBS[i] = d.strip()
 
 setup(name='pygts', 
-      version='0.1.3',
+      version=VERSION,
       description=\
 'PyGTS creates, manipulates and analyzes triangulated surfaces',
       long_description=\
-"""PyGTS provides a python module that can be used to construct, 
+"""PyGTS is a python package that can be used to construct, 
 manipulate, and perform computations on triangulated surfaces.  
 It is a hand-crafted and "pythonic" binding for the GNU Triangulated 
 Surface (GTS) Library.""",
       author='Thomas J. Duck',
       author_email='tom.duck@dal.ca',
       license='GNU Library General Public License (LGPL) version 2 or higher',
-      url='http://aolab.phys.dal.ca/~tomduck/projects/pygts',
-      download_url='http://aolab.phys.dal.ca/~tomduck/projects/pygts/dist',
+      url='http://pygts.sourceforge.net/',
+      download_url='https://sourceforge.net/project/downloading.php?group_id=262159&filename=pygts-'+VERSION+'.tar.gz',
+      platforms='Platform-Independent',
       package_dir={ '' : 'src' },
       py_modules=['gts'],
+      classifiers = ['Development Status :: 3 - Alpha',
+                     'Intended Audience :: Developers',
+                     'Intended Audience :: Science/Research',
+                     'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+                     'Operating System :: OS Independent',
+                     'Programming Language :: C',
+                     'Programming Language :: Python',
+                     'Topic :: Multimedia :: Graphics :: 3D Modeling',
+                     'Topic :: Scientific/Engineering :: Mathematics',
+                     'Topic :: Scientific/Engineering :: Visualization',
+],
       ext_modules=[Extension("_gts", ["src/pygts.c",
                                       "src/object.c",
                                       "src/point.c",
