@@ -13,7 +13,7 @@ CONTENTS
 
   1. INTRODUCTION
   2. IMPLEMENTATION STATUS
-
+  3. PREPARING A RELEASE
 
 1. INTRODUCTION
 
@@ -365,3 +365,61 @@ CONTENTS
     gts_graph_partition_clone():
     gts_graph_partition_print_stats():
     gts_graph_partition_edges_cut_weight():
+
+
+3. PREPARING A RELEASE
+
+  Here are the steps to prepare a release:
+
+  1) Update the VERSION in setup.py
+
+  2) Build the archive using
+
+       $ python setup.py sdist
+
+     The archive will be found in the dist directory.
+
+  3) Install and test the distribution on different systems.  Note that
+     different warning messages are found under Debian and Mac OS X.
+     Eliminate whatever errors and warnings that are found, and rebuild
+     the archive.
+
+  4) Login to SourceForge and upload the archive at
+
+       https://frs.sourceforge.net/webupload
+
+  5) Create a new release on SourceForge at
+
+       https://sourceforge.net/project/admin/editpackages.php?group_id=262159
+
+  6) Update the Web site and upload it using
+
+       sftp username,pygts@web.sourceforge.net
+
+     where the username should be replaced.
+
+  7) Make a News announcement at
+
+       https://sourceforge.net/news/?group_id=262159
+
+     Here is a template announcement:
+
+       PyGTS 0.1.3 released
+
+       PyGTS (http://pygts.sourceforge.net/) is a python package used to 
+       construct, manipulate, and perform computations on triangulated 
+       surfaces. It is a hand-crafted and pythonic binding for the GNU 
+       Triangulated Surface (GTS) Library (http://gts.sourceforge.net/). 
+ 
+	This is the first release of PyGTS on SourceForge. See the SF 
+	project page (https://sourceforge.net/projects/pygts/), 
+	screenshots 
+	(https://sourceforge.net/project/screenshots.php?group_id=262159), 
+	or go straight to download 
+	(https://sourceforge.net/project/showfiles.php?group_id=262159).
+
+  8) Update PyPI (the python package index) as follows:
+
+       python setup.py register
+
+  9) Make announcements on the mailing lists.
