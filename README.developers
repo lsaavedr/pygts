@@ -369,7 +369,8 @@ CONTENTS
 
 3. PREPARING A RELEASE
 
-  Here are the steps to prepare a release:
+  Below are the steps used to prepare a PyGTS release.  This only of
+  interest to the PyGTS Release Manager.
 
   1) Update the VERSION in setup.py
 
@@ -379,10 +380,10 @@ CONTENTS
 
      The archive will be found in the dist directory.
 
-  3) Install and test the distribution on different systems.  Note that
-     different warning messages are found under Debian and Mac OS X.
-     Eliminate whatever errors and warnings that are found, and rebuild
-     the archive.
+  3) Install, build and unit test the distribution on different systems.  
+     Note that different warning messages are found under Debian and 
+     Mac OS X.  Eliminate whatever errors and warnings that are found, 
+     and rebuild the archive.
 
   4) Login to SourceForge and upload the archive at
 
@@ -394,7 +395,7 @@ CONTENTS
 
   6) Update the Web site and upload it using
 
-       sftp username,pygts@web.sourceforge.net
+       $ sftp username,pygts@web.sourceforge.net
 
      where the username should be replaced.
 
@@ -404,22 +405,28 @@ CONTENTS
 
      Here is a template announcement:
 
-       PyGTS 0.1.3 released
+       PyGTS XX.XX.XX released
 
        PyGTS (http://pygts.sourceforge.net/) is a python package used to 
        construct, manipulate, and perform computations on triangulated 
        surfaces. It is a hand-crafted and pythonic binding for the GNU 
        Triangulated Surface (GTS) Library (http://gts.sourceforge.net/). 
  
-	This is the first release of PyGTS on SourceForge. See the SF 
-	project page (https://sourceforge.net/projects/pygts/), 
-	screenshots 
-	(https://sourceforge.net/project/screenshots.php?group_id=262159), 
-	or go straight to download 
-	(https://sourceforge.net/project/showfiles.php?group_id=262159).
+       See the SF project page (https://sourceforge.net/projects/pygts/), 
+       screenshots 
+       (https://sourceforge.net/project/screenshots.php?group_id=262159), 
+       or go straight to download 
+       (https://sourceforge.net/project/showfiles.php?group_id=262159).
 
   8) Update PyPI (the python package index) as follows:
 
-       python setup.py register
+       $ python setup.py register
 
   9) Make announcements on the mailing lists.
+
+  10) Check the following locations that advertise PyGTS, to ensure that
+      they have up-to-date information:
+
+        http://wiki.python.org/moin/NumericAndScientific
+        http://www.scipy.org/Topical_Software
+        http://freshmeat.net/projects/pygts
