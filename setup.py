@@ -35,10 +35,10 @@ VERSION = '0.1.3'
 
 PYGTS_DEBUG = '1'  # '1' for on, '0' for off
 
-# Hand-code these to avoid pkg-config
-INCLUDE_DIRS = None
-LIB_DIRS = None
-LIBS = None
+# Hand-code these lists to avoid pkg-config
+INCLUDE_DIRS = []
+LIB_DIRS = []
+LIBS = []
 
 
 # Get the build parameters using pkg-config
