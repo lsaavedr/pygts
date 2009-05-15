@@ -35,35 +35,44 @@ VERSION = '0.1.3'
 
 PYGTS_DEBUG = '1'  # '1' for on, '0' for off
 
+# Hand-code these to avoid pkg-config
+INCLUDE_DIRS = None
+LIB_DIRS = None
+LIBS = None
+
 
 # Get the build parameters using pkg-config
 
-command = "pkg-config  --cflags-only-I gts"
-result = commands.getoutput(command).strip().split('-I')
-if len(result)==1:
-    raise RuntimeError, result[0]
-else:
-    INCLUDE_DIRS = result[1:]
-    for i,d in enumerate(INCLUDE_DIRS):
-        INCLUDE_DIRS[i] = d.strip()
+if not INCLUDE_DIRS:
+    command = "pkg-config --cflags-only-I gts"
+    result = commands.getoutput(command).strip().split('-I')
+    if len(result)==1:
+        raise RuntimeError, result[0]
+    else:
+        INCLUDE_DIRS = result[1:]
+        for i,d in enumerate(INCLUDE_DIRS):
+            INCLUDE_DIRS[i] = d.strip()
 
-command = "pkg-config  --libs-only-L gts"
-result = commands.getoutput(command).strip().split('-L')
-if len(result)==1:
-    raise RuntimeError, result[0]
-else:
-    LIB_DIRS = result[1:]
-    for i,d in enumerate(LIB_DIRS):
-        LIB_DIRS[i] = d.strip()
+if not LIB_DIRS:
+    command = "pkg-config --libs-only-L gts"
+    result = commands.getoutput(command).strip().split('-L')
+    if len(result)==1:
+        raise RuntimeError, result[0]
+    else:
+        LIB_DIRS = result[1:]
+        for i,d in enumerate(LIB_DIRS):
+            LIB_DIRS[i] = d.strip()
 
-command = "pkg-config  --libs-only-l gts"
-result = commands.getoutput(command).strip().split('-l')
-if len(result)==1:
-    raise RuntimeError, result[0]
-else:
-    LIBS = result[1:]
-    for i,d in enumerate(LIBS):
-        LIBS[i] = d.strip()
+if not LIBS:
+    command = "pkg-config --libs-only-l gts"
+    result = commands.getoutput(command).strip().split('-l')
+    if len(result)==1:
+        raise RuntimeError, result[0]
+    else:
+        LIBS = result[1:]
+        for i,d in enumerate(LIBS):
+            LIBS[i] = d.strip()
+
 
 setup(name='pygts', 
       version=VERSION,
