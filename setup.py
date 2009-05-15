@@ -47,7 +47,8 @@ if not INCLUDE_DIRS:
     command = "pkg-config --cflags-only-I gts"
     result = commands.getoutput(command).strip().split('-I')
     if len(result)==1:
-        raise RuntimeError, result[0]
+        if result[0]:  # then it's an error message; otherwise an empty result
+            raise RuntimeError, result[0]
     else:
         INCLUDE_DIRS = result[1:]
         for i,d in enumerate(INCLUDE_DIRS):
@@ -57,7 +58,8 @@ if not LIB_DIRS:
     command = "pkg-config --libs-only-L gts"
     result = commands.getoutput(command).strip().split('-L')
     if len(result)==1:
-        raise RuntimeError, result[0]
+        if result[0]:  # then it's an error message; otherwise an empty result
+            raise RuntimeError, result[0]
     else:
         LIB_DIRS = result[1:]
         for i,d in enumerate(LIB_DIRS):
@@ -67,7 +69,8 @@ if not LIBS:
     command = "pkg-config --libs-only-l gts"
     result = commands.getoutput(command).strip().split('-l')
     if len(result)==1:
-        raise RuntimeError, result[0]
+        if result[0]:  # then it's an error message; otherwise an empty result
+            raise RuntimeError, result[0]
     else:
         LIBS = result[1:]
         for i,d in enumerate(LIBS):
