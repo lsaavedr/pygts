@@ -41,7 +41,7 @@ PYGTS_DEBUG = '1'  # '1' for on, '0' for off
 command = "pkg-config  --cflags-only-I gts"
 result = commands.getoutput(command).strip().split('-I')
 if len(result)==1:
-    raise RuntimeException, result[0]
+    raise RuntimeError, result[0]
 else:
     INCLUDE_DIRS = result[1:]
     for i,d in enumerate(INCLUDE_DIRS):
@@ -50,7 +50,7 @@ else:
 command = "pkg-config  --libs-only-L gts"
 result = commands.getoutput(command).strip().split('-L')
 if len(result)==1:
-    raise RuntimeException, result[0]
+    raise RuntimeError, result[0]
 else:
     LIB_DIRS = result[1:]
     for i,d in enumerate(LIB_DIRS):
@@ -59,7 +59,7 @@ else:
 command = "pkg-config  --libs-only-l gts"
 result = commands.getoutput(command).strip().split('-l')
 if len(result)==1:
-    raise RuntimeException, result[0]
+    raise RuntimeError, result[0]
 else:
     LIBS = result[1:]
     for i,d in enumerate(LIBS):
