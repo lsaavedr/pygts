@@ -34,6 +34,8 @@ CONTENTS
   computations on triangulated surfaces.  It is a hand-crafted and 
   "pythonic" binding for the GNU Triangulated Surface (GTS) Library.
 
+  PyGTS lives on-line at http://pygts.sourceforge.net/ .
+
 
 3. IMPORTANT FILES
 
@@ -41,6 +43,7 @@ CONTENTS
   README.developers - Information for PyGTS developers/authors
   LICENSE - The software's license terms
   setup.py - The module setup script
+  PKG-INFO - Python package info (auto-generated)
   
   src/* - PyGTS source files
 
@@ -64,11 +67,16 @@ CONTENTS
  
     python 2.5 - Debian Linux (Lenny), Mac OS X (10.4)
 
-  The setup.py script requires the following utility:
+  To build PyGTS, you will need to be sure that Python.h is installed.  
+  For linux distributions this often requires installing the python-dev 
+  or python2.5-dev (or other version, as appropriate) package.
+
+  The setup.py script requires the following utility, which is used
+  to locate C header files and libraries:
 
     pkg-config - http://pkg-config.freedesktop.org/wiki/  
 
-  The following libraries are required to build PyGTS:
+  The following libraries must be installed:
 
     gts - http://gts.sourceforge.net/
     glib - http://library.gnome.org/devel/glib/index.html
@@ -82,6 +90,11 @@ CONTENTS
 
 
 5. INSTALLATION INSTRUCTIONS
+
+  Please help by reporting any difficulties you have installing PyGTS
+  to the mailing lists found at
+
+    http://sourceforge.net/mail/?group_id=262159
 
   To build the softare, type the following on the command line:
 
@@ -100,6 +113,7 @@ CONTENTS
 
     cd examples
     python tetrahedron.py
+    python boolean.py
     python plotgts.py seashell.gts
 
 
