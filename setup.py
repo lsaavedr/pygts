@@ -28,8 +28,9 @@ NOTICE
 """
 
 from distutils.core import setup, Extension
+from distutils import sysconfig
 import commands
-import sys
+import os, sys
 
 VERSION = '0.1.3'
 
@@ -75,6 +76,13 @@ if not LIBS:
         LIBS = result[1:]
         for i,d in enumerate(LIBS):
             LIBS[i] = d.strip()
+
+
+# Test for Python.h
+python_inc_dir = sysconfig.get_python_inc()
+if not python_inc_dir or \
+        not os.path.exists(os.path.join(python_inc_dir, "Python.h")):
+    raise RuntimeError, 'Python.h not found'
 
 
 setup(name='pygts', 
