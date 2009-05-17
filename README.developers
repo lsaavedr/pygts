@@ -372,7 +372,8 @@ CONTENTS
   Below are the steps used to prepare a PyGTS release.  This only of
   interest to the PyGTS Release Manager.
 
-  1) Update the VERSION in setup.py
+  1) Update the VERSION in setup.py and the ChangeLog.  Check everything 
+     into svn.
 
   2) Build the archive using
 

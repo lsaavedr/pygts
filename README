@@ -79,14 +79,20 @@ CONTENTS
   The following libraries must be installed:
 
     gts - http://gts.sourceforge.net/
-    glib - http://library.gnome.org/devel/glib/index.html
+    glib-2.0 - http://library.gnome.org/devel/glib/index.html
 
   PyGTS has been verified to work with GTS 0.7.6.
 
   The following python package (and all of its dependencies) is required
-  to run the examples:
+  for the display of the examples:
 
-    mayavi - http://pypi.python.org/pypi/Mayavi/3.2.0
+    mayavi2 - http://pypi.python.org/pypi/Mayavi/3.2.0
+
+  There are reports that at least one earlier version of mayavi2,
+  v2.2, does not have the capabilities that PyGTS needs.  Please note
+  that this is still a very early release of PyGTS, and if better (or
+  alternative) display options become known, they will be used instead 
+  (or in parallel).
 
 
 5. INSTALLATION INSTRUCTIONS
