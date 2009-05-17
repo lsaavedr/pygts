@@ -398,26 +398,22 @@ CONTENTS
 
        $ sftp username,pygts@web.sourceforge.net
 
-     where the username should be replaced.
+     to the htdocs directory.  The username should be replaced.
 
   7) Make a News announcement at
 
        https://sourceforge.net/news/?group_id=262159
 
-     Here is a template announcement:
+     Here is a template announcement, with appropriate formatting for the
+     Web page's text box:
 
-       PyGTS XX.XX.XX released
+PyGTS XX.XX.XX released
 
-       PyGTS (http://pygts.sourceforge.net/) is a python package used to 
-       construct, manipulate, and perform computations on triangulated 
-       surfaces. It is a hand-crafted and pythonic binding for the GNU 
-       Triangulated Surface (GTS) Library (http://gts.sourceforge.net/). 
+PyGTS (http://pygts.sourceforge.net/) is a python package used to construct, manipulate, and perform computations on 3D triangulated surfaces. It is a hand-crafted and pythonic binding for the GNU Triangulated Surface (GTS) Library (http://gts.sourceforge.net/). 
  
-       See the SF project page (https://sourceforge.net/projects/pygts/), 
-       screenshots 
-       (https://sourceforge.net/project/screenshots.php?group_id=262159), 
-       or go straight to download 
-       (https://sourceforge.net/project/showfiles.php?group_id=262159).
+This release fixes a number of issues with the install script.
+
+See the SF project page (https://sourceforge.net/projects/pygts/), screenshots (https://sourceforge.net/project/screenshots.php?group_id=262159), or go straight to download (https://sourceforge.net/project/showfiles.php?group_id=262159).
 
   8) Update PyPI (the python package index) as follows:
 
