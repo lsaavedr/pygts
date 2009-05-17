@@ -1,0 +1,27 @@
+
+===============================
+FAQ: FREQUENTLY ASKED QUESTIONS
+===============================
+
+(Sometimes the frequency is once)
+
+
+This is the Frequently Asked Questions (FAQ) list for PyGTS, which
+is found at http://pygs.sourceforge.net/.  The questions come from
+those asked on the pygts-users and pygts-devel mailing lists.
+
+Please see http://pygts.svn.sourceforge.net/viewvc/pygts/FAQ
+for the most up-to-date version of this document.
+
+
+1. Is PyGTS just a plain port/wrapper of GTS?
+
+No.  PyGTS tries to do things in a way that is natural for python -- it 
+should /feel/ like a native python package.  There is extra error checking 
+so that fault conditions sometimes encountered using GTS give python 
+exceptions instead.  Duplicate objects are avoided implicitly with a 
+live-objects lookup table (transparent to the programmer).  Great care 
+has been taken to make sure that objects can't be accidently deallocated.  
+For boolean operations, there are union(), difference(), and 
+intersection() methods.  Altogether, the usage should be a simpler, 
+as is appropriate for python.
