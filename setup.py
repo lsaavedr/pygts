@@ -91,7 +91,7 @@ setup(name='pygts',
 'PyGTS creates, manipulates and analyzes triangulated surfaces',
       long_description=\
 """PyGTS is a python package that can be used to construct, 
-manipulate, and perform computations on triangulated surfaces.  
+manipulate, and perform computations on 3D triangulated surfaces.  
 It is a hand-crafted and "pythonic" binding for the GNU Triangulated 
 Surface (GTS) Library.""",
       author='Thomas J. Duck',
