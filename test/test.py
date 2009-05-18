@@ -2129,6 +2129,18 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(s.is_ok())
         self.assert_(s.volume()<s2.volume())
 
+        # Test mutual intersection
+        s1 = gts.cube()
+        s2 = gts.cube()
+        try:
+            s3 = s2.difference(s1)
+        except RuntimeError:
+            pass
+        else:
+            raise RuntimeError, 'Did not catch mutual intersection'
+        self.assert_(s1.is_ok())
+        self.assert_(s2.is_ok())
+
 
     def test_rotate(self):
 
