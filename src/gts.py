@@ -117,6 +117,48 @@ def get_mayavi_coords_and_triangles(s):
     x,y,z = zip(*coords)
     return x,y,z,face_indices
 
+def cube():
+    """Returns a cube of side length 2 centered at the origin."""
+    
+    #             
+    #       v8 +------+ v5
+    #         /      /|
+    #        /    v1/ |
+    #    v4 +------+  |
+    #       |      |  + v6
+    #       |(v7)  | /
+    #       |      |/
+    #    v3 +------+ v2
+    #
+
+    v1,v2,v3,v4=Vertex(1,1,1),Vertex(1,1,-1),Vertex(1,-1,-1),Vertex(1,-1,1)
+    v5,v6,v7,v8=Vertex(-1,1,1),Vertex(-1,1,-1),Vertex(-1,-1,-1),Vertex(-1,-1,1)
+
+    e12,e23,e34,e14 = Edge(v1,v2), Edge(v2,v3), Edge(v3,v4), Edge(v4,v1)
+    e56,e67,e78,e58 = Edge(v5,v6), Edge(v6,v7), Edge(v7,v8), Edge(v8,v5)
+    e15,e26,e37,e48 = Edge(v1,v5), Edge(v2,v6), Edge(v3,v7), Edge(v4,v8)
+    e13,e16,e18 = Edge(v1,v3), Edge(v1,v6), Edge(v1,v8)
+    e27,e47,e57 = Edge(v7,v2), Edge(v7,v4), Edge(v7,v5)
+
+    faces = [ Face(e12,e23,e13), Face(e13,e34,e14),
+              Face(e12,e26,e16), Face(e15,e56,e16),
+              Face(e15,e58,e18), Face(e14,e48,e18),
+              Face(e58,e78,e57), Face(e56,e67,e57),
+              Face(e26,e67,e27), Face(e37,e23,e27),
+              Face(e37,e47,e34), Face(e78,e48,e47) ]
+
+    faces[0].revert()  # Set the orientation of the first face
+
+    s = Surface()
+
+    for face in faces:
+        if not face.is_compatible(s):
+            face.revert()
+        s.add(face)
+
+    return s
+
+
 def tetrahedron():
     """Returns a tetrahedron of side length 2*sqrt(2) centered at origin.
 
