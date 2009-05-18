@@ -1,3 +1,15 @@
+2009-05-17  Thomas J. Duck  <tom.duck@dal.ca>
+
+	* Added function cube()
+
+	* Renamed examples/tetrahedron.py to examples/polyhedrons.py,
+	and modified to display tetrahedon, cube and sphere
+
+	* Check for complete mutual intersection for union(), difference(),
+	and intersection(), which is not allowed (resulted in a GTS
+	failure mode before)
+
+	
 2009-05-15  Thomas J. Duck  <tom.duck@dal.ca>
 
 	* Version 0.1.4
