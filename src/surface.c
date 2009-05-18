@@ -1014,6 +1014,8 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   PyObject *s_;
   PygtsSurface *s;
   PygtsObject *ret;
+  GtsVector cm1, cm2;
+  gdouble area1, area2;
   GtsSurfaceInter *si;
   GNode *tree1, *tree2;
   gboolean is_open1, is_open2, closed;
@@ -1036,6 +1038,14 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
     return NULL;
   }
   s = PYGTS_SURFACE(s_);
+
+  /* Make sure that we don't have two pointers to the same surface */
+  if( (GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj) == 
+       GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj)) ) {
+      PyErr_SetString(PyExc_RuntimeError,
+		      "can't determine intersection with self");
+      return NULL;
+  }
 
 
   /* *** ATTENTION ***
@@ -1068,6 +1078,29 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
       != NULL ) {
     PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
     return NULL;
+  }
+
+  /* Avoid complete self-intersection of two surfaces*/
+  if( (gts_surface_face_number(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)) ==
+      gts_surface_face_number(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))) &&
+      (gts_surface_edge_number(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)) ==
+       gts_surface_edge_number(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))) &&
+      (gts_surface_vertex_number(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)) ==
+       gts_surface_vertex_number(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))) &&
+      (gts_surface_area(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)) ==
+       gts_surface_area(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))) ) {
+
+    area1 = \
+      gts_surface_center_of_area(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),cm1);
+
+    area2 = \
+      gts_surface_center_of_area(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj),cm2);
+
+    if( (area1==area2) && (cm1[0]==cm2[0]) && (cm1[1]==cm2[1]) || 
+	(cm1[2]==cm2[2]) ) {
+      PyErr_SetString(PyExc_RuntimeError,"Surfaces mutually intersect");
+      return NULL;
+    }
   }
 
   /* Get bounding boxes */
@@ -1130,7 +1163,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   /* Check for self-intersection */
   if( gts_surface_is_self_intersecting(GTS_SURFACE(ret->gtsobj)) != NULL ) {
     Py_DECREF(ret);
-    PyErr_SetString(PyExc_RuntimeError,"Result is self-intersecting surface");
+    PyErr_SetString(PyExc_RuntimeError,"result is self-intersecting surface");
     return NULL;
   }
 
