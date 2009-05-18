@@ -683,148 +683,6 @@ face_indices(PygtsSurface *self, PyObject *args)
 }
 
 
-/* Helper function for intersection operations */
-static PyObject*
-inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
-      GtsBooleanOperation op2)
-{
-  PyObject *s_;
-  PygtsSurface *s;
-  PygtsObject *ret;
-  GtsSurfaceInter *si;
-  GNode *tree1, *tree2;
-  gboolean is_open1, is_open2, closed;
-
-#if PYGTS_DEBUG
-  if(!pygts_surface_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
-
-  /* Parse the args */  
-  if(! PyArg_ParseTuple(args, "O", &s_) )
-    return NULL;
-
-  /* Convert to PygtsObjects */
-  if(!pygts_surface_check(s_)) {
-    PyErr_SetString(PyExc_TypeError,"expected a Surface");
-    return NULL;
-  }
-  s = PYGTS_SURFACE(s_);
-
-
-  /* *** ATTENTION ***
-   * Eliminate any active gts traverse objects.  They appear to interfere
-   * with the intersection calculation.  I would guess that this is due
-   * to the use of the "reserved" field (i.e., it doesn't get properly
-   * reset until the traverse is destroyed).
-   *
-   * I don't expect this to cause problems here, but a bug report should be
-   * filed.
-   */
-  if(self->traverse!=NULL) {
-    gts_surface_traverse_destroy(self->traverse);
-    self->traverse = NULL;
-  }
-  if(s->traverse!=NULL) {
-    gts_surface_traverse_destroy(s->traverse);
-    s->traverse = NULL;
-  }
-  /* *** ATTENTION *** */
-
-
-  /* Check for self-intersections */
-  if( gts_surface_is_self_intersecting(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))
-      != NULL ) {
-    PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
-    return NULL;
-  }
-  if( gts_surface_is_self_intersecting(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))
-      != NULL ) {
-    PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
-    return NULL;
-  }
-
-  /* Get bounding boxes */
-  if( (tree1=gts_bb_tree_surface(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)))
-      ==NULL ) {
-    PyErr_SetString(PyExc_RuntimeError,"GTS could not create tree");
-    return NULL;
-  }
-  is_open1 = !gts_surface_is_closed(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj));
-  if( (tree2=gts_bb_tree_surface(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj)))
-      ==NULL ) {
-    gts_bb_tree_destroy(tree1, TRUE);
-    PyErr_SetString(PyExc_RuntimeError,"GTS could not create tree");
-    return NULL;
-  }
-  is_open2 = !gts_surface_is_closed(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj));
-
-  /* Get the surface intersection object */
-  if( (si = gts_surface_inter_new(gts_surface_inter_class(),
-				  GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
-				  GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj),
-				  tree1, tree2, is_open1, is_open2))==NULL) {
-    gts_bb_tree_destroy(tree1, TRUE);
-    gts_bb_tree_destroy(tree2, TRUE);
-    PyErr_SetString(PyExc_RuntimeError,"GTS could not create GtsSurfaceInter");
-    return NULL;
-  }
-
-  gts_bb_tree_destroy(tree1, TRUE);
-  gts_bb_tree_destroy(tree2, TRUE);
-  gts_surface_inter_check(si,&closed);
-  if( closed == FALSE ) {
-    gts_object_destroy(GTS_OBJECT(si));
-    PyErr_SetString(PyExc_RuntimeError,"result is not closed");
-    return NULL;
-  }
-
-  /* Create the return surface */
-  args = Py_BuildValue("(i)",FALSE);
-  ret = PYGTS_OBJECT(PygtsSurfaceType.tp_new(&PygtsSurfaceType, args, NULL));
-  Py_DECREF(args);
-  if( ret == NULL ) {
-    return NULL;
-  }
-  ret->gtsobj = GTS_OBJECT(gts_surface_new(gts_surface_class(),
-					   gts_face_class(),
-					   gts_edge_class(),
-					   gts_vertex_class()));
-  if( ret->gtsobj == NULL )  {
-    Py_DECREF(ret);
-    PyErr_SetString(PyExc_RuntimeError, "GTS could not create Surface");
-    return NULL;
-  }
-
-  /* Calculate the result */
-  gts_surface_inter_boolean(si, GTS_SURFACE(ret->gtsobj),op1);
-  gts_surface_inter_boolean(si, GTS_SURFACE(ret->gtsobj),op2);
-  gts_object_destroy(GTS_OBJECT(si));
-
-  /* Check for self-intersection */
-  if( gts_surface_is_self_intersecting(GTS_SURFACE(ret->gtsobj)) != NULL ) {
-    Py_DECREF(ret);
-    PyErr_SetString(PyExc_RuntimeError,"Result is self-intersecting surface");
-    return NULL;
-  }
-
-  pygts_object_register(PYGTS_OBJECT(ret));
-
-#if PYGTS_DEBUG
-  if(!pygts_surface_check((PyObject*)ret)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with ret object (internal error)");
-    return NULL;
-  }
-#endif
-
-  return (PyObject*)ret;
-}
-
-
 static PyObject*
 strip(PygtsSurface *self, PyObject *args)
 {
@@ -1145,6 +1003,148 @@ tessellate(PygtsSurface *self, PyObject *args)
 
   Py_INCREF(Py_None);
   return Py_None;
+}
+
+
+/* Helper function for intersection operations */
+static PyObject*
+inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
+      GtsBooleanOperation op2)
+{
+  PyObject *s_;
+  PygtsSurface *s;
+  PygtsObject *ret;
+  GtsSurfaceInter *si;
+  GNode *tree1, *tree2;
+  gboolean is_open1, is_open2, closed;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &s_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!pygts_surface_check(s_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a Surface");
+    return NULL;
+  }
+  s = PYGTS_SURFACE(s_);
+
+
+  /* *** ATTENTION ***
+   * Eliminate any active gts traverse objects.  They appear to interfere
+   * with the intersection calculation.  I would guess that this is due
+   * to the use of the "reserved" field (i.e., it doesn't get properly
+   * reset until the traverse is destroyed).
+   *
+   * I don't expect this to cause problems here, but a bug report should be
+   * filed.
+   */
+  if(self->traverse!=NULL) {
+    gts_surface_traverse_destroy(self->traverse);
+    self->traverse = NULL;
+  }
+  if(s->traverse!=NULL) {
+    gts_surface_traverse_destroy(s->traverse);
+    s->traverse = NULL;
+  }
+  /* *** ATTENTION *** */
+
+
+  /* Check for self-intersections */
+  if( gts_surface_is_self_intersecting(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))
+      != NULL ) {
+    PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
+    return NULL;
+  }
+  if( gts_surface_is_self_intersecting(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))
+      != NULL ) {
+    PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
+    return NULL;
+  }
+
+  /* Get bounding boxes */
+  if( (tree1=gts_bb_tree_surface(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)))
+      ==NULL ) {
+    PyErr_SetString(PyExc_RuntimeError,"GTS could not create tree");
+    return NULL;
+  }
+  is_open1 = !gts_surface_is_closed(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj));
+  if( (tree2=gts_bb_tree_surface(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj)))
+      ==NULL ) {
+    gts_bb_tree_destroy(tree1, TRUE);
+    PyErr_SetString(PyExc_RuntimeError,"GTS could not create tree");
+    return NULL;
+  }
+  is_open2 = !gts_surface_is_closed(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj));
+
+  /* Get the surface intersection object */
+  if( (si = gts_surface_inter_new(gts_surface_inter_class(),
+				  GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
+				  GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj),
+				  tree1, tree2, is_open1, is_open2))==NULL) {
+    gts_bb_tree_destroy(tree1, TRUE);
+    gts_bb_tree_destroy(tree2, TRUE);
+    PyErr_SetString(PyExc_RuntimeError,"GTS could not create GtsSurfaceInter");
+    return NULL;
+  }
+
+  gts_bb_tree_destroy(tree1, TRUE);
+  gts_bb_tree_destroy(tree2, TRUE);
+  gts_surface_inter_check(si,&closed);
+  if( closed == FALSE ) {
+    gts_object_destroy(GTS_OBJECT(si));
+    PyErr_SetString(PyExc_RuntimeError,"result is not closed");
+    return NULL;
+  }
+
+  /* Create the return surface */
+  args = Py_BuildValue("(i)",FALSE);
+  ret = PYGTS_OBJECT(PygtsSurfaceType.tp_new(&PygtsSurfaceType, args, NULL));
+  Py_DECREF(args);
+  if( ret == NULL ) {
+    return NULL;
+  }
+  ret->gtsobj = GTS_OBJECT(gts_surface_new(gts_surface_class(),
+					   gts_face_class(),
+					   gts_edge_class(),
+					   gts_vertex_class()));
+  if( ret->gtsobj == NULL )  {
+    Py_DECREF(ret);
+    PyErr_SetString(PyExc_RuntimeError, "GTS could not create Surface");
+    return NULL;
+  }
+
+  /* Calculate the result */
+  gts_surface_inter_boolean(si, GTS_SURFACE(ret->gtsobj),op1);
+  gts_surface_inter_boolean(si, GTS_SURFACE(ret->gtsobj),op2);
+  gts_object_destroy(GTS_OBJECT(si));
+
+  /* Check for self-intersection */
+  if( gts_surface_is_self_intersecting(GTS_SURFACE(ret->gtsobj)) != NULL ) {
+    Py_DECREF(ret);
+    PyErr_SetString(PyExc_RuntimeError,"Result is self-intersecting surface");
+    return NULL;
+  }
+
+  pygts_object_register(PYGTS_OBJECT(ret));
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)ret)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with ret object (internal error)");
+    return NULL;
+  }
+#endif
+
+  return (PyObject*)ret;
 }
 
 
