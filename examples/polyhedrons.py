@@ -30,11 +30,24 @@ NOTICE
 import gts
 from enthought.mayavi import mlab
 
-s = gts.tetrahedron()
+s1 = gts.tetrahedron()
 
-# Plot the surface
-x,y,z,t = gts.get_mayavi_coords_and_triangles(s)
-mlab.triangular_mesh(x,y,z,t,color=(0.5,0.5,0.75))
-mlab.triangular_mesh(x,y,z,t,color=(0,0,1),representation='fancymesh',
-                     scale_factor=0.2)
+s2 = gts.cube()
+s2.translate(3)
+
+s3 = gts.sphere(3)
+s3.translate(-3)
+
+# Plot the surfaces
+
+def plot_surface(s):
+    x,y,z,t = gts.get_mayavi_coords_and_triangles(s)
+    mlab.triangular_mesh(x,y,z,t,color=(0.8,0.8,0.8))
+    mlab.triangular_mesh(x,y,z,t,color=(0,0,1),representation='fancymesh',
+                         scale_factor=0.1)
+
+plot_surface(s1)
+plot_surface(s2)
+plot_surface(s3)
+
 mlab.show()
