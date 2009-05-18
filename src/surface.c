@@ -807,7 +807,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   /* Check for self-intersection */
   if( gts_surface_is_self_intersecting(GTS_SURFACE(ret->gtsobj)) != NULL ) {
     Py_DECREF(ret);
-    PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
+    PyErr_SetString(PyExc_RuntimeError,"Result is self-intersecting surface");
     return NULL;
   }
 
