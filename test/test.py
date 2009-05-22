@@ -1119,6 +1119,15 @@ class TestEdgeMethods(TestSegmentMethods):
         self.assert_(s.is_ok())
 
 
+    def test_belongs_to_tetrahedron(self):
+
+        e = self.Segment(gts.Vertex(0),gts.Vertex(1))
+        self.assert_(not e.belongs_to_tetrahedron())
+        
+        s = gts.tetrahedron()
+        self.assert_(list(s)[0].e1.belongs_to_tetrahedron())
+
+
     def test_contacts(self):
 
         #         v4
@@ -1439,6 +1448,11 @@ class TestTriangleMethods(unittest.TestCase):
         self.assert_(t.e1.id==e1.id)
         self.assert_(t.e2.id==e2.id)
         self.assert_(t.e3.id==e3.id)
+
+        del e1,e2,e3
+        self.assert_(t.e1.is_ok())
+        self.assert_(t.e2.is_ok())
+        self.assert_(t.e3.is_ok())
 
 
     def test_compare(self):
