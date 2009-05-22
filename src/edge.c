@@ -76,6 +76,78 @@ is_unattached(PygtsVertex *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
+replace(PygtsEdge *self, PyObject *args, PyObject *kwds)
+{
+  PyObject *e2_;
+  PygtsEdge *e2;
+  GSList *parents=NULL, *i, *cur;
+
+#if PYGTS_DEBUG
+  if(!pygts_edge_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &e2_) ) {
+    return NULL;
+  }
+
+  /* Convert to PygtsObjects */
+  if(!pygts_edge_check(e2_)) {
+    PyErr_SetString(PyExc_TypeError,"expected an Edge");
+    return NULL;
+  }
+  e2 = PYGTS_EDGE(e2_);
+
+  if(PYGTS_OBJECT(self)->gtsobj!=PYGTS_OBJECT(e2)->gtsobj) {
+    /* (Ignore self-replacement) */
+
+    /* Detach and save any parent triangles */
+    i = GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles;
+    while(i!=NULL) {
+      cur = i;
+      i = i->next;
+      if(PYGTS_IS_PARENT_TRIANGLE(cur->data)) {
+	GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles = 
+	  g_slist_remove_link(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles,
+			      cur);
+	parents = g_slist_prepend(parents,cur->data);
+	g_slist_free_1(cur);
+      }
+    }
+
+    /* Perform the replace operation */
+    gts_edge_replace(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj),
+		     GTS_EDGE(PYGTS_OBJECT(e2)->gtsobj));
+
+    /* Reattach the parent segments */
+    i = parents;
+    while(i!=NULL) {
+      GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles = 
+	g_slist_prepend(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles,
+			i->data);
+      i = i->next;
+    }
+    g_slist_free(parents);
+  }
+
+#if PYGTS_DEBUG
+  if(!pygts_edge_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+static PyObject*
 face_number(PygtsVertex *self, PyObject *args, PyObject *kwds)
 {
   PyObject *s_;
@@ -138,6 +210,20 @@ static PyMethodDef methods[] = {
    "\n"
    "Signature: e.is_unattached().\n"
   },
+
+/* Edge replace() method works but results in Triangles that are "not ok";
+ * i.e., they have edges that don't connect.  We don't want that problem
+ * and so the method has been disabled.
+ */
+/*
+  {"replace", (PyCFunction)replace,
+   METH_VARARGS,
+   "Replaces this Edge e1 with Edge e2 in all Triangles that have e1.\n"
+   "Edge e1 itself is left unchanged.\n"
+   "\n"
+   "Signature: e1.replace(e2).\n"
+  },
+*/
 
   {"face_number", (PyCFunction)face_number,
    METH_VARARGS,
@@ -345,6 +431,7 @@ pygts_edge_is_ok(PygtsEdge *e)
 
   /* Check for a valid parent */
   g_return_val_if_fail(obj->gtsobj_parent!=NULL,FALSE);
+  g_return_val_if_fail(PYGTS_IS_PARENT_TRIANGLE(obj->gtsobj_parent),FALSE);
   parent = g_slist_find(GTS_EDGE(obj->gtsobj)->triangles,
 			obj->gtsobj_parent);
   g_return_val_if_fail(parent!=NULL,FALSE);
@@ -373,18 +460,19 @@ pygts_edge_parent(GtsEdge *e1) {
   }
 
   /* Create another two edges */
-  if( (e2 = gts_edge_new(gts_edge_class(),v2,v3)) == NULL ) {
+  if( (e2 = gts_edge_new(pygts_parent_edge_class(),v2,v3)) == NULL ) {
     PyErr_SetString(PyExc_RuntimeError, "GTS could not create Edge");
     return NULL;
   }
-  if( (e3 = gts_edge_new(gts_edge_class(),v3,v1)) == NULL ) {
+  if( (e3 = gts_edge_new(pygts_parent_edge_class(),v3,v1)) == NULL ) {
     PyErr_SetString(PyExc_RuntimeError, "GTS could not create Edge");
     gts_object_destroy(GTS_OBJECT(e2));
     return NULL;
   }
 
   /* Create and return the parent */
-  if( (parent = gts_triangle_new(gts_triangle_class(),e1,e2,e3)) == NULL ) {
+  if( (parent = gts_triangle_new(pygts_parent_triangle_class(),e1,e2,e3)) 
+      == NULL ) {
     gts_object_destroy(GTS_OBJECT(e2));
     gts_object_destroy(GTS_OBJECT(e3));
     PyErr_SetString(PyExc_RuntimeError, "GTS could not create Triangle");
@@ -392,4 +480,58 @@ pygts_edge_parent(GtsEdge *e1) {
   }
 
   return parent;
+}
+
+
+GtsTriangleClass*
+pygts_parent_triangle_class(void)
+{
+  static GtsTriangleClass *klass = NULL;
+  GtsObjectClass *super = NULL;
+
+  if (klass == NULL) {
+
+    super = GTS_OBJECT_CLASS(gts_triangle_class());
+
+    GtsObjectClassInfo pygts_parent_triangle_info = {
+      "PygtsParentTriangle",
+      sizeof(PygtsParentTriangle),
+      sizeof(GtsTriangleClass),
+      (GtsObjectClassInitFunc)(super->info.class_init_func),
+      (GtsObjectInitFunc)(super->info.object_init_func),
+      (GtsArgSetFunc) NULL,
+      (GtsArgGetFunc) NULL
+    };
+    klass = gts_object_class_new(gts_object_class(),
+				 &pygts_parent_triangle_info);
+  }
+
+  return klass;
+}
+
+
+GtsEdgeClass*
+pygts_parent_edge_class(void)
+{
+  static GtsEdgeClass *klass = NULL;
+  GtsObjectClass *super = NULL;
+
+  if (klass == NULL) {
+
+    super = GTS_OBJECT_CLASS(gts_edge_class());
+
+    GtsObjectClassInfo pygts_parent_edge_info = {
+      "PygtsParentEdge",
+      sizeof(PygtsParentEdge),
+      sizeof(GtsEdgeClass),
+      (GtsObjectClassInitFunc)(super->info.class_init_func),
+      (GtsObjectInitFunc)(super->info.object_init_func),
+      (GtsArgSetFunc) NULL,
+      (GtsArgGetFunc) NULL
+    };
+    klass = gts_object_class_new(gts_object_class(),
+				 &pygts_parent_edge_info);
+  }
+
+  return klass;
 }

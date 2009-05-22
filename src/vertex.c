@@ -27,38 +27,6 @@
 
 #include "pygts.h"
 
-/*-------------------------------------------------------------------------*/
-/* Parent GTS segment for GTS vertices */
-
-/* Define a GtsSegment subclass that can be readily identified as the parent 
- * of an encapsulated GtsVertex.  The pygts_parent_segment_class() function 
- * is defined at the bottom, and is what ultimately allows the distinction 
- * to be made.  This capability is used for vertex replacement operations.
- */
-typedef struct _GtsSegment PygtsParentSegment;
-
-#define PYGTS_PARENT_SEGMENT(obj) GTS_OBJECT_CAST(obj,\
-					     GtsSegment,\
-					     pygts_parent_segment_class())
-
-#define PYGTS_IS_PARENT_SEGMENT(obj)(gts_object_is_from_class (obj,\
-                                             pygts_parent_segment_class ()))
-
-
-static GtsSegmentClass *pygts_parent_segment_class(void);
-
-
-/* GTS vertex used parent segments */
-
-typedef struct _GtsVertex PygtsParentVertex;
-
-#define PYGTS_PARENT_VERTEX(obj) GTS_OBJECT_CAST(obj,\
-						 GtsVertex,\
-						 pygts_parent_vertex_class())
-
-#define PYGTS_IS_PARENT_VERTEX(obj)(gts_object_is_from_class (obj,\
-                                             pygts_parent_vertex_class ()))
-
 
 /*-------------------------------------------------------------------------*/
 /* Methods exported to python */
@@ -438,9 +406,9 @@ faces(PygtsVertex* self, PyObject *args)
     /* Get object from table (if available); otherwise chain-up allocation
      * and attach parent.
      */
-    if( (face = PYGTS_VERTEX(g_hash_table_lookup(obj_table,
-						 GTS_OBJECT(f->data))
-			     )) !=NULL ) {
+    if( (face = PYGTS_FACE(g_hash_table_lookup(obj_table,
+					       GTS_OBJECT(f->data))
+			   )) !=NULL ) {
       Py_INCREF(face);
     }
     else {
@@ -514,6 +482,86 @@ encroaches(PygtsVertex *self, PyObject *args, PyObject *kwds)
 }
 
 
+static PyObject*
+triangles(PygtsVertex *self, PyObject *args, PyObject *kwds)
+{
+  GSList *triangles, *t;
+  PygtsTriangle *triangle;
+  guint i,N;
+  PyObject *tuple;
+  PygtsSurface *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_vertex_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  triangles = gts_vertex_triangles(GTS_VERTEX(PYGTS_OBJECT(self)->gtsobj),NULL);
+  N = g_slist_length(triangles);
+
+  /* Create the tuple */
+  if( (tuple=PyTuple_New(N)) == NULL) {
+    PyErr_SetString(PyExc_TypeError,"Could not create tuple");
+    return NULL;
+  }
+
+  /* Put PygtsVertex objects into the tuple */
+  t = triangles;
+  for(i=0;i<N;i++) {
+
+    /* Get object from table (if available); otherwise chain-up allocation
+     * and attach parent.
+     */
+    if( (triangle = PYGTS_TRIANGLE(g_hash_table_lookup(obj_table,
+						       GTS_OBJECT(t->data))
+				   )) !=NULL ) {
+      Py_INCREF(triangle);
+    }
+    else {
+      /* Chain up object allocation */
+      args = Py_BuildValue("dddi",0,0,0,FALSE);
+      if(GTS_IS_FACE(t->data)) {
+	triangle = PYGTS_TRIANGLE(PygtsFaceType.tp_new(&PygtsFaceType, 
+						       args, NULL));
+      }
+      else {
+	triangle = PYGTS_TRIANGLE(PygtsTriangleType.tp_new(&PygtsTriangleType, 
+							   args, NULL));
+      }
+      Py_DECREF(args);
+      if( triangle == NULL ) {
+	PyErr_SetString(PyExc_TypeError,"Could not create Triangle");
+	Py_DECREF((PyObject*)tuple);
+	return NULL;
+      }
+
+      PYGTS_OBJECT(triangle)->gtsobj = GTS_OBJECT(t->data);
+
+      /* Create the parent GtsSegment */
+      if(GTS_IS_FACE(t->data)) {
+	if( (parent=PYGTS_SURFACE(pygts_face_parent(
+                        GTS_FACE(PYGTS_OBJECT(t)->gtsobj)))) == NULL ) {
+	  Py_DECREF(triangle);
+	  Py_DECREF(tuple);
+	  return NULL;
+	}
+	PYGTS_OBJECT(triangle)->gtsobj_parent = GTS_OBJECT(parent);
+      }
+    }      
+    /* Add Vertex to the tuple */
+    PyTuple_SET_ITEM(tuple, i, (PyObject*)triangle);
+    pygts_object_register(PYGTS_OBJECT(triangle));
+    
+    t = g_slist_next(t);
+  }
+
+  return tuple;
+}
+
+
 /* Methods table */
 static PyMethodDef methods[] = {
 
@@ -560,7 +608,7 @@ static PyMethodDef methods[] = {
 
   {"replace", (PyCFunction)replace,
    METH_VARARGS,
-   "Replaces this Vertex v1 with Vertex v2 in all segments that have v1.\n"
+   "Replaces this Vertex v1 with Vertex v2 in all Segments that have v1.\n"
    "Vertex v1 itself is left unchanged.\n"
    "\n"
    "Signature: v1.replace(v2).\n"
@@ -593,6 +641,13 @@ static PyMethodDef methods[] = {
    "Only the projection onto the x-y plane is considered.\n"
    "\n"
    "Signature: v.encroaches(e)\n"
+  },
+
+  {"triangles", (PyCFunction)triangles,
+   METH_NOARGS,
+   "Returns a list of Triangles that have this Vertex v.\n"
+   "\n"
+   "Signature: v.triangles()\n"
   },
 
   {NULL}  /* Sentinel */
@@ -747,6 +802,7 @@ pygts_vertex_is_ok(PygtsVertex *v)
 
   /* Check for a valid parent */
   g_return_val_if_fail(obj->gtsobj_parent!=NULL,FALSE);
+  g_return_val_if_fail(PYGTS_IS_PARENT_SEGMENT(obj->gtsobj_parent),FALSE);
   parent = g_slist_find(GTS_VERTEX(obj->gtsobj)->segments,
 			obj->gtsobj_parent);
   g_return_val_if_fail(parent!=NULL,FALSE);
@@ -781,7 +837,8 @@ pygts_vertex_parent(GtsVertex *v1) {
 }
 
 
-static GtsSegmentClass *pygts_parent_segment_class(void)
+GtsSegmentClass*
+pygts_parent_segment_class(void)
 {
   static GtsSegmentClass *klass = NULL;
   GtsObjectClass *super = NULL;
@@ -807,7 +864,8 @@ static GtsSegmentClass *pygts_parent_segment_class(void)
 }
 
 
-GtsVertexClass *pygts_parent_vertex_class(void)
+GtsVertexClass*
+pygts_parent_vertex_class(void)
 {
   static GtsVertexClass *klass = NULL;
   GtsObjectClass *super = NULL;
