@@ -697,6 +697,7 @@ get_e1(PygtsTriangle *self, void *closure)
 {
   PygtsEdge *e1;
   GtsTriangle *parent;
+  PyObject *args;
 
 #if PYGTS_DEBUG
   if(!pygts_triangle_check((PyObject*)self)) {
@@ -714,7 +715,9 @@ get_e1(PygtsTriangle *self, void *closure)
   }
 
   /* Chain up object allocation */
-  e1 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, NULL, NULL));
+  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+  e1 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+  Py_DECREF(args);
   if( e1 == NULL ) {
     PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
     return NULL;
@@ -740,6 +743,7 @@ get_e2(PygtsTriangle *self, void *closure)
 {
   PygtsEdge *e2;
   GtsTriangle *parent;
+  PyObject *args;
 
 #if PYGTS_DEBUG
   if(!pygts_triangle_check((PyObject*)self)) {
@@ -757,7 +761,9 @@ get_e2(PygtsTriangle *self, void *closure)
   }
 
   /* Chain up object allocation */
-  e2 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, NULL, NULL));
+  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+  e2 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+  Py_DECREF(args);
   if( e2 == NULL ) {
     PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
     return NULL;
@@ -783,6 +789,7 @@ get_e3(PygtsTriangle *self, void *closure)
 {
   PygtsEdge *e3;
   GtsTriangle *parent;
+  PyObject *args;
 
 #if PYGTS_DEBUG
   if(!pygts_triangle_check((PyObject*)self)) {
@@ -800,7 +807,9 @@ get_e3(PygtsTriangle *self, void *closure)
   }
 
   /* Chain up object allocation */
-  e3 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, NULL, NULL));
+  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+  e3 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+  Py_DECREF(args);
   if( e3 == NULL ) {
     PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
     return NULL;
