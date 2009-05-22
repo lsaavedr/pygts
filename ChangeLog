@@ -1,9 +1,14 @@
 2009-05-17  Thomas J. Duck  <tom.duck@dal.ca>
 
-	* Added function cube()
+	* Added function cube(), merge()
+
+	* Added methods Vertex.triangles(), Surface.cleanup(),
+	Surface.coarsen()
 
 	* Renamed examples/tetrahedron.py to examples/polyhedrons.py,
-	and modified to display tetrahedon, cube and sphere
+	and modified to display tetrahedon, cube and sphere.
+
+	* Renamed examples/boolean.py to examples/set_operations.py
 
 	* Check for complete mutual intersection for union(), difference(),
 	and intersection(), which is not allowed (resulted in a GTS

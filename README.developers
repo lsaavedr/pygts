@@ -146,12 +146,12 @@ CONTENTS
     gts_vertices_are_connected():         Vertex.is_connected()
     gts_vertex_replace():                 Vertex.replace()
     gts_vertex_neighbors():               Vertex.neighbors()
-    gts_vertex_triangles():
+    gts_vertex_triangles():               Vertex.triangles()
     gts_vertex_faces():                   Vertex.faces()
     gts_vertex_fan_oriented():
     gts_vertex_encroaches_edge():         Vertex.encroaches()
     gts_vertices_from_segments():
-    gts_vertices_merge():
+    gts_vertices_merge():                 merge()
 
     gts_segments_are_identical():         N/A (duplicates are prevented)
     gts_segments_are_intersecting():      Segment.intersects()
