@@ -722,6 +722,55 @@ class TestVertexMethods(TestPointMethods):
         self.assert_(self.Point(0,0,10).encroaches(e))
 
 
+    def test_triangles(self):
+
+        v = self.Point()
+
+        self.assert_(len(v.triangles())==0)
+        
+        t = gts.Triangle(v,gts.Vertex(0,1),gts.Vertex(1,0))
+        self.assert_(len(v.triangles())==1)
+        self.assert_(t in v.triangles())
+
+        f = gts.Face(v,gts.Vertex(0,1),gts.Vertex(1,0))
+        self.assert_(len(v.triangles())==2)
+        self.assert_(t in v.triangles())
+        self.assert_(f in v.triangles())
+
+
+    def test_merge(self):
+
+        vertices = [self.Point(0),self.Point(0.1),self.Point(10),
+                    self.Point(100)]
+
+        v = gts.merge(vertices,0.2)
+        self.assert_(len(v)==3)
+        self.assert_(vertices[1] in v)
+        self.assert_(vertices[2] in v)
+        self.assert_(vertices[3] in v)
+
+        for v in vertices:
+            self.assert_(v.is_ok())
+
+        v = gts.merge(vertices,100)
+        self.assert_(len(v)==1)
+
+        for v in vertices:
+            self.assert_(v.is_ok())
+
+        s = gts.Surface()
+        s.add(gts.Face(gts.Vertex(-1,0),gts.Vertex(0,0),gts.Vertex(0,1)))
+        s.add(gts.Face(gts.Vertex(1,0),gts.Vertex(0,0),gts.Vertex(0,1)))
+
+        self.assert_(len(s.vertices())==6)
+
+        gts.merge(s.vertices(),1.e-6)
+
+        self.assert_(len(s.vertices())==4)
+        
+        self.assert_(s.is_ok())
+
+
 class TestSegmentMethods(unittest.TestCase):
 
     Segment = gts.Segment
@@ -986,6 +1035,32 @@ class TestEdgeMethods(TestSegmentMethods):
         self.assert_(e1.is_ok())
         self.assert_(e2.is_ok())
         self.assert_(e3.is_ok())
+
+
+#    def test_replace(self):
+#
+#        v1,v2,v3 = gts.Vertex(0,0),gts.Vertex(0,1),gts.Vertex(1,1)
+#        e1,e2,e3 = self.Segment(v1,v2),self.Segment(v2,v3),self.Segment(v3,v1)
+#
+#        v4,v5 = gts.Vertex(0,0,1),gts.Vertex(0,1,1)
+#        e4 = self.Segment(v4,v5)
+#
+#        t = gts.Triangle(e1,e2,e3)
+#        e1.replace(e4)
+#
+#        self.assert_(v1.is_ok())
+#        self.assert_(v2.is_ok())
+#        self.assert_(v3.is_ok())
+#        self.assert_(v4.is_ok())
+#        self.assert_(v5.is_ok())
+#
+#        self.assert_(e1.is_ok())
+#        self.assert_(e2.is_ok())
+#        self.assert_(e3.is_ok())
+#        self.assert_(e4.is_ok())
+#
+#        self.assert_(t.is_ok())
+
 
 
     def test_face_number(self):
@@ -1982,9 +2057,6 @@ class TestSurfaceMethods(unittest.TestCase):
         for vertex in vertices:
             self.assert_(vertex.is_ok())
 
-#        for edge in edges:
-#            self.assert_(edge.is_ok())
-
         for face in faces:
             self.assert_(face.is_ok())
 
@@ -2142,6 +2214,34 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(s2.is_ok())
 
 
+#    def test_inter2(self):
+#
+#        EPS = 2**(-51)
+#        SCALE = 1.+EPS
+#
+#        s1 = gts.cube()
+#        s2 = gts.cube()
+#        s2.scale(1.,SCALE,SCALE)
+#        s2.translate(0.5)
+#
+#        s3 = s1.union(s2)
+#        self.assert_(s3.is_ok())
+#        self.assert_(fabs(s3.volume()-10.)<1.e-9)
+#
+#        s3 = s1.intersection(s2)
+#        self.assert_(s3.is_ok())
+#        self.assert_(fabs(s3.volume()-2.)<1.e-9)
+#
+#        s3 = s1.difference(s2)
+#        s4 = gts.Surface()
+#        for f in s3:
+#            if not f.is_compatible(s4):
+#                f.revert()
+#            s4.add(f)
+#        self.assert_(s3.is_ok())
+#        self.assert_(fabs(s3.volume()-6.)<1.e-9)
+
+
     def test_rotate(self):
 
         f = gts.Face(gts.Vertex(0,0),
@@ -2244,6 +2344,39 @@ class TestSurfaceMethods(unittest.TestCase):
         s.add(f3)
 
         self.assert_(s.is_self_intersecting())
+
+        self.assert_(s.is_ok())
+
+
+    def test_cleanup(self):
+
+        v1 = gts.Vertex(-1,0)
+        v2a = gts.Vertex(0,0)
+        v2b = gts.Vertex(1.e-10,0)
+        v3 = gts.Vertex(0,1)
+        v4 = gts.Vertex(1,0)
+
+        f1 = gts.Face(v1,v2a,v3)
+        f2 = gts.Face(v2b,v3,v4)
+
+        s = gts.Surface()
+        s.add(f1)
+        s.add(f2)
+
+        self.assert_(s.is_ok())
+        self.assert_(not f1.common_edge(f2))
+
+        s.cleanup(1.e-6)
+        self.assert_(f1.common_edge(f2))
+
+        self.assert_(v1.is_ok())
+        self.assert_(v2a.is_ok())
+        self.assert_(v2b.is_ok())
+        self.assert_(v3.is_ok())
+        self.assert_(v4.is_ok())
+
+        self.assert_(f1.is_ok())
+        self.assert_(f2.is_ok())
 
         self.assert_(s.is_ok())
 
