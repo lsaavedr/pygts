@@ -32,7 +32,7 @@
 /* Methods exported to python */
 
 static PyObject*
-is_ok(PygtsEdge *self, PyObject *args, PyObject *kwds)
+is_ok(PygtsEdge *self, PyObject *args)
 {
   if(pygts_edge_is_ok(self)) {
     Py_INCREF(Py_True);
@@ -46,7 +46,7 @@ is_ok(PygtsEdge *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-is_unattached(PygtsVertex *self, PyObject *args, PyObject *kwds)
+is_unattached(PygtsEdge *self, PyObject *args)
 {
   guint n;
 
@@ -76,7 +76,7 @@ is_unattached(PygtsVertex *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-replace(PygtsEdge *self, PyObject *args, PyObject *kwds)
+replace(PygtsEdge *self, PyObject *args)
 {
   PyObject *e2_;
   PygtsEdge *e2;
@@ -148,7 +148,7 @@ replace(PygtsEdge *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-face_number(PygtsVertex *self, PyObject *args, PyObject *kwds)
+face_number(PygtsEdge *self, PyObject *args)
 {
   PyObject *s_;
   GtsSurface *s;
@@ -179,7 +179,28 @@ face_number(PygtsVertex *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-contacts(PygtsVertex *self, PyObject *args, PyObject *kwds)
+belongs_to_tetrahedron(PygtsEdge *self, PyObject *args)
+{
+#if PYGTS_DEBUG
+  if(!pygts_edge_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  if(gts_edge_belongs_to_tetrahedron(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj))) {
+    Py_INCREF(Py_True);
+    return Py_True;
+  }
+  else {
+    Py_INCREF(Py_False);
+    return Py_False;
+  }
+}
+
+static PyObject*
+contacts(PygtsEdge *self, PyObject *args)
 {
 #if PYGTS_DEBUG
   if(!pygts_edge_check((PyObject*)self)) {
@@ -201,14 +222,14 @@ static PyMethodDef methods[] = {
    "True if this Edge e is not degenerate or duplicate.\n"
    "False otherwise.  Degeneracy implies e.v1.id == e.v2.id.\n"
    "\n"
-   "Signature: e.is_ok().\n"
+   "Signature: e.is_ok()\n"
   },  
 
   {"is_unattached", (PyCFunction)is_unattached,
    METH_NOARGS,
    "True if this Edge e is not part of any Triangle.\n"
    "\n"
-   "Signature: e.is_unattached().\n"
+   "Signature: e.is_unattached()\n"
   },
 
 /* Edge replace() method works but results in Triangles that are "not ok";
@@ -229,7 +250,15 @@ static PyMethodDef methods[] = {
    METH_VARARGS,
    "Returns number of faces using this Edge e on Surface s.\n"
    "\n"
-   "Signature: e.face_number(s).\n"
+   "Signature: e.face_number(s)\n"
+  },
+
+  {"belongs_to_tetrahedron", (PyCFunction)belongs_to_tetrahedron,
+   METH_NOARGS,
+   "Returns True if this Edge e belongs to a tetrahedron.\n"
+   "Otherwise False.\n"
+   "\n"
+   "Signature: e.belongs_to_tetrahedron()\n"
   },
 
   {"contacts", (PyCFunction)contacts,
@@ -237,7 +266,7 @@ static PyMethodDef methods[] = {
    "Returns number of sets of connected triangles share this Edge e\n"
    "as a contact Edge.\n"
    "\n"
-   "Signature: e.contacts().\n"
+   "Signature: e.contacts()\n"
   },
 
   {NULL}  /* Sentinel */
