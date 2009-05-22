@@ -36,6 +36,40 @@ extern PyTypeObject PygtsVertexType;
 
 gboolean pygts_vertex_check(PyObject* o);
 gboolean pygts_vertex_is_ok(PygtsVertex *v);
+
+
+/*-------------------------------------------------------------------------*/
+/* Parent GTS segment for GTS vertices */
+
+/* Define a GtsSegment subclass that can be readily identified as the parent 
+ * of an encapsulated GtsVertex.  The pygts_parent_segment_class() function 
+ * is defined at the bottom, and is what ultimately allows the distinction 
+ * to be made.  This capability is used for vertex replacement operations.
+ */
+typedef struct _GtsSegment PygtsParentSegment;
+
+#define PYGTS_PARENT_SEGMENT(obj) GTS_OBJECT_CAST(obj,\
+					     GtsSegment,\
+					     pygts_parent_segment_class())
+
+#define PYGTS_IS_PARENT_SEGMENT(obj)(gts_object_is_from_class (obj,\
+                                             pygts_parent_segment_class()))
+
+GtsSegmentClass* pygts_parent_segment_class(void);
+
+
+/* GTS vertices in parent segments */
+
+typedef struct _GtsVertex PygtsParentVertex;
+
+#define PYGTS_PARENT_VERTEX(obj) GTS_OBJECT_CAST(obj,\
+						 GtsVertex,\
+						 pygts_parent_vertex_class())
+
+#define PYGTS_IS_PARENT_VERTEX(obj)(gts_object_is_from_class (obj,\
+                                             pygts_parent_vertex_class()))
+
+
 GtsSegment* pygts_vertex_parent(GtsVertex *v1);
 
 GtsVertexClass *pygts_parent_vertex_class(void);

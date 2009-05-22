@@ -36,6 +36,41 @@ extern PyTypeObject PygtsEdgeType;
 
 gboolean pygts_edge_check(PyObject* o);
 gboolean pygts_edge_is_ok(PygtsEdge *e);
+
+
+/*-------------------------------------------------------------------------*/
+/* Parent GTS triangle for GTS edges */
+
+/* Define a GtsTriangle subclass that can be readily identified as the parent 
+ * of an encapsulated GtsEdge.  The pygts_parent_triangle_class() function 
+ * is defined at the bottom, and is what ultimately allows the distinction 
+ * to be made.  This capability is used for edge replacement operations.
+ */
+typedef struct _GtsTriangle PygtsParentTriangle;
+
+#define PYGTS_PARENT_TRIANGLE(obj) GTS_OBJECT_CAST(obj,\
+					      GtsTriangle,\
+					      pygts_parent_triangle_class())
+
+#define PYGTS_IS_PARENT_TRIANGLE(obj)(gts_object_is_from_class (obj,\
+                                             pygts_parent_triangle_class()))
+
+GtsTriangleClass* pygts_parent_triangle_class(void);
+
+
+/* GTS edges in parent triangles */
+
+typedef struct _GtsEdge PygtsParentEdge;
+
+#define PYGTS_PARENT_EDGE(obj) GTS_OBJECT_CAST(obj,\
+						 GtsEdge,\
+						 pygts_parent_edge_class())
+
+#define PYGTS_IS_PARENT_EDGE(obj)(gts_object_is_from_class (obj,\
+                                             pygts_parent_edge_class()))
+
+GtsEdgeClass* pygts_parent_edge_class(void);
+
 GtsTriangle* pygts_edge_parent(GtsEdge *e1);
 
 #endif /* __PYGTS_EDGE_H__ */

@@ -609,6 +609,7 @@ pygts_face_is_ok(PygtsFace *f)
 
   /* Check for a valid parent */
   g_return_val_if_fail(obj->gtsobj_parent!=NULL,FALSE);
+  g_return_val_if_fail(GTS_IS_SURFACE(obj->gtsobj_parent),FALSE);
   parent = g_slist_find(GTS_FACE(obj->gtsobj)->surfaces,
 			obj->gtsobj_parent);
   g_return_val_if_fail(parent!=NULL,FALSE);
