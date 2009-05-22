@@ -1,9 +1,8 @@
 /* pygts - python module for the manipulation of triangulated surfaces
  *
- *   Copyright (C) 1999, 2009 Stéphane Popinet
+ *   Copyright (C) 1999 Stéphane Popinet
+ *   Copyright (C) 2009 Thomas J. Duck
  *   All rights reserved.
- *
- *   May 2009: Modified for use in pygts by Thomas J. Duck.
  *
  *   Thomas J. Duck <tom.duck@dal.ca>
  *   Department of Physics and Atmospheric Science,
@@ -29,50 +28,192 @@
 
 
 /*
- *  Below are functions for cleaning up duplicated edges and faces on
- *  a surface.  This file was adapted from the example file of the same
- *  name in the GTS distribution.
+ * Below are functions for cleaning up duplicated edges and faces on
+ * a surface.  This file contains modified functions from the GTS 
+ * distribution.
  */
 
 #include "pygts.h"
 
+
+/**
+ * Original documentation from GTS's vertex.c:
+ *
+ * gts_vertices_merge:
+ * @vertices: a list of #GtsVertex.
+ * @epsilon: half the size of the bounding box to consider for each vertex.
+ * @check: function called for each pair of vertices about to be merged
+ * or %NULL.
+ *
+ * For each vertex v in @vertices look if there are any vertex of
+ * @vertices contained in a box centered on v of size 2*@epsilon. If
+ * there are and if @check is not %NULL and returns %TRUE, replace
+ * them with v (using gts_vertex_replace()), destroy them and remove
+ * them from list.  This is done efficiently using Kd-Trees.
+ *
+ * Returns: the updated list of vertices.  
+ */
+/* This function is modified from the original in GTS in order to avoid 
+ * deallocating any objects referenced by the live-objects table.  The 
+ * approach is identical to what is used for replace() in vertex.c.
+ */
+GList*
+pygts_vertices_merge(GList* vertices, gdouble epsilon,
+		     gboolean (* check) (GtsVertex *, GtsVertex *))
+{
+  GPtrArray *array;
+  GList *i, *next;
+  GNode *kdtree;
+  GtsVertex *v;
+  GtsBBox *bbox;
+  GSList *selected, *j;
+  GtsVertex *sv;
+  PygtsVertex *vertex=NULL;
+  GSList *parents=NULL, *ii,*cur;
+
+  g_return_val_if_fail(vertices != NULL, 0);
+
+  array = g_ptr_array_new();
+  i = vertices;
+  while (i) {
+    g_ptr_array_add(array, i->data);
+    i = i->next;
+  }
+  kdtree = gts_kdtree_new(array, NULL);
+  g_ptr_array_free(array, TRUE);
+  
+  i = vertices;
+  while(i) {
+    v = i->data;
+    if (!GTS_OBJECT (v)->reserved) { /* Do something only if v is active */
+
+      /* build bounding box */
+      bbox = gts_bbox_new(gts_bbox_class(), v, 
+			  GTS_POINT(v)->x - epsilon,
+			  GTS_POINT(v)->y - epsilon,
+			  GTS_POINT(v)->z - epsilon,
+			  GTS_POINT(v)->x + epsilon,
+			  GTS_POINT(v)->y + epsilon,
+			  GTS_POINT(v)->z + epsilon);
+
+      /* select vertices which are inside bbox using kdtree */
+      j = selected = gts_kdtree_range(kdtree, bbox, NULL);
+      while(j) {
+        sv = j->data;
+        if( sv!=v && !GTS_OBJECT(sv)->reserved && (!check||(*check)(sv, v)) ) {
+          /* sv is not v and is active */
+
+	  if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,
+							 GTS_OBJECT(sv))
+			       )) !=NULL ) {
+	    /* Detach and save any parent segments */
+	    ii = sv->segments;
+	    while(ii!=NULL) {
+	      cur = ii;
+	      ii = ii->next;
+	      if(PYGTS_IS_PARENT_SEGMENT(cur->data)) {
+		sv->segments = g_slist_remove_link(sv->segments, cur);
+		parents = g_slist_prepend(parents,cur->data);
+		g_slist_free_1(cur);
+	      }
+	    } 
+	  }
+
+          gts_vertex_replace(sv, v);
+          GTS_OBJECT(sv)->reserved = sv; /* mark sv as inactive */
+
+	  /* Reattach the parent segments */
+	  if( vertex != NULL ) {
+	    ii = parents;
+	    while(ii!=NULL) {
+	      sv->segments = g_slist_prepend(sv->segments, ii->data);
+	      ii = ii->next;
+	    }
+	    g_slist_free(parents);
+	    parents = NULL;
+	  }
+	  vertex = NULL;
+        }
+        j = j->next;
+      }
+      g_slist_free(selected);
+      gts_object_destroy(GTS_OBJECT(bbox));
+    }
+    i = i->next;
+  }
+
+  gts_kdtree_destroy(kdtree);
+
+  /* destroy inactive vertices and removes them from list */
+
+  /* we want to control vertex destruction */
+  gts_allow_floating_vertices = TRUE;
+
+  i = vertices;
+  while (i) {
+    v = i->data;
+    next = i->next;
+    if(GTS_OBJECT(v)->reserved) { /* v is inactive */
+      if( PYGTS_VERTEX(g_hash_table_lookup(obj_table,GTS_OBJECT(v))) ==NULL ) {
+	gts_object_destroy(GTS_OBJECT(v));
+      }
+      else {
+	GTS_OBJECT(v)->reserved = 0;
+      }
+      vertices = g_list_remove_link(vertices, i);
+      g_list_free_1(i);
+    }
+    i = next;
+  }
+  gts_allow_floating_vertices = FALSE; 
+
+  return vertices;
+}
+
+
 static void 
 build_list(gpointer data, GSList ** list)
 {
-  /* always use O(1) g_slist_prepend instead of O(n) g_slist_append */
-  *list = g_slist_prepend (*list, data);
+  *list = g_slist_prepend(*list, data);
 }
 
-/* static void  */
-/* build_list1(gpointer data, GList ** list) */
-/* { */
-/*   /\* always use O(1) g_list_prepend instead of O(n) g_list_append *\/ */
-/*   *list = g_list_prepend (*list, data); */
-/* } */
 
-/* static void  */
-/* build_list2(GtsVertex * v, GList ** list) */
-/* { */
-/*   if (gts_vertex_is_boundary (v, NULL)) */
-/*     *list = g_list_prepend (*list, v); */
-/* } */
-
-void 
-pygts_vertex_cleanup(GtsVertex * v)
+static void
+build_list1(gpointer data, GList ** list)
 {
-  gts_vertex_is_contact (v, TRUE);
+  *list = g_list_prepend(*list, data);
 }
 
+
 void 
-pygts_edge_cleanup(GtsSurface * surface)
+pygts_vertex_cleanup(GtsSurface *s, gdouble threshold)
+{
+  GList * vertices = NULL;
+  gboolean boundary = FALSE;
+
+  /* merge vertices which are close enough */
+  /* build list of vertices */
+  gts_surface_foreach_vertex(s, (GtsFunc) build_list1, &vertices);
+
+  /* merge vertices: we MUST update the variable vertices because this function
+     modifies the list (i.e. removes the merged vertices). */
+  vertices = pygts_vertices_merge(vertices, threshold, NULL);
+
+  /* free the list */
+  g_list_free(vertices);
+}
+
+
+void 
+pygts_edge_cleanup(GtsSurface *s)
 {
   GSList * edges = NULL;
   GSList * i;
 
-  g_return_if_fail (surface != NULL);
+  g_return_if_fail(s != NULL);
 
   /* build list of edges */
-  gts_surface_foreach_edge (surface, (GtsFunc) build_list, &edges);
+  gts_surface_foreach_edge(s, (GtsFunc)build_list, &edges);
 
   /* remove degenerate and duplicate edges.
      Note: we could use gts_edges_merge() to remove the duplicates and then
@@ -83,17 +224,17 @@ pygts_edge_cleanup(GtsSurface * surface)
   gts_allow_floating_edges = TRUE;
 
   i = edges;
-  while (i) {
+  while(i) {
     GtsEdge * e = i->data;
     GtsEdge * duplicate;
-    if (GTS_SEGMENT (e)->v1 == GTS_SEGMENT (e)->v2) /* edge is degenerate */
+    if(GTS_SEGMENT(e)->v1 == GTS_SEGMENT(e)->v2) /* edge is degenerate */
       /* destroy e */
-      gts_object_destroy (GTS_OBJECT (e));
-    else if ((duplicate = gts_edge_is_duplicate (e))) {
+      gts_object_destroy(GTS_OBJECT(e));
+    else if((duplicate = gts_edge_is_duplicate(e))) {
       /* replace e with its duplicate */
-      gts_edge_replace (e, duplicate);
+      gts_edge_replace(e, duplicate);
       /* destroy e */
-      gts_object_destroy (GTS_OBJECT (e));
+      gts_object_destroy(GTS_OBJECT (e));
     }
     i = i->next;
   }
@@ -112,32 +253,25 @@ pygts_triangle_cleanup(GtsSurface * s)
   GSList * triangles = NULL;
   GSList * i;
 
-  g_return_if_fail (s != NULL);
+  g_return_if_fail(s != NULL);
 
   /* build list of triangles */
-  gts_surface_foreach_face (s, (GtsFunc) build_list, &triangles);
+  gts_surface_foreach_face(s, (GtsFunc) build_list, &triangles);
   
   /* remove duplicate triangles */
   i = triangles;
-  while (i) {
+  while(i) {
     GtsTriangle * t = i->data;
-    if (gts_triangle_is_duplicate (t))
+    if (gts_triangle_is_duplicate(t))
       /* destroy t, its edges (if not used by any other triangle)
 	 and its corners (if not used by any other edge) */
-      gts_object_destroy (GTS_OBJECT (t));
+      gts_object_destroy(GTS_OBJECT (t));
     i = i->next;
   }
   
   /* free list of triangles */
-  g_slist_free (triangles);
+  g_slist_free(triangles);
 }
-
-/* static gboolean  */
-/* check_boundaries(GtsVertex * v1, GtsVertex * v2) */
-/* { */
-/*   return (g_slist_length (v1->segments) < 4 &&  */
-/* 	  g_slist_length (v2->segments) < 4); */
-/* } */
 
 
 /* old main program (below) - retained as an example of how to use the
