@@ -1006,6 +1006,14 @@ tessellate(PygtsSurface *self, PyObject *args)
 }
 
 
+/* Helper function for inter() */
+void
+get_largest_coord(GtsVertex *v,gdouble *val) {
+  if( fabs(GTS_POINT(v)->x) > *val ) *val = fabs(GTS_POINT(v)->x);
+  if( fabs(GTS_POINT(v)->y) > *val ) *val = fabs(GTS_POINT(v)->y);
+  if( fabs(GTS_POINT(v)->z) > *val ) *val = fabs(GTS_POINT(v)->z);
+}
+
 /* Helper function for intersection operations */
 static PyObject*
 inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
@@ -1019,6 +1027,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   GtsSurfaceInter *si;
   GNode *tree1, *tree2;
   gboolean is_open1, is_open2, closed;
+  gdouble eps=0.;
 
 #if PYGTS_DEBUG
   if(!pygts_surface_check((PyObject*)self)) {
@@ -1068,7 +1077,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   /* *** ATTENTION *** */
 
 
-  /* Check for self-intersections */
+  /* Check for self-intersections in either surface */
   if( gts_surface_is_self_intersecting(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))
       != NULL ) {
     PyErr_SetString(PyExc_RuntimeError,"Surface is self-intersecting");
@@ -1096,7 +1105,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
     area2 = \
       gts_surface_center_of_area(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj),cm2);
 
-    if( (area1==area2) && (cm1[0]==cm2[0]) && (cm1[1]==cm2[1]) || 
+    if( (area1==area2) && (cm1[0]==cm2[0]) && (cm1[1]==cm2[1]) && 
 	(cm1[2]==cm2[2]) ) {
       PyErr_SetString(PyExc_RuntimeError,"Surfaces mutually intersect");
       return NULL;
@@ -1159,6 +1168,14 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   gts_surface_inter_boolean(si, GTS_SURFACE(ret->gtsobj),op1);
   gts_surface_inter_boolean(si, GTS_SURFACE(ret->gtsobj),op2);
   gts_object_destroy(GTS_OBJECT(si));
+
+  /* Clean up the result */
+  gts_surface_foreach_vertex(GTS_SURFACE(ret->gtsobj),
+			     (GtsFunc)get_largest_coord,&eps);
+  eps *= pow(2.,-50);
+  pygts_vertex_cleanup(GTS_SURFACE(ret->gtsobj),eps);
+  pygts_edge_cleanup(GTS_SURFACE(ret->gtsobj));
+  pygts_triangle_cleanup(GTS_SURFACE(ret->gtsobj));
 
   /* Check for self-intersection */
   if( gts_surface_is_self_intersecting(GTS_SURFACE(ret->gtsobj)) != NULL ) {
@@ -1394,6 +1411,70 @@ is_self_intersecting(PygtsSurface *self, PyObject *args)
 }
 
 
+static PyObject*
+cleanup(PygtsSurface *self, PyObject *args)
+{
+  GtsSurface *s;
+  gdouble threshold = 0.;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */
+  if(! PyArg_ParseTuple(args,"|d", &threshold) ) {
+    return NULL;
+  }
+
+  s = GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj);
+
+  /* Do the cleanup */
+  if( threshold != 0. ) {
+    pygts_vertex_cleanup(s,threshold);
+  }
+  pygts_edge_cleanup(s);
+  pygts_triangle_cleanup(s);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+static PyObject*
+coarsen(PygtsSurface *self, PyObject *args)
+{
+  GtsSurface *s;
+  guint n;
+  gdouble amin=0.;
+  GtsVolumeOptimizedParams params = {0.5,0.5,1.e-10};
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */
+  if(! PyArg_ParseTuple(args,"i|d", &n, &amin) ) {
+    return NULL;
+  }
+
+  gts_surface_coarsen(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
+		      (GtsKeyFunc)gts_volume_optimized_cost, &params,
+		      (GtsCoarsenFunc)gts_volume_optimized_vertex, &params,
+		      (GtsStopFunc)gts_coarsen_stop_number, &n, amin);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
 /* Methods table */
 static PyMethodDef methods[] = {
   {"is_ok", (PyCFunction)is_ok,
@@ -1614,6 +1695,27 @@ static PyMethodDef methods[] = {
    "False otherwise.\n"
    "\n"
    "Signature: s.is_self_intersecting()\n"
+  },  
+
+  {"cleanup", (PyCFunction)cleanup,
+   METH_VARARGS,
+   "Cleans up the Vertices, Edges, and Faces on a Surface s.\n"
+   "\n"
+   "Signature: s.cleanup() or s.cleanup(threhold)\n"
+   "\n"
+   "If threhold is given, then Vertices that are spaced less than\n"
+   "the threshold are merged.  Degenerate Edges and Faces are also\n"
+   "removed.\n"
+  },  
+
+  {"coarsen", (PyCFunction)coarsen,
+   METH_VARARGS,
+   "Reduces the number of vertices on Surface s.\n"
+   "\n"
+   "Signature: s.coarsen(n) and s.coarsen(amin)\n"
+   "\n"
+   "n is the smallest number of desired edges (but you may get fewer).\n"
+   "amin is the smallest angle between Faces.\n"
   },  
 
   {NULL}  /* Sentinel */
