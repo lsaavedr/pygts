@@ -27,6 +27,77 @@
 
 #include "pygts.h"
 
+static PyObject*
+merge(PyObject *self, PyObject *args)
+{
+  PyObject *tuple, *obj;
+  guint i,N;
+  GList *vertices=NULL,*v;
+  gdouble epsilon;
+  PygtsVertex *vertex;
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "Od", &tuple, &epsilon) ) {
+    return NULL;
+  }
+  if(PyList_Check(tuple)) {
+    tuple = PyList_AsTuple(tuple);
+  }
+  else {
+    Py_INCREF(tuple);
+  }
+  if(!PyTuple_Check(tuple)) {
+    Py_DECREF(tuple);
+    PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
+    return NULL;
+  }
+
+  /* Assemble the GList */
+  N = PyTuple_Size(tuple);
+
+  fprintf(stderr,"*** 1.1 ***\n");
+
+  for(i=N-1;i>0;i--) {
+    obj = PyTuple_GET_ITEM(tuple,i);
+    if(!pygts_vertex_check(obj)) {
+      Py_DECREF(tuple);
+      g_list_free(vertices);
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
+      return NULL;
+    }
+    vertices = g_list_prepend(vertices,GTS_VERTEX(PYGTS_OBJECT(obj)->gtsobj));
+  }
+  Py_DECREF(tuple);
+
+  /* Make the call */
+  vertices = pygts_vertices_merge(vertices,epsilon,NULL);
+
+  /* Assemble the return tuple */
+  N = g_list_length(vertices);
+  if( (tuple=PyTuple_New(N)) == NULL) {
+    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    return NULL;
+  }
+  v = vertices;
+  for(i=0;i<N;i++) {
+    if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,
+						   GTS_OBJECT(v->data))
+			       )) ==NULL ) {
+      PyErr_SetString(PyExc_TypeError,
+		      "could not get object from table (internal error)");
+      g_list_free(vertices);
+      return NULL;
+    }
+    Py_INCREF(vertex);
+    PyTuple_SET_ITEM(tuple,i,(PyObject*)vertex);
+    v = v->next;
+  }
+
+  g_list_free(vertices);
+
+  return tuple;
+}
+
 
 static PyObject*
 sphere(PyObject *self, PyObject *args)
@@ -64,6 +135,13 @@ static PyMethodDef gts_methods[] = {
     "of 4.\n"
     "\n"
     "Signature: sphere(geodesation_order)\n"
+  },
+
+  { "merge", merge, METH_VARARGS,
+    "Merges list of Vertices that are within a box of side-length\n"
+    "epsilon of each other.\n"
+    "\n"
+    "Signature: merge(list,epsilon)\n"
   },
 
   {NULL}  /* Sentinel */
