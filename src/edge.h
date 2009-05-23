@@ -52,7 +52,7 @@ typedef struct _GtsTriangle PygtsParentTriangle;
 					      GtsTriangle,\
 					      pygts_parent_triangle_class())
 
-#define PYGTS_IS_PARENT_TRIANGLE(obj)(gts_object_is_from_class (obj,\
+#define PYGTS_IS_PARENT_TRIANGLE(obj)(gts_object_is_from_class(obj,\
                                              pygts_parent_triangle_class()))
 
 GtsTriangleClass* pygts_parent_triangle_class(void);
@@ -66,7 +66,7 @@ typedef struct _GtsEdge PygtsParentEdge;
 						 GtsEdge,\
 						 pygts_parent_edge_class())
 
-#define PYGTS_IS_PARENT_EDGE(obj)(gts_object_is_from_class (obj,\
+#define PYGTS_IS_PARENT_EDGE(obj)(gts_object_is_from_class(obj,\
                                              pygts_parent_edge_class()))
 
 GtsEdgeClass* pygts_parent_edge_class(void);

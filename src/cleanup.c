@@ -248,9 +248,9 @@ pygts_edge_cleanup(GtsSurface *s)
 
 
 void 
-pygts_triangle_cleanup(GtsSurface * s)
+pygts_face_cleanup(GtsSurface * s)
 {
-  GSList * triangles = NULL;
+  GSList *triangles = NULL;
   GSList * i;
 
   g_return_if_fail(s != NULL);
