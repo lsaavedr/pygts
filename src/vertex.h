@@ -52,7 +52,7 @@ typedef struct _GtsSegment PygtsParentSegment;
 					     GtsSegment,\
 					     pygts_parent_segment_class())
 
-#define PYGTS_IS_PARENT_SEGMENT(obj)(gts_object_is_from_class (obj,\
+#define PYGTS_IS_PARENT_SEGMENT(obj)(gts_object_is_from_class(obj,\
                                              pygts_parent_segment_class()))
 
 GtsSegmentClass* pygts_parent_segment_class(void);
@@ -66,7 +66,7 @@ typedef struct _GtsVertex PygtsParentVertex;
 						 GtsVertex,\
 						 pygts_parent_vertex_class())
 
-#define PYGTS_IS_PARENT_VERTEX(obj)(gts_object_is_from_class (obj,\
+#define PYGTS_IS_PARENT_VERTEX(obj)(gts_object_is_from_class(obj,\
                                              pygts_parent_vertex_class()))
 
 

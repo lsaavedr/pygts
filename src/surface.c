@@ -232,7 +232,7 @@ pygts_read(PygtsSurface *self, PyObject *args)
   gts_surface_merge(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),m);
   gts_object_destroy(GTS_OBJECT(m));
   pygts_edge_cleanup(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj));
-  pygts_triangle_cleanup(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj));
+  pygts_face_cleanup(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj));
 
 #if PYGTS_DEBUG
   if(!pygts_surface_check((PyObject*)self)) {
@@ -310,6 +310,82 @@ is_closed(PygtsSurface *self, PyObject *args)
     Py_INCREF(Py_False);
     return Py_False;
   }
+}
+
+
+static PyObject*
+boundary(PyObject *self, PyObject *args)
+{
+  PyObject *tuple, *obj;
+  guint i,N;
+  GSList *edges=NULL,*e;
+  PygtsEdge *edge;
+  PygtsTriangle *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Make the call */
+  if( (edges = gts_surface_boundary(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))) 
+      == NULL ) {
+    PyErr_SetString(PyExc_TypeError,"could not retrieve edges");
+    return NULL;
+  }
+
+  /* Assemble the return tuple */
+  N = g_slist_length(edges);
+  if( (tuple=PyTuple_New(N)) == NULL) {
+    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    return NULL;
+  }
+  e = edges;
+  for(i=0;i<N;i++) {
+    if( (edge = PYGTS_EDGE(g_hash_table_lookup(obj_table,
+					       GTS_OBJECT(e->data))
+			   )) !=NULL ) {
+      Py_INCREF(edge);
+    }
+    else {
+
+      /* Chain up object allocation for edges*/
+      args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+      edge = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+      Py_DECREF(args);
+      if( edge == NULL ) {
+	PyErr_SetString(PyExc_TypeError,"could not create Edge");
+	Py_DECREF(tuple);
+	g_slist_free(edges);
+	return NULL;
+      }
+
+      PYGTS_OBJECT(edge)->gtsobj = GTS_OBJECT(e->data);
+
+      /* Create the parent GtsTriangle */
+      if(GTS_IS_EDGE(e->data)) {
+	if( (parent=PYGTS_TRIANGLE(pygts_edge_parent(
+		      GTS_EDGE(PYGTS_OBJECT(edge)->gtsobj)))) == NULL ) {
+	  Py_DECREF(edge);
+	  Py_DECREF(tuple);
+	  g_slist_free(edges);
+	  return NULL;
+	}
+	PYGTS_OBJECT(edge)->gtsobj_parent = GTS_OBJECT(parent);
+      }
+
+      pygts_object_register(edge);
+    }
+    PyTuple_SET_ITEM(tuple,i,(PyObject*)edge);
+    e = e->next;
+  }
+
+  g_slist_free(edges);
+
+  return tuple;
 }
 
 
@@ -568,6 +644,250 @@ vertices(PygtsSurface *self, PyObject *args)
   }
 
   free(vertices);
+  return tuple;
+}
+
+
+/* Helper function for edges() */
+static void get_edge(GtsEdge *edge, GSList **edges)
+{
+  *edges = g_slist_prepend(*edges,edge);
+}
+
+static PyObject*
+edges(PyObject *self, PyObject *args)
+{
+  PyObject *tuple=NULL, *obj;
+  guint i,N;
+  GSList *edges=NULL,*vertices=NULL,*e;
+  PygtsEdge *edge;
+  PygtsTriangle *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "|O", &tuple) ) {
+    return NULL;
+  }
+
+  if(tuple) {
+    if(PyList_Check(tuple)) {
+      tuple = PyList_AsTuple(tuple);
+    }
+    else {
+      Py_INCREF(tuple);
+    }
+    if(!PyTuple_Check(tuple)) {
+      Py_DECREF(tuple);
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
+      return NULL;
+    }
+
+    /* Assemble the GSList */
+    N = PyTuple_Size(tuple);
+    for(i=0;i<N;i++) {
+      obj = PyTuple_GET_ITEM(tuple,i);
+      if(!pygts_vertex_check(obj)) {
+	Py_DECREF(tuple);
+	g_slist_free(vertices);
+	PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
+	return NULL;
+      }
+      vertices=g_slist_prepend(vertices,GTS_VERTEX(PYGTS_OBJECT(obj)->gtsobj));
+    }
+    Py_DECREF(tuple);
+
+    /* Make the call */
+    if( (edges = gts_edges_from_vertices(vertices,
+		     GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))) == NULL ) {
+      PyErr_SetString(PyExc_TypeError,"could not retrieve edges");
+      return NULL;
+    }
+    g_slist_free(vertices);
+  }
+  else {
+    /* Get all of the edges */
+    gts_surface_foreach_edge(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
+			     (GtsFunc)get_edge,&edges);
+  }
+
+  /* Assemble the return tuple */
+  N = g_slist_length(edges);
+  if( (tuple=PyTuple_New(N)) == NULL) {
+    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    return NULL;
+  }
+  e = edges;
+  for(i=0;i<N;i++) {
+    if( (edge = PYGTS_EDGE(g_hash_table_lookup(obj_table,
+					       GTS_OBJECT(e->data))
+			   )) !=NULL ) {
+      Py_INCREF(edge);
+    }
+    else {
+      
+      /* Chain up object allocation for edges*/
+      args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+      edge = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+      Py_DECREF(args);
+      if( edge == NULL ) {
+	PyErr_SetString(PyExc_TypeError,"could not create Edge");
+	Py_DECREF(tuple);
+	g_slist_free(edges);
+	return NULL;
+      }
+
+      PYGTS_OBJECT(edge)->gtsobj = GTS_OBJECT(e->data);
+
+      /* Create the parent GtsTriangle */
+      if(GTS_IS_EDGE(e->data)) {
+	if( (parent=PYGTS_TRIANGLE(pygts_edge_parent(
+		      GTS_EDGE(PYGTS_OBJECT(edge)->gtsobj)))) == NULL ) {
+	  Py_DECREF(edge);
+	  Py_DECREF(tuple);
+	  g_slist_free(edges);
+	  return NULL;
+	}
+	PYGTS_OBJECT(edge)->gtsobj_parent = GTS_OBJECT(parent);
+      }
+
+      pygts_object_register(edge);
+    }
+    PyTuple_SET_ITEM(tuple,i,(PyObject*)edge);
+    e = e->next;
+  }
+
+  g_slist_free(edges);
+
+  return tuple;
+}
+
+
+/* Helper function for edges() */
+static void get_face(GtsFace *face, GSList **faces)
+{
+  *faces = g_slist_prepend(*faces,face);
+}
+
+static PyObject*
+faces(PyObject *self, PyObject *args)
+{
+  PyObject *tuple=NULL, *obj;
+  guint i,N;
+  GSList *edges=NULL,*faces=NULL,*f;
+  PygtsFace *face;
+  PygtsSurface *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "|O", &tuple) ) {
+    return NULL;
+  }
+
+  if(tuple) {
+    if(PyList_Check(tuple)) {
+      tuple = PyList_AsTuple(tuple);
+    }
+    else {
+      Py_INCREF(tuple);
+    }
+    if(!PyTuple_Check(tuple)) {
+      Py_DECREF(tuple);
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of edges");
+      return NULL;
+    }
+
+    /* Assemble the GSList */
+    N = PyTuple_Size(tuple);
+    for(i=0;i<N;i++) {
+      obj = PyTuple_GET_ITEM(tuple,i);
+      if(!pygts_edge_check(obj)) {
+	Py_DECREF(tuple);
+	g_slist_free(edges);
+	PyErr_SetString(PyExc_TypeError,"expected a list or tuple of edges");
+	return NULL;
+      }
+      edges = g_slist_prepend(edges,GTS_EDGE(PYGTS_OBJECT(obj)->gtsobj));
+    }
+    Py_DECREF(tuple);
+
+  /* Make the call */
+    if( (faces = gts_faces_from_edges(edges,
+				      GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))) 
+	== NULL ) {
+      PyErr_SetString(PyExc_TypeError,"could not retrieve faces");
+      return NULL;
+    }
+    g_slist_free(edges);
+  }
+  else {
+    /* Get all of the edges */
+    gts_surface_foreach_face(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
+			     (GtsFunc)get_face,&faces);
+  }
+
+  /* Assemble the return tuple */
+  N = g_slist_length(faces);
+  if( (tuple=PyTuple_New(N)) == NULL) {
+    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    return NULL;
+  }
+
+  f = faces;
+  for(i=0;i<N;i++) {
+    if( (face = PYGTS_FACE(g_hash_table_lookup(obj_table,
+					       GTS_OBJECT(f->data))
+			   )) !=NULL ) {
+      Py_INCREF(face);
+    }
+    else {
+
+      /* Chain up object allocation for faces */
+      args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+      face = PYGTS_TRIANGLE(PygtsFaceType.tp_new(&PygtsFaceType, 
+						     args, NULL));
+      Py_DECREF(args);
+      if( face == NULL ) {
+	PyErr_SetString(PyExc_TypeError,"could not create Face");
+	Py_DECREF(tuple);
+	g_slist_free(faces);
+	return NULL;
+      }
+
+      PYGTS_OBJECT(face)->gtsobj = GTS_OBJECT(f->data);
+
+      /* Create the parent GtsSurface */
+      if( (parent=PYGTS_SURFACE(pygts_face_parent(
+                      GTS_FACE(PYGTS_OBJECT(face)->gtsobj)))) == NULL ) {
+	Py_DECREF(face);
+	Py_DECREF(tuple);
+	g_slist_free(faces);
+	return NULL;
+
+	PYGTS_OBJECT(face)->gtsobj_parent = GTS_OBJECT(parent);
+      }
+
+      pygts_object_register(face);
+    }
+    PyTuple_SET_ITEM(tuple,i,(PyObject*)face);
+    f = f->next;
+  }
+
+  g_slist_free(faces);
+
   return tuple;
 }
 
@@ -1175,7 +1495,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   eps *= pow(2.,-50);
   pygts_vertex_cleanup(GTS_SURFACE(ret->gtsobj),eps);
   pygts_edge_cleanup(GTS_SURFACE(ret->gtsobj));
-  pygts_triangle_cleanup(GTS_SURFACE(ret->gtsobj));
+  pygts_face_cleanup(GTS_SURFACE(ret->gtsobj));
 
   /* Check for self-intersection */
   if( gts_surface_is_self_intersecting(GTS_SURFACE(ret->gtsobj)) != NULL ) {
@@ -1437,7 +1757,7 @@ cleanup(PygtsSurface *self, PyObject *args)
     pygts_vertex_cleanup(s,threshold);
   }
   pygts_edge_cleanup(s);
-  pygts_triangle_cleanup(s);
+  pygts_face_cleanup(s);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -1548,6 +1868,13 @@ static PyMethodDef methods[] = {
    "Signature: s.is_closed()\n"
   },  
 
+  {"boundary", (PyCFunction)boundary,
+   METH_NOARGS,
+   "Returns a tuple of boundary Edges of Surface s.\n"
+   "\n"
+   "Signature: s.boundary()\n"
+  },  
+
   {"area", (PyCFunction)area,
    METH_NOARGS,
    "Returns the area of Surface s.\n"
@@ -1635,6 +1962,22 @@ static PyMethodDef methods[] = {
    "Returns a tuple containing the vertices of Surface s.\n"
    "\n"
    "Signature: s.vertices()\n"
+  },  
+
+  {"edges", (PyCFunction)edges,
+   METH_VARARGS,
+   "Returns tuple of Edges on Surface s that have Vertex in list.\n"
+   "If a list is not given then all of the Edges are returned.\n"
+   "\n"
+   "Signature: s.edges(list) or s.edges()\n"
+  },  
+
+  {"faces", (PyCFunction)faces,
+   METH_VARARGS,
+   "Returns tuple of Faces on Surface s that have Edge in list.\n"
+   "If a list is not given then all of the Faces are returned.\n"
+   "\n"
+   "Signature: s.faces(list) s.faces()\n"
   },  
 
   {"face_indices", (PyCFunction)face_indices,

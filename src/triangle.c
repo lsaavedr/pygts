@@ -516,6 +516,50 @@ vertices(PygtsTriangle *self,PyObject *args)
 
 
 static PyObject *
+vertex(PygtsTriangle *self,PyObject *args)
+{
+  GtsVertex *v1_;
+  PygtsObject *v1;
+  GtsSegment *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_triangle_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Get the vertices */
+  v1_ = gts_triangle_vertex(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj));
+
+  /* Get object from table (if available); otherwise chain-up allocation
+   * and attach parent.
+   */
+  args = Py_BuildValue("dddi",0,0,0,FALSE);
+  if( (v1 = g_hash_table_lookup(obj_table,GTS_OBJECT(v1_))) != NULL ) {
+    Py_INCREF(v1);
+  }
+  else {
+    if( (v1 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, 
+						  args, NULL))) == NULL ) {
+      Py_DECREF(args);
+      return NULL;
+    }
+    v1->gtsobj = GTS_OBJECT(v1_);
+    if( (parent = pygts_vertex_parent(GTS_VERTEX(v1->gtsobj))) == NULL ) {
+      Py_DECREF(args);
+      Py_DECREF(v1);
+      return NULL;
+    }
+    v1->gtsobj_parent = GTS_OBJECT(parent);
+    pygts_object_register(v1);
+  }
+
+  return (PyObject*)v1;
+}
+
+static PyObject *
 circumcenter(PygtsTriangle *self,PyObject *args)
 {
   PygtsVertex *v;
@@ -673,7 +717,14 @@ static PyMethodDef methods[] = {
    METH_NOARGS,
    "Returns the three oriented set of vertices in Triangle t.\n"
    "\n"
-   "Signature: t.orientation()\n"
+   "Signature: t.vertices()\n"
+  },  
+
+  {"vertex", (PyCFunction)vertex,
+   METH_NOARGS,
+   "Returns the Vertex of this Triangle t not in t.e1.\n"
+   "\n"
+   "Signature: t.vertex()\n"
   },  
 
   {"circumcenter", (PyCFunction)circumcenter,

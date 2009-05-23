@@ -168,7 +168,7 @@ face_number(PygtsEdge *self, PyObject *args)
 
   /* Convert to PygtsObjects */
   if(!pygts_surface_check(s_)) {
-    PyErr_SetString(PyExc_TypeError,"s is not a Surface");
+    PyErr_SetString(PyExc_TypeError,"expected a Surface");
     return NULL;
   }
   s = GTS_SURFACE(PYGTS_OBJECT(s_)->gtsobj);
@@ -198,6 +198,45 @@ belongs_to_tetrahedron(PygtsEdge *self, PyObject *args)
     return Py_False;
   }
 }
+
+
+static PyObject*
+is_boundary(PygtsEdge *self, PyObject *args)
+{
+  PyObject *s_;
+  GtsSurface *s;
+
+#if PYGTS_DEBUG
+  if(!pygts_edge_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */
+  if(! PyArg_ParseTuple(args, "O", &s_) ) {
+    return NULL;
+  }
+
+  /* Convert to PygtsObjects */
+  if(!pygts_surface_check(s_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a Surface");
+    return NULL;
+  }
+  s = GTS_SURFACE(PYGTS_OBJECT(s_)->gtsobj);
+
+  /* Make the call and return */
+  if(gts_edge_is_boundary(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj),s)!=NULL) {
+    Py_INCREF(Py_True);
+    return Py_True;
+  }
+  else {
+    Py_INCREF(Py_False);
+    return Py_False;
+  }
+}
+
 
 static PyObject*
 contacts(PygtsEdge *self, PyObject *args)
@@ -251,6 +290,14 @@ static PyMethodDef methods[] = {
    "Returns number of faces using this Edge e on Surface s.\n"
    "\n"
    "Signature: e.face_number(s)\n"
+  },
+
+  {"is_boundary", (PyCFunction)is_boundary,
+   METH_VARARGS,
+   "Returns True if this Edge e is a boundary on Surface s.\n"
+   "Otherwise False.\n"
+   "\n"
+   "Signature: e.is_boundary(s)\n"
   },
 
   {"belongs_to_tetrahedron", (PyCFunction)belongs_to_tetrahedron,
@@ -547,7 +594,7 @@ pygts_parent_edge_class(void)
 
   if (klass == NULL) {
 
-    super = GTS_OBJECT_CLASS(gts_edge_class());
+    super = GTS_OBJECT_CLASS(pygts_parent_segment_class());
 
     GtsObjectClassInfo pygts_parent_edge_info = {
       "PygtsParentEdge",

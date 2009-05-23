@@ -12,8 +12,9 @@ PYGTS OVERVIEW FOR DEVELOPERS
 CONTENTS
 
   1. INTRODUCTION
-  2. IMPLEMENTATION STATUS
+  2. GTS BINDING STATUS
   3. PREPARING A RELEASE
+
 
 1. INTRODUCTION
 
@@ -108,14 +109,27 @@ CONTENTS
   pure python.
 
 
-2. IMPLEMENTATION STATUS
+2. GTS BINDING STATUS
 
-  GTS functions and the corresponding python methods in module gts, 
-  if implemented, are given below.  Not all of the functions will be 
-  implemented in python.  Some are combined into a single method (as
-  appropriate), while others may be unnecessary or irrelevant.  It 
-  should also be pointed out that PyGTS implements methods that are
-  not provided by GTS.
+  The categorized GTS functions and corresponding functions and methods 
+  in python module gts, if implemented, are given below.  Not all of the 
+  functions will be implemented in python.  Some are combined into a 
+  single method (as appropriate), while others may be unnecessary or 
+  irrelevant.  It should also be pointed out that PyGTS implements methods 
+  that are not provided by GTS.
+
+  The "Geometrical Object Hierarchy" API is mostly complete.  A few
+  of the "Surface Operations" have also been implemented.  Additions
+  from other categories will be completed on an "as-needed" basis,
+  or more likely when there is a knowledgeable contributor who can help
+  write meaningful units tests in these areas.
+
+
+  Geometrical Object Hierarchy
+  ----------------------------
+
+    Points
+    ~~~~~~
 
     gts_point_set():                      Point.set()
     gts_point_is_in_rectangle():          Point.is_in_rectangle()
@@ -140,6 +154,10 @@ CONTENTS
     gts_point_triangle_distance2():       Point.distance2()
     gts_point_is_inside_surface():        Point.is_inside()
 
+
+    Vertices
+    ~~~~~~~~
+
     gts_vertex_is_unattached():           Vertex.is_unattached()
     gts_vertex_is_boundary():             Vertex.is_boundary()
     gts_vertex_is_contact():              Vertex.is_contact()
@@ -150,8 +168,12 @@ CONTENTS
     gts_vertex_faces():                   Vertex.faces()
     gts_vertex_fan_oriented():
     gts_vertex_encroaches_edge():         Vertex.encroaches()
-    gts_vertices_from_segments():
+    gts_vertices_from_segments():         vertices()
     gts_vertices_merge():                 merge()
+
+
+    Segments
+    ~~~~~~~~
 
     gts_segments_are_identical():         N/A (duplicates are prevented)
     gts_segments_are_intersecting():      Segment.intersects()
@@ -159,212 +181,293 @@ CONTENTS
     gts_segment_is_ok():                  Segment.is_ok()
     gts_segment_connect():                Segment.connects()
     gts_segments_touch():                 Segment.touches()
-    gts_segments_from_vertices():
+    gts_segments_from_vertices():         segments()
     gts_segment_midvertex():              Segment.midvertex()
 
-    gts_edge_replace():
-    gts_edge_is_unattached():             Edge.is_unattached()
-    gts_edge_is_duplicate():              N/A (prevented using object table)
-    gts_edge_has_parent_surface():
-    gts_edge_has_any_parent_surface():
-    gts_edge_is_boundary():
-    gts_edge_is_contact():                Edge.contacts()
-    gts_edge_belongs_to_tetrahedron():
-    gts_edge_face_number():               Edge.face_number()
-    gts_edge_manifold_faces():
-    gts_edge_is_encroached():
-    gts_edges_merge():                    N/A (duplicate edges not allowed)
-    gts_edges_from_vertices():
-    gts_edge_swap():
 
-    gts_triangle_set():
-    gts_triangle_area():                  Triangle.area()
-    gts_triangle_perimeter():             Triangle.perimeter()
-    gts_triangle_quality():               Triangle.quality()
-    gts_triangle_normal():                Triangle.normal()
-    gts_triangle_revert():                Triangle.revert()
-    gts_triangle_orientation():           Triangle.orientation()
-    gts_triangle_is_duplicate():          N/A (prevented using object table)
-    gts_triangles_angle():                Triangle.angle()
-    gts_triangles_are_compatible():       Triangle.is_compatible()
-    gts_triangle_enclosing():
-    gts_triangles_common_edge():          Triangle.common_edge()
-    gts_triangle_neighbor_number():       Use face.neighbor_number()
-    gts_triangle_neighbors():             Use face.neighbors()
-    gts_triangle_vertices_edges():
-    gts_triangle_vertex_opposite():       Triangle.opposite()
-    gts_triangle_edge_opposite():         Triangle.opposite()
-    gts_triangle_vertices():              Triangle.vertices()
-    gts_triangle_vertex():
-    gts_triangle_is_ok():                 Triangle.is_ok()
-    gts_triangle_use_edges():
-    gts_triangle_circumcircle_center():   Triangle.circumcenter()
-    gts_triangle_is_stabbed():
-    gts_triangles_are_folded():
-    gts_triangles_from_edges():
-    gts_triangle_interpolate_height():
+    Edges
+    ~~~~~
 
-    gts_face_has_parent_surface():        Face.is_on()
-    gts_face_neighbor_number():           Face.neighbor_number()
-    gts_face_neighbors():                 Face.neighbors()
-    gts_face_foreach_neighbor():          Use Face.neighbors()
-    gts_face_is_compatible():             Face.is_compatible()
-    gts_faces_from_edges():
+      gts_edge_replace():                   N/A (causes broken triangles)
+      gts_edge_is_unattached():             Edge.is_unattached()
+      gts_edge_is_duplicate():              N/A (prevented using object table)
+      gts_edge_has_parent_surface():
+      gts_edge_has_any_parent_surface():
+      gts_edge_is_boundary():               Edge.is_boundary()
+      gts_edge_is_contact():                Edge.contacts()
+      gts_edge_belongs_to_tetrahedron():    Edge.belongs_to_tetrahedron()
+      gts_edge_face_number():               Edge.face_number()
+      gts_edge_manifold_faces():
+      gts_edge_is_encroached():
+      gts_edges_merge():                    N/A (duplicate edges not allowed)
+      gts_edges_from_vertices():            Surface.edges()
+      gts_edge_swap():
 
-    gts_surface_add_face():               Surface.add()
-    gts_surface_remove_face():            Surface.remove()
-    gts_surface_copy():                   Surface.copy()
-    gts_surface_merge():                  Surface.merge()
-    gts_surface_read():                   Surface.read()
-    gts_surface_is_manifold():            Surface.is_manifold()
-    gts_surface_is_orientable():          Surface.is_orientable()
-    gts_surface_is_closed():              Surface.is_closed()
-    gts_surface_vertex_number():          Surface.Nvertices
-    gts_surface_edge_number():            Surface.Nedges
-    gts_surface_face_number():            Surface.Nfaces
-    gts_surface_boundary():
-    gts_surface_area():                   Surface.area()
-    gts_surface_volume():                 Surface.volume()
-    gts_surface_center_of_mass():         Surface.center_of_mass()
-    gts_surface_center_of_area():         Surface.center_of_area()
-    gts_surface_stats():                  Surface.stats()
-    gts_surface_quality_stats():          Surface.quality_stats()
-    gts_surface_print_stats():            Seems unnecessary
-    gts_surface_write():                  Surface.write()
-    gts_surface_write_oogl():
-    gts_surface_write_oogl_boundary():
-    gts_surface_write_vtk():
-    gts_surface_foreach_vertex():         Use Surface.vertices()
-    gts_surface_foreach_edge():           
-    gts_surface_foreach_face():           Use iteration over faces
-    gts_surface_foreach_face_remove():
-    gts_surface_foreach_intersecting_face():
-    gts_surface_traverse_next():          Use iteration over faces
-    gts_surface_distance():
-    gts_surface_strip():                  Surface.strip()
-    gts_surface_tessellate():             Surface.tessellate()
-    gts_surface_generate_sphere():        sphere()
-    gts_surface_split():                  Surface.split()
+    
+    Triangles
+    ~~~~~~~~~
+
+      gts_triangle_set():
+      gts_triangle_area():                  Triangle.area()
+      gts_triangle_perimeter():             Triangle.perimeter()
+      gts_triangle_quality():               Triangle.quality()
+      gts_triangle_normal():                Triangle.normal()
+      gts_triangle_revert():                Triangle.revert()
+      gts_triangle_orientation():           Triangle.orientation()
+      gts_triangle_is_duplicate():          N/A (prevented using object table)
+      gts_triangles_angle():                Triangle.angle()
+      gts_triangles_are_compatible():       Triangle.is_compatible()
+      gts_triangle_enclosing():
+      gts_triangles_common_edge():          Triangle.common_edge()
+      gts_triangle_neighbor_number():       Use face.neighbor_number()
+      gts_triangle_neighbors():             Use face.neighbors()
+      gts_triangle_vertices_edges():
+      gts_triangle_vertex_opposite():       Triangle.opposite()
+      gts_triangle_edge_opposite():         Triangle.opposite()
+      gts_triangle_vertices():              Triangle.vertices()
+      gts_triangle_vertex():                Triangle.vertex()
+      gts_triangle_is_ok():                 Triangle.is_ok()
+      gts_triangle_use_edges():
+      gts_triangle_circumcircle_center():   Triangle.circumcenter()
+      gts_triangle_is_stabbed():
+      gts_triangles_are_folded():
+      gts_triangles_from_edges():           triangles()
+      gts_triangle_interpolate_height():
 
 
-    gts_surface_inter_boolean():          Surface.difference()
-                                          Surface.intersection()
-                                          Surface.union()
-    gts_surface_is_self_intersecting():   Surface.is_self_intersecting()
+    Faces
+    ~~~~~
 
-    gts_surface_coarsen():
-    gts_coarsen_stop_number():
-    gts_coarsen_stop_cost():
-    gts_volume_optimized_vertex():
-    gts_volume_optimized_cost():
-    gts_edge_collapse_is_valid():
-    gts_edge_collapse_creates_fold():
+      gts_face_has_parent_surface():        Face.is_on()
+      gts_face_neighbor_number():           Face.neighbor_number()
+      gts_face_neighbors():                 Face.neighbors()
+      gts_face_foreach_neighbor():          Use Face.neighbors()
+      gts_face_is_compatible():             Face.is_compatible()
+      gts_faces_from_edges():               Surface.faces()
 
-    gts_cluster_add():
-    gts_cluster_update():
-    gts_cluster_grid_add_triangle():
-    gts_cluster_grid_update():
 
-    gts_iso_slice_fill():
-    gts_iso_slice_fill_cartesian():
-    gts_isosurface_slice():
-    gts_isosurface_cartesian():
-    gts_isosurface_tetra():
-    gts_isosurface_tetra_bounded():
-    gts_isosurface_tetra_bcl():
+    Surfaces
+    ~~~~~~~~
 
-    gts_point_locate():
-    gts_delaunay_add_vertex():
-    gts_delaunay_add_vertex_to_face():
-    gts_delaunay_remove_vertex():
-    gts_delaunay_add_constraint():
-    gts_delaunay_remove_hull():
-    gts_delaunay_conform():
-    gts_delaunay_refine():
+      gts_surface_add_face():               Surface.add()
+      gts_surface_remove_face():            Surface.remove()
+      gts_surface_copy():                   Surface.copy()
+      gts_surface_merge():                  Surface.merge()
+      gts_surface_read():                   Surface.read()
+      gts_surface_is_manifold():            Surface.is_manifold()
+      gts_surface_is_orientable():          Surface.is_orientable()
+      gts_surface_is_closed():              Surface.is_closed()
+      gts_surface_vertex_number():          Surface.Nvertices
+      gts_surface_edge_number():            Surface.Nedges
+      gts_surface_face_number():            Surface.Nfaces
+      gts_surface_boundary():               Surface.boundary()
+      gts_surface_area():                   Surface.area()
+      gts_surface_volume():                 Surface.volume()
+      gts_surface_center_of_mass():         Surface.center_of_mass()
+      gts_surface_center_of_area():         Surface.center_of_area()
+      gts_surface_stats():                  Surface.stats()
+      gts_surface_quality_stats():          Surface.quality_stats()
+      gts_surface_print_stats():            Seems unnecessary
+      gts_surface_write():                  Surface.write()
+      gts_surface_write_oogl():
+      gts_surface_write_oogl_boundary():
+      gts_surface_write_vtk():
+      gts_surface_foreach_vertex():         Use Surface.vertices()
+      gts_surface_foreach_edge():           Use Surface.edges()
+      gts_surface_foreach_face():           Use Surface iterator or 
+                                            Surface.faces()
+      gts_surface_foreach_face_remove():
+      gts_surface_foreach_intersecting_face():
+      gts_surface_traverse_next():          Use iteration over faces
+      gts_surface_distance():
+      gts_surface_strip():                  Surface.strip()
+      gts_surface_tessellate():             Surface.tessellate()
+      gts_surface_generate_sphere():        sphere()
+      gts_surface_split():                  Surface.split()
 
-    gts_vertex_gaussian_curvature():
-    gts_vertex_mean_curvature_normal():
-    gts_vertex_principal_curvatures():
-    gts_vertex_principal_directions():
 
-    gts_split_collapse():
-    gts_split_expand():
-    gts_split_height():
-    gts_split_traverse():
+  Surface Operations
+  ------------------
 
-    gts_psurface_add_vertex():
-    gts_psurface_remove_vertex():
-    gts_psurface_set_vertex_number():
-    gts_psurface_get_vertex_number():
-    gts_psurface_min_vertex_number():
-    gts_psurface_max_vertex_number():
-    gts_psurface_foreach_vertex():
-    gts_psurface_open():
-    gts_psurface_read_vertex():
-    gts_psurface_close():
-    gts_psurface_write():
+    Boolean operations
+    ~~~~~~~~~~~~~~~~~~
 
-    gts_hsplit_collapse():
-    gts_hsplit_expand():
-    gts_hsplit_force_expand():
+      gts_surface_inter_boolean():          Surface.difference()
+                                            Surface.intersection()
+                                            Surface.union()
+      gts_surface_is_self_intersecting():   Surface.is_self_intersecting()
 
-    gts_hsurface_traverse():
-    gts_hsurface_height():
-    gts_hsurface_foreach():
 
-    gts_gnode_degree():
-    gts_gnode_foreach_edge():
-    gts_gnode_foreach_neighbor():
-    gts_gnode_weight():
-    gts_gnode_move_cost():
+    Surface simplification and refinement
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    gts_gedge_weight():
-    gts_gedge_connects():
+      gts_surface_coarsen():                Surface.coarsen()
+      gts_coarsen_stop_number():
+      gts_coarsen_stop_cost():
+      gts_volume_optimized_vertex():
+      gts_volume_optimized_cost():
+      gts_edge_collapse_is_valid():
+      gts_edge_collapse_creates_fold():
 
-    gts_graph_read():
-    gts_graph_read_jostle():
-    gts_graph_write():
-    gts_graph_write_dot():
-    gts_graph_print_stats():
-    gts_graph_foreach_edge():
 
-    gts_graph_traverse_next():
-    gts_graph_traverse_what_next():
-    gts_graph_edges_cut():
-    gts_graph_edges_cut_weight():
-    gts_graph_distance_sum():
-    gts_graph_farthest():
-    gts_graph_weight():
+    Out-of-core Simplification
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    gts_surface_graph_surface():
+      gts_cluster_add():
+      gts_cluster_update():
+      gts_cluster_grid_add_triangle():
+      gts_cluster_grid_update():
 
-    gts_wgraph_weight_max():
 
-    gts_gnode_split_collapse():
-    gts_gnode_split_expand():
+    Isosurfaces from 3D functions
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    gts_pgraph_add_node():
-    gts_pgraph_remove_node():
-    gts_pgraph_down():
-    gts_pgraph_set_node_number():
-    gts_pgraph_get_node_number():
-    gts_pgraph_max_node_number():
-    gts_pgraph_min_node_number():
-    gts_pgraph_foreach_node():
+      gts_iso_slice_fill():
+      gts_iso_slice_fill_cartesian():
+      gts_isosurface_slice():
+      gts_isosurface_cartesian():
+      gts_isosurface_tetra():
+      gts_isosurface_tetra_bounded():
+      gts_isosurface_tetra_bcl():
 
-    gts_graph_ggg_bisection():
-    gts_graph_bfgg_bisection():
-    gts_graph_bisection_kl_refine():
-    gts_graph_bisection_bkl_refine():
-    gts_graph_recursive_bisection():
-    gts_graph_bubble_partition():
-    gts_graph_edges_cut():
-    gts_graph_edges_cut_weight():
-    gts_graph_partition_edges_cut():
-    gts_graph_partition_balance():
-    gts_graph_partition_clone():
-    gts_graph_partition_print_stats():
-    gts_graph_partition_edges_cut_weight():
+
+    Delaunay and constrained Delaunay triangulations
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      gts_point_locate():
+      gts_delaunay_add_vertex():
+      gts_delaunay_add_vertex_to_face():
+      gts_delaunay_remove_vertex():
+      gts_delaunay_add_constraint():
+      gts_delaunay_remove_hull():
+      gts_delaunay_conform():
+      gts_delaunay_refine():
+
+
+    Differential geometry operators
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      gts_vertex_gaussian_curvature():
+      gts_vertex_mean_curvature_normal():
+      gts_vertex_principal_curvatures():
+      gts_vertex_principal_directions():
+
+
+  Progressive and Hierarchical Surfaces
+  -------------------------------------
+
+    Vertex Split
+    ~~~~~~~~~~~~
+
+      gts_split_collapse():
+      gts_split_expand():
+      gts_split_height():
+      gts_split_traverse():
+
+
+    Progressive surfaces
+    ~~~~~~~~~~~~~~~~~~~~
+
+      gts_psurface_add_vertex():
+      gts_psurface_remove_vertex():
+      gts_psurface_set_vertex_number():
+      gts_psurface_get_vertex_number():
+      gts_psurface_min_vertex_number():
+      gts_psurface_max_vertex_number():
+      gts_psurface_foreach_vertex():
+      gts_psurface_open():
+      gts_psurface_read_vertex():
+      gts_psurface_close():
+      gts_psurface_write():
+
+
+    Hierarchical vertex split
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      gts_hsplit_collapse():
+      gts_hsplit_expand():
+      gts_hsplit_force_expand():
+
+    
+    Hierarchical surfaces
+    ~~~~~~~~~~~~~~~~~~~~~
+
+      gts_hsurface_traverse():
+      gts_hsurface_height():
+      gts_hsurface_foreach():
+
+
+  Graph and Operations on Graphs
+  ------------------------------
+
+    Graph class
+    ~~~~~~~~~~~
+
+      gts_gnode_degree():
+      gts_gnode_foreach_edge():
+      gts_gnode_foreach_neighbor():
+      gts_gnode_weight():
+      gts_gnode_move_cost():
+
+      gts_gedge_weight():
+      gts_gedge_connects():
+
+      gts_graph_read():
+      gts_graph_read_jostle():
+      gts_graph_write():
+      gts_graph_write_dot():
+      gts_graph_print_stats():
+      gts_graph_foreach_edge():
+
+      gts_graph_traverse_next():
+      gts_graph_traverse_what_next():
+      gts_graph_edges_cut():
+      gts_graph_edges_cut_weight():
+      gts_graph_distance_sum():
+      gts_graph_farthest():
+      gts_graph_weight():
+
+      gts_surface_graph_surface():
+
+
+    Weighted graph
+    ~~~~~~~~~~~~~~
+
+      gts_wgraph_weight_max():
+
+
+    Progressive graph
+    ~~~~~~~~~~~~~~~~~
+
+      gts_gnode_split_collapse():
+      gts_gnode_split_expand():
+
+      gts_pgraph_add_node():
+      gts_pgraph_remove_node():
+      gts_pgraph_down():
+      gts_pgraph_set_node_number():
+      gts_pgraph_get_node_number():
+      gts_pgraph_max_node_number():
+      gts_pgraph_min_node_number():
+      gts_pgraph_foreach_node():
+
+
+    Graph partitioning
+    ~~~~~~~~~~~~~~~~~~
+
+      gts_graph_ggg_bisection():
+      gts_graph_bfgg_bisection():
+      gts_graph_bisection_kl_refine():
+      gts_graph_bisection_bkl_refine():
+      gts_graph_recursive_bisection():
+      gts_graph_bubble_partition():
+      gts_graph_edges_cut():
+      gts_graph_edges_cut_weight():
+      gts_graph_partition_edges_cut():
+      gts_graph_partition_balance():
+      gts_graph_partition_clone():
+      gts_graph_partition_print_stats():
+      gts_graph_partition_edges_cut_weight():
 
 
 3. PREPARING A RELEASE

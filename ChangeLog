@@ -1,12 +1,14 @@
 2009-05-17  Thomas J. Duck  <tom.duck@dal.ca>
 
-	* Added function cube(), merge()
+	* Added functions cube(), merge(), vertices(), segments(),
+	triangles()
 
-	* Added methods Vertex.triangles(), Surface.cleanup(),
-	Surface.coarsen()
+	* Added methods Vertex.triangles(), Edge.is_boundary(),
+	Triangle.vertex(), Surface.cleanup(), Surface.coarsen(), 
+	Surface.edges(), Surface.faces(), Surface.boundary()
 
 	* Renamed examples/tetrahedron.py to examples/polyhedrons.py,
-	and modified to display tetrahedon, cube and sphere.
+	and modified to display tetrahedon, cube and sphere
 
 	* Renamed examples/boolean.py to examples/set_operations.py
 
@@ -14,12 +16,14 @@
 	and intersection(), which is not allowed (resulted in a GTS
 	failure mode before)
 
+	* Fixed fatal bug when getting edges from triangles
+
 	
 2009-05-15  Thomas J. Duck  <tom.duck@dal.ca>
 
 	* Version 0.1.4
-	
-	* Fixed bugs in setup.py and improved its overall robustness.
+
+	* Fixed bugs in setup.py and improved its overall robustness
 
 	
 2009-05-11  Thomas J. Duck  <tom.duck@dal.ca>
