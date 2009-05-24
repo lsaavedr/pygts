@@ -138,27 +138,37 @@ more&nbsp;information.</tt></p>
 Methods defined here:<br>
 <dl><dt><a name="Edge-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>x.<a href="#Edge-__init__">__init__</a>(...)&nbsp;initializes&nbsp;x;&nbsp;see&nbsp;x.__class__.__doc__&nbsp;for&nbsp;signature</tt></dd></dl>
 
+<dl><dt><a name="Edge-belongs_to_tetrahedron"><strong>belongs_to_tetrahedron</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;belongs&nbsp;to&nbsp;a&nbsp;tetrahedron.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Signature:&nbsp;e.<a href="#Edge-belongs_to_tetrahedron">belongs_to_tetrahedron</a>()</tt></dd></dl>
+
 <dl><dt><a name="Edge-contacts"><strong>contacts</strong></a>(...)</dt><dd><tt>Returns&nbsp;number&nbsp;of&nbsp;sets&nbsp;of&nbsp;connected&nbsp;triangles&nbsp;share&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e<br>
 as&nbsp;a&nbsp;contact&nbsp;<a href="#Edge">Edge</a>.<br>
 &nbsp;<br>
-Signature:&nbsp;e.<a href="#Edge-contacts">contacts</a>().</tt></dd></dl>
+Signature:&nbsp;e.<a href="#Edge-contacts">contacts</a>()</tt></dd></dl>
 
 <dl><dt><a name="Edge-face_number"><strong>face_number</strong></a>(...)</dt><dd><tt>Returns&nbsp;number&nbsp;of&nbsp;faces&nbsp;using&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
 &nbsp;<br>
-Signature:&nbsp;e.<a href="#Edge-face_number">face_number</a>(s).</tt></dd></dl>
+Signature:&nbsp;e.<a href="#Edge-face_number">face_number</a>(s)</tt></dd></dl>
+
+<dl><dt><a name="Edge-is_boundary"><strong>is_boundary</strong></a>(...)</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;is&nbsp;a&nbsp;boundary&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+Otherwise&nbsp;False.<br>
+&nbsp;<br>
+Signature:&nbsp;e.<a href="#Edge-is_boundary">is_boundary</a>(s)</tt></dd></dl>
 
 <dl><dt><a name="Edge-is_ok"><strong>is_ok</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;is&nbsp;not&nbsp;degenerate&nbsp;or&nbsp;duplicate.<br>
 False&nbsp;otherwise.&nbsp;&nbsp;Degeneracy&nbsp;implies&nbsp;e.v1.id&nbsp;==&nbsp;e.v2.id.<br>
 &nbsp;<br>
-Signature:&nbsp;e.<a href="#Edge-is_ok">is_ok</a>().</tt></dd></dl>
+Signature:&nbsp;e.<a href="#Edge-is_ok">is_ok</a>()</tt></dd></dl>
 
 <dl><dt><a name="Edge-is_unattached"><strong>is_unattached</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;is&nbsp;not&nbsp;part&nbsp;of&nbsp;any&nbsp;<a href="#Triangle">Triangle</a>.<br>
 &nbsp;<br>
-Signature:&nbsp;e.<a href="#Edge-is_unattached">is_unattached</a>().</tt></dd></dl>
+Signature:&nbsp;e.<a href="#Edge-is_unattached">is_unattached</a>()</tt></dd></dl>
 
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7566e0&gt;<dd><tt>T.<a href="#Edge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b760&gt;<dd><tt>T.<a href="#Edge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Segment">Segment</a>:<br>
@@ -261,7 +271,7 @@ Signature:&nbsp;f.<a href="#Face-neighbors">neighbors</a>(s).</tt></dd></dl>
 
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756a20&gt;<dd><tt>T.<a href="#Face-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75bb00&gt;<dd><tt>T.<a href="#Face-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Triangle">Triangle</a>:<br>
@@ -285,6 +295,19 @@ Signature:&nbsp;t.circumcircle_center()</tt></dd></dl>
 Returns&nbsp;None&nbsp;if&nbsp;the&nbsp;triangles&nbsp;do&nbsp;not&nbsp;share&nbsp;an&nbsp;<a href="#Edge">Edge</a>.<br>
 &nbsp;<br>
 Signature:&nbsp;t1.<a href="#Face-common_edge">common_edge</a>(t2)</tt></dd></dl>
+
+<dl><dt><a name="Face-interpolate_height"><strong>interpolate_height</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;height&nbsp;of&nbsp;the&nbsp;plane&nbsp;defined&nbsp;by&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;at&nbsp;<a href="#Point">Point</a>&nbsp;p.<br>
+Only&nbsp;the&nbsp;x-&nbsp;and&nbsp;y-coordinates&nbsp;of&nbsp;p&nbsp;are&nbsp;considered.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-interpolate_height">interpolate_height</a>(p)</tt></dd></dl>
+
+<dl><dt><a name="Face-is_stabbed"><strong>is_stabbed</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;component&nbsp;of&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;that&nbsp;is&nbsp;stabbed&nbsp;by&nbsp;a<br>
+ray&nbsp;projecting&nbsp;from&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;to&nbsp;z=infinity.&nbsp;&nbsp;The&nbsp;result<br>
+can&nbsp;be&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t,&nbsp;one&nbsp;of&nbsp;its&nbsp;Edges&nbsp;or&nbsp;Vertices,&nbsp;or&nbsp;None.<br>
+If&nbsp;the&nbsp;ray&nbsp;is&nbsp;contained&nbsp;in&nbsp;the&nbsp;plan&nbsp;of&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;then&nbsp;None&nbsp;is<br>
+also&nbsp;returned.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-is_stabbed">is_stabbed</a>(p)</tt></dd></dl>
 
 <dl><dt><a name="Face-normal"><strong>normal</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;oriented&nbsp;normal&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
 as&nbsp;the&nbsp;cross-product&nbsp;of&nbsp;two&nbsp;edges,&nbsp;using&nbsp;the&nbsp;left-hand&nbsp;rule.&nbsp;&nbsp;The<br>
@@ -323,9 +346,13 @@ Signature:&nbsp;t.<a href="#Face-quality">quality</a>()</tt></dd></dl>
 &nbsp;<br>
 Signature:&nbsp;t.<a href="#Face-revert">revert</a>()</tt></dd></dl>
 
+<dl><dt><a name="Face-vertex"><strong>vertex</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;<a href="#Vertex">Vertex</a>&nbsp;of&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;not&nbsp;in&nbsp;t.e1.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Face-vertex">vertex</a>()</tt></dd></dl>
+
 <dl><dt><a name="Face-vertices"><strong>vertices</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;three&nbsp;oriented&nbsp;set&nbsp;of&nbsp;vertices&nbsp;in&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
 &nbsp;<br>
-Signature:&nbsp;t.<a href="#Face-orientation">orientation</a>()</tt></dd></dl>
+Signature:&nbsp;t.<a href="#Face-vertices">vertices</a>()</tt></dd></dl>
 
 <hr>
 Data descriptors inherited from <a href="gts.html#Triangle">Triangle</a>:<br>
@@ -369,7 +396,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756040&gt;<dd><tt>T.<a href="#Object-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b0a0&gt;<dd><tt>T.<a href="#Object-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -502,7 +529,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756160&gt;<dd><tt>T.<a href="#Point-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b1c0&gt;<dd><tt>T.<a href="#Point-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -588,7 +615,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756560&gt;<dd><tt>T.<a href="#Segment-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b5e0&gt;<dd><tt>T.<a href="#Segment-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -631,6 +658,10 @@ The&nbsp;area&nbsp;is&nbsp;taken&nbsp;as&nbsp;the&nbsp;sum&nbsp;of&nbsp;the&nbsp
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-area">area</a>()</tt></dd></dl>
 
+<dl><dt><a name="Surface-boundary"><strong>boundary</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;boundary&nbsp;Edges&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-boundary">boundary</a>()</tt></dd></dl>
+
 <dl><dt><a name="Surface-center_of_area"><strong>center_of_area</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;center&nbsp;of&nbsp;area&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-center_of_area">center_of_area</a>()</tt></dd></dl>
@@ -638,6 +669,21 @@ Signature:&nbsp;s.<a href="#Surface-center_of_area">center_of_area</a>()</tt></d
 <dl><dt><a name="Surface-center_of_mass"><strong>center_of_mass</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;center&nbsp;of&nbsp;mass&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-center_of_mass">center_of_mass</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-cleanup"><strong>cleanup</strong></a>(...)</dt><dd><tt>Cleans&nbsp;up&nbsp;the&nbsp;Vertices,&nbsp;Edges,&nbsp;and&nbsp;Faces&nbsp;on&nbsp;a&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-cleanup">cleanup</a>()&nbsp;or&nbsp;s.<a href="#Surface-cleanup">cleanup</a>(threhold)<br>
+&nbsp;<br>
+If&nbsp;threhold&nbsp;is&nbsp;given,&nbsp;then&nbsp;Vertices&nbsp;that&nbsp;are&nbsp;spaced&nbsp;less&nbsp;than<br>
+the&nbsp;threshold&nbsp;are&nbsp;merged.&nbsp;&nbsp;Degenerate&nbsp;Edges&nbsp;and&nbsp;Faces&nbsp;are&nbsp;also<br>
+removed.</tt></dd></dl>
+
+<dl><dt><a name="Surface-coarsen"><strong>coarsen</strong></a>(...)</dt><dd><tt>Reduces&nbsp;the&nbsp;number&nbsp;of&nbsp;vertices&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-coarsen">coarsen</a>(n)&nbsp;and&nbsp;s.<a href="#Surface-coarsen">coarsen</a>(amin)<br>
+&nbsp;<br>
+n&nbsp;is&nbsp;the&nbsp;smallest&nbsp;number&nbsp;of&nbsp;desired&nbsp;edges&nbsp;(but&nbsp;you&nbsp;may&nbsp;get&nbsp;fewer).<br>
+amin&nbsp;is&nbsp;the&nbsp;smallest&nbsp;angle&nbsp;between&nbsp;Faces.</tt></dd></dl>
 
 <dl><dt><a name="Surface-copy"><strong>copy</strong></a>(...)</dt><dd><tt>Copys&nbsp;all&nbsp;Faces,&nbsp;Edges&nbsp;and&nbsp;Vertices&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s2&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s1.<br>
 &nbsp;<br>
@@ -649,11 +695,42 @@ Returns&nbsp;s1.</tt></dd></dl>
 &nbsp;<br>
 Signature:&nbsp;s1.<a href="#Surface-difference">difference</a>(s2)</tt></dd></dl>
 
+<dl><dt><a name="Surface-distance"><strong>distance</strong></a>(...)</dt><dd><tt>Calculates&nbsp;the&nbsp;distance&nbsp;between&nbsp;the&nbsp;faces&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;and<br>
+the&nbsp;nearest&nbsp;Faces&nbsp;of&nbsp;other&nbsp;s2,&nbsp;and&nbsp;(if&nbsp;applicable)&nbsp;the&nbsp;distance<br>
+between&nbsp;the&nbsp;boundary&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;and&nbsp;the&nbsp;nearest&nbsp;boundary<br>
+Edges&nbsp;of&nbsp;other&nbsp;s2.<br>
+&nbsp;<br>
+One&nbsp;or&nbsp;two&nbsp;dictionaries&nbsp;are&nbsp;returned&nbsp;(where&nbsp;applicable),&nbsp;the&nbsp;first<br>
+for&nbsp;the&nbsp;face&nbsp;range&nbsp;and&nbsp;the&nbsp;second&nbsp;for&nbsp;the&nbsp;boundary&nbsp;range.&nbsp;&nbsp;The<br>
+fields&nbsp;in&nbsp;each&nbsp;dictionary&nbsp;describe&nbsp;statistical&nbsp;results&nbsp;for&nbsp;each<br>
+population:&nbsp;{min,max,sum,sum2,mean,stddev,n}.<br>
+&nbsp;<br>
+Signature:&nbsp;s1.<a href="#Surface-distance">distance</a>(s2)&nbsp;or&nbsp;s1.<a href="#Surface-distance">distance</a>(s2,delta)<br>
+&nbsp;<br>
+The&nbsp;value&nbsp;delta&nbsp;is&nbsp;a&nbsp;spatial&nbsp;increment&nbsp;defined&nbsp;as&nbsp;the&nbsp;percentage<br>
+of&nbsp;the&nbsp;diagonal&nbsp;of&nbsp;the&nbsp;bounding&nbsp;box&nbsp;of&nbsp;s2&nbsp;(default&nbsp;0.1).</tt></dd></dl>
+
+<dl><dt><a name="Surface-edges"><strong>edges</strong></a>(...)</dt><dd><tt>Returns&nbsp;tuple&nbsp;of&nbsp;Edges&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;that&nbsp;have&nbsp;<a href="#Vertex">Vertex</a>&nbsp;in&nbsp;list.<br>
+If&nbsp;a&nbsp;list&nbsp;is&nbsp;not&nbsp;given&nbsp;then&nbsp;all&nbsp;of&nbsp;the&nbsp;Edges&nbsp;are&nbsp;returned.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-edges">edges</a>(list)&nbsp;or&nbsp;s.<a href="#Surface-edges">edges</a>()</tt></dd></dl>
+
 <dl><dt><a name="Surface-face_indices"><strong>face_indices</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;3-tuples&nbsp;containing&nbsp;<a href="#Vertex">Vertex</a>&nbsp;indices&nbsp;for&nbsp;each&nbsp;<a href="#Face">Face</a><br>
 in&nbsp;<a href="#Surface">Surface</a>&nbsp;s.&nbsp;&nbsp;The&nbsp;index&nbsp;for&nbsp;each&nbsp;<a href="#Vertex">Vertex</a>&nbsp;in&nbsp;a&nbsp;face&nbsp;corresponds&nbsp;to<br>
 where&nbsp;it&nbsp;is&nbsp;found&nbsp;in&nbsp;the&nbsp;<a href="#Vertex">Vertex</a>&nbsp;tuple&nbsp;vs.<br>
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-face_indices">face_indices</a>(vs)</tt></dd></dl>
+
+<dl><dt><a name="Surface-faces"><strong>faces</strong></a>(...)</dt><dd><tt>Returns&nbsp;tuple&nbsp;of&nbsp;Faces&nbsp;on&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;that&nbsp;have&nbsp;<a href="#Edge">Edge</a>&nbsp;in&nbsp;list.<br>
+If&nbsp;a&nbsp;list&nbsp;is&nbsp;not&nbsp;given&nbsp;then&nbsp;all&nbsp;of&nbsp;the&nbsp;Faces&nbsp;are&nbsp;returned.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-faces">faces</a>(list)&nbsp;s.<a href="#Surface-faces">faces</a>()</tt></dd></dl>
+
+<dl><dt><a name="Surface-fan_oriented"><strong>fan_oriented</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;outside&nbsp;Edges&nbsp;of&nbsp;the&nbsp;Faces&nbsp;fanning&nbsp;from<br>
+<a href="#Vertex">Vertex</a>&nbsp;v&nbsp;on&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s.&nbsp;&nbsp;The&nbsp;Edges&nbsp;are&nbsp;given&nbsp;in&nbsp;<br>
+counter-clockwise&nbsp;order.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-fan_oriented">fan_oriented</a>(v)</tt></dd></dl>
 
 <dl><dt><a name="Surface-intersection"><strong>intersection</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;intersection&nbsp;of&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;with&nbsp;<a href="#Surface">Surface</a>&nbsp;s2.<br>
 &nbsp;<br>
@@ -684,11 +761,21 @@ False&nbsp;otherwise.<br>
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-is_self_intersecting">is_self_intersecting</a>()</tt></dd></dl>
 
+<dl><dt><a name="Surface-manifold_faces"><strong>manifold_faces</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;2&nbsp;manifold&nbsp;Faces&nbsp;of&nbsp;<a href="#Edge">Edge</a>&nbsp;e&nbsp;on&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s<br>
+if&nbsp;they&nbsp;exist,&nbsp;or&nbsp;None.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-manifold_faces">manifold_faces</a>(e)</tt></dd></dl>
+
 <dl><dt><a name="Surface-merge"><strong>merge</strong></a>(...)</dt><dd><tt>Adds&nbsp;faces&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s2&nbsp;which&nbsp;do&nbsp;not&nbsp;belong&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;to&nbsp;s1.<br>
 &nbsp;<br>
 Signature:&nbsp;s1.<a href="#Surface-merge">merge</a>(s2)</tt></dd></dl>
 
 <dl><dt><a name="Surface-next"><strong>next</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-next">next</a>()&nbsp;-&gt;&nbsp;the&nbsp;next&nbsp;value,&nbsp;or&nbsp;raise&nbsp;StopIteration</tt></dd></dl>
+
+<dl><dt><a name="Surface-parent"><strong>parent</strong></a>(...)</dt><dd><tt>Returns&nbsp;<a href="#Face">Face</a>&nbsp;on&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;that&nbsp;has&nbsp;<a href="#Edge">Edge</a>&nbsp;e,&nbsp;or&nbsp;None<br>
+if&nbsp;the&nbsp;<a href="#Edge">Edge</a>&nbsp;is&nbsp;not&nbsp;on&nbsp;this&nbsp;<a href="#Surface">Surface</a>.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-parent">parent</a>(e)</tt></dd></dl>
 
 <dl><dt><a name="Surface-quality_stats"><strong>quality_stats</strong></a>(...)</dt><dd><tt>Returns&nbsp;quality&nbsp;statistics&nbsp;for&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;f&nbsp;in&nbsp;a&nbsp;dict.<br>
 The&nbsp;statistics&nbsp;include&nbsp;the&nbsp;{min,&nbsp;max,&nbsp;sum,&nbsp;sum2,&nbsp;mean,&nbsp;stddev,<br>
@@ -760,6 +847,18 @@ All&nbsp;the&nbsp;lines&nbsp;beginning&nbsp;with&nbsp;#!&nbsp;are&nbsp;ignored.<
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-write">write</a>(f)</tt></dd></dl>
 
+<dl><dt><a name="Surface-write_oogl"><strong>write_oogl</strong></a>(...)</dt><dd><tt>Saves&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;to&nbsp;File&nbsp;f&nbsp;in&nbsp;OOGL&nbsp;(Geomview)&nbsp;format.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-write_oogl">write_oogl</a>(f)</tt></dd></dl>
+
+<dl><dt><a name="Surface-write_oogl_boundary"><strong>write_oogl_boundary</strong></a>(...)</dt><dd><tt>Saves&nbsp;boundary&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;to&nbsp;File&nbsp;f&nbsp;in&nbsp;OOGL&nbsp;(Geomview)&nbsp;format.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-write_oogl_boundary">write_oogl_boundary</a>(f)</tt></dd></dl>
+
+<dl><dt><a name="Surface-write_vtk"><strong>write_vtk</strong></a>(...)</dt><dd><tt>Saves&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;to&nbsp;File&nbsp;f&nbsp;in&nbsp;VTK&nbsp;format.<br>
+&nbsp;<br>
+Signature:&nbsp;s.<a href="#Surface-write_vtk">write_vtk</a>(f)</tt></dd></dl>
+
 <hr>
 Data descriptors defined here:<br>
 <dl><dt><strong>Nedges</strong></dt>
@@ -773,7 +872,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756b80&gt;<dd><tt>T.<a href="#Surface-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75bc60&gt;<dd><tt>T.<a href="#Surface-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -828,6 +927,11 @@ Returns&nbsp;None&nbsp;if&nbsp;the&nbsp;triangles&nbsp;do&nbsp;not&nbsp;share&nb
 &nbsp;<br>
 Signature:&nbsp;t1.<a href="#Triangle-common_edge">common_edge</a>(t2)</tt></dd></dl>
 
+<dl><dt><a name="Triangle-interpolate_height"><strong>interpolate_height</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;height&nbsp;of&nbsp;the&nbsp;plane&nbsp;defined&nbsp;by&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;at&nbsp;<a href="#Point">Point</a>&nbsp;p.<br>
+Only&nbsp;the&nbsp;x-&nbsp;and&nbsp;y-coordinates&nbsp;of&nbsp;p&nbsp;are&nbsp;considered.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-interpolate_height">interpolate_height</a>(p)</tt></dd></dl>
+
 <dl><dt><a name="Triangle-is_compatible"><strong>is_compatible</strong></a>(...)</dt><dd><tt>True&nbsp;if&nbsp;this&nbsp;triangle&nbsp;t1&nbsp;and&nbsp;other&nbsp;t2&nbsp;are&nbsp;compatible;<br>
 otherwise&nbsp;False.<br>
 &nbsp;<br>
@@ -841,6 +945,14 @@ Signature:&nbsp;t1.<a href="#Triangle-is_compatible">is_compatible</a>(t2)</tt><
 False&nbsp;otherwise.<br>
 &nbsp;<br>
 Signature:&nbsp;t.<a href="#Triangle-is_ok">is_ok</a>()</tt></dd></dl>
+
+<dl><dt><a name="Triangle-is_stabbed"><strong>is_stabbed</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;component&nbsp;of&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;that&nbsp;is&nbsp;stabbed&nbsp;by&nbsp;a<br>
+ray&nbsp;projecting&nbsp;from&nbsp;<a href="#Point">Point</a>&nbsp;p&nbsp;to&nbsp;z=infinity.&nbsp;&nbsp;The&nbsp;result<br>
+can&nbsp;be&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t,&nbsp;one&nbsp;of&nbsp;its&nbsp;Edges&nbsp;or&nbsp;Vertices,&nbsp;or&nbsp;None.<br>
+If&nbsp;the&nbsp;ray&nbsp;is&nbsp;contained&nbsp;in&nbsp;the&nbsp;plan&nbsp;of&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;then&nbsp;None&nbsp;is<br>
+also&nbsp;returned.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-is_stabbed">is_stabbed</a>(p)</tt></dd></dl>
 
 <dl><dt><a name="Triangle-normal"><strong>normal</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;coordinates&nbsp;of&nbsp;the&nbsp;oriented&nbsp;normal&nbsp;of&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t<br>
 as&nbsp;the&nbsp;cross-product&nbsp;of&nbsp;two&nbsp;edges,&nbsp;using&nbsp;the&nbsp;left-hand&nbsp;rule.&nbsp;&nbsp;The<br>
@@ -879,9 +991,13 @@ Signature:&nbsp;t.<a href="#Triangle-quality">quality</a>()</tt></dd></dl>
 &nbsp;<br>
 Signature:&nbsp;t.<a href="#Triangle-revert">revert</a>()</tt></dd></dl>
 
+<dl><dt><a name="Triangle-vertex"><strong>vertex</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;<a href="#Vertex">Vertex</a>&nbsp;of&nbsp;this&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t&nbsp;not&nbsp;in&nbsp;t.e1.<br>
+&nbsp;<br>
+Signature:&nbsp;t.<a href="#Triangle-vertex">vertex</a>()</tt></dd></dl>
+
 <dl><dt><a name="Triangle-vertices"><strong>vertices</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;three&nbsp;oriented&nbsp;set&nbsp;of&nbsp;vertices&nbsp;in&nbsp;<a href="#Triangle">Triangle</a>&nbsp;t.<br>
 &nbsp;<br>
-Signature:&nbsp;t.<a href="#Triangle-orientation">orientation</a>()</tt></dd></dl>
+Signature:&nbsp;t.<a href="#Triangle-vertices">vertices</a>()</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -896,7 +1012,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x756800&gt;<dd><tt>T.<a href="#Triangle-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b8a0&gt;<dd><tt>T.<a href="#Triangle-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -975,14 +1091,18 @@ If&nbsp;a&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;is&nbsp;given,&nbsp;on
 &nbsp;<br>
 Signature:&nbsp;v.<a href="#Vertex-neighbors">neighbors</a>()&nbsp;or&nbsp;v.<a href="#Vertex-neighbors">neighbors</a>(s).</tt></dd></dl>
 
-<dl><dt><a name="Vertex-replace"><strong>replace</strong></a>(...)</dt><dd><tt>Replaces&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v1&nbsp;with&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v2&nbsp;in&nbsp;all&nbsp;segments&nbsp;that&nbsp;have&nbsp;v1.<br>
+<dl><dt><a name="Vertex-replace"><strong>replace</strong></a>(...)</dt><dd><tt>Replaces&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v1&nbsp;with&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v2&nbsp;in&nbsp;all&nbsp;Segments&nbsp;that&nbsp;have&nbsp;v1.<br>
 <a href="#Vertex">Vertex</a>&nbsp;v1&nbsp;itself&nbsp;is&nbsp;left&nbsp;unchanged.<br>
 &nbsp;<br>
 Signature:&nbsp;v1.<a href="#Vertex-replace">replace</a>(v2).</tt></dd></dl>
 
+<dl><dt><a name="Vertex-triangles"><strong>triangles</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;Triangles&nbsp;that&nbsp;have&nbsp;this&nbsp;<a href="#Vertex">Vertex</a>&nbsp;v.<br>
+&nbsp;<br>
+Signature:&nbsp;v.<a href="#Vertex-triangles">triangles</a>()</tt></dd></dl>
+
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7563e0&gt;<dd><tt>T.<a href="#Vertex-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b440&gt;<dd><tt>T.<a href="#Vertex-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Point">Point</a>:<br>
@@ -1104,12 +1224,20 @@ Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-get_mayavi_coords_and_triangles"><strong>get_mayavi_coords_and_triangles</strong></a>(s)</dt><dd><tt>Returns&nbsp;surface&nbsp;data&nbsp;in&nbsp;format&nbsp;used&nbsp;by&nbsp;mayavi.<br>
+<td width="100%"><dl><dt><a name="-cube"><strong>cube</strong></a>()</dt><dd><tt>Returns&nbsp;a&nbsp;cube&nbsp;of&nbsp;side&nbsp;length&nbsp;2&nbsp;centered&nbsp;at&nbsp;the&nbsp;origin.</tt></dd></dl>
+ <dl><dt><a name="-get_mayavi_coords_and_triangles"><strong>get_mayavi_coords_and_triangles</strong></a>(s)</dt><dd><tt>Returns&nbsp;surface&nbsp;data&nbsp;in&nbsp;format&nbsp;used&nbsp;by&nbsp;mayavi.<br>
 &nbsp;<br>
 Four&nbsp;tuples&nbsp;are&nbsp;returned.&nbsp;&nbsp;The&nbsp;first&nbsp;three&nbsp;are&nbsp;the&nbsp;x,&nbsp;y,&nbsp;and&nbsp;z<br>
 coordinates&nbsp;for&nbsp;each&nbsp;<a href="#Vertex">Vertex</a>&nbsp;on&nbsp;the&nbsp;<a href="#Surface">Surface</a>.&nbsp;&nbsp;The&nbsp;last&nbsp;is&nbsp;a&nbsp;list&nbsp;of&nbsp;<br>
 tuples,&nbsp;one&nbsp;for&nbsp;each&nbsp;<a href="#Face">Face</a>&nbsp;on&nbsp;the&nbsp;<a href="#Surface">Surface</a>,&nbsp;containing&nbsp;3&nbsp;indices&nbsp;linking<br>
 the&nbsp;<a href="#Face">Face</a>&nbsp;Vertices&nbsp;to&nbsp;the&nbsp;coordinate&nbsp;lists.</tt></dd></dl>
+ <dl><dt><a name="-merge"><strong>merge</strong></a>(...)</dt><dd><tt>Merges&nbsp;list&nbsp;of&nbsp;Vertices&nbsp;that&nbsp;are&nbsp;within&nbsp;a&nbsp;box&nbsp;of&nbsp;side-length<br>
+epsilon&nbsp;of&nbsp;each&nbsp;other.<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-merge">merge</a>(list,epsilon)</tt></dd></dl>
+ <dl><dt><a name="-segments"><strong>segments</strong></a>(...)</dt><dd><tt>Returns&nbsp;tuple&nbsp;of&nbsp;Segments&nbsp;from&nbsp;a&nbsp;list&nbsp;or&nbsp;tuple&nbsp;of&nbsp;Vertices.<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-segments">segments</a>(list)</tt></dd></dl>
  <dl><dt><a name="-sphere"><strong>sphere</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;unit&nbsp;sphere&nbsp;generated&nbsp;by&nbsp;recursive&nbsp;subdivision.<br>
 First&nbsp;approximation&nbsp;is&nbsp;an&nbsp;isocahedron;&nbsp;each&nbsp;level&nbsp;of&nbsp;refinement<br>
 (geodesation_order)&nbsp;increases&nbsp;the&nbsp;number&nbsp;of&nbsp;triangles&nbsp;by&nbsp;a&nbsp;factor<br>
@@ -1120,5 +1248,17 @@ Signature:&nbsp;<a href="#-sphere">sphere</a>(geodesation_order)</tt></dd></dl>
 &nbsp;<br>
 The&nbsp;edges&nbsp;of&nbsp;the&nbsp;tetrahedron&nbsp;are&nbsp;perpendicular&nbsp;to&nbsp;the&nbsp;cardinal<br>
 directions.</tt></dd></dl>
+ <dl><dt><a name="-triangle_enclosing"><strong>triangle_enclosing</strong></a>(...)</dt><dd><tt>Returns&nbsp;a&nbsp;<a href="#Triangle">Triangle</a>&nbsp;that&nbsp;encloses&nbsp;the&nbsp;plane&nbsp;projection&nbsp;of&nbsp;a&nbsp;list<br>
+or&nbsp;tuple&nbsp;of&nbsp;Points.&nbsp;&nbsp;The&nbsp;<a href="#Triangle">Triangle</a>&nbsp;is&nbsp;equilateral&nbsp;and&nbsp;encloses&nbsp;a<br>
+rectangle&nbsp;defined&nbsp;by&nbsp;the&nbsp;maximum&nbsp;and&nbsp;minimum&nbsp;x&nbsp;and&nbsp;y&nbsp;coordinates<br>
+of&nbsp;the&nbsp;points.<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-triangles">triangles</a>(list)</tt></dd></dl>
+ <dl><dt><a name="-triangles"><strong>triangles</strong></a>(...)</dt><dd><tt>Returns&nbsp;tuple&nbsp;of&nbsp;Triangles&nbsp;from&nbsp;a&nbsp;list&nbsp;or&nbsp;tuple&nbsp;of&nbsp;Edges.<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-triangles">triangles</a>(list)</tt></dd></dl>
+ <dl><dt><a name="-vertices"><strong>vertices</strong></a>(...)</dt><dd><tt>Returns&nbsp;tuple&nbsp;of&nbsp;Vertices&nbsp;from&nbsp;a&nbsp;list&nbsp;or&nbsp;tuple&nbsp;of&nbsp;Segments.<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-vertices">vertices</a>(list)</tt></dd></dl>
 </td></tr></table>
 </body></html>
