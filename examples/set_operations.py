@@ -63,7 +63,7 @@ intersection.translate(dx=-3)
 # Plot the surfaces
 
 def plot_surface(s):
-    x,y,z,t = gts.get_mayavi_coords_and_triangles(s)
+    x,y,z,t = gts.get_coords_and_face_indices(s,True)
     mlab.triangular_mesh(x,y,z,t,color=(0.8,0.8,0.8))
 
 plot_surface(difference1)

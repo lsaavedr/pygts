@@ -64,22 +64,12 @@ for i,s in enumerate(surfaces):
     else:
         print 'open.'
 
-
-# Function to convert data between gts to mayavi formats
-def get_mayavi_coords_and_triangles(s):
-    vertices = s.vertices()
-    coords = [v.get() for v in vertices]
-    triangles = s.face_indices(vertices)
-    x,y,z = zip(*coords)
-    return x,y,z,triangles
-
-
 print 'Retrieving mayavi data...',
 sys.stdout.flush()
 
 args = []
 for s in surfaces:
-    args.append(get_mayavi_coords_and_triangles(s))
+    args.append(gts.get_coords_and_face_indices(s,True))
 
 print 'Done.'
 sys.stdout.flush()
