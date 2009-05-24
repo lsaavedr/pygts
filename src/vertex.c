@@ -262,7 +262,7 @@ neighbors(PygtsVertex* self, PyObject *args)
   GtsSurface *s=NULL;
   GSList *vertices,*v;
   PygtsVertex *vertex;
-  PygtsSegment *parent;
+  GtsSegment *parent;
   PyObject *tuple;
   guint n,N;
 
@@ -332,7 +332,7 @@ neighbors(PygtsVertex* self, PyObject *args)
       PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(v->data);
 
       /* Create the parent GtsSegment */
-      if( (parent=PYGTS_SEGMENT(pygts_vertex_parent(
+      if( (parent=GTS_SEGMENT(pygts_vertex_parent(
 		      GTS_VERTEX(PYGTS_OBJECT(vertex)->gtsobj)))) == NULL ) {
 	Py_DECREF(vertex);
 	Py_DECREF(tuple);
@@ -489,7 +489,7 @@ triangles(PygtsVertex *self, PyObject *args, PyObject *kwds)
   PygtsTriangle *triangle;
   guint i,N;
   PyObject *tuple;
-  PygtsSurface *parent;
+  GtsSurface *parent;
 
 #if PYGTS_DEBUG
   if(!pygts_vertex_check((PyObject*)self)) {
@@ -542,7 +542,7 @@ triangles(PygtsVertex *self, PyObject *args, PyObject *kwds)
 
       /* Create the parent GtsSegment */
       if(GTS_IS_FACE(t->data)) {
-	if( (parent=PYGTS_SURFACE(pygts_face_parent(
+	if( (parent=GTS_SURFACE(pygts_face_parent(
                         GTS_FACE(PYGTS_OBJECT(t)->gtsobj)))) == NULL ) {
 	  Py_DECREF(triangle);
 	  Py_DECREF(tuple);

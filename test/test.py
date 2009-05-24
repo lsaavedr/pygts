@@ -1530,6 +1530,28 @@ class TestTriangleMethods(unittest.TestCase):
         self.assert_( fabs(v.y - sqrt(3)/3.) < 1.e-9 )
 
 
+    def test_is_stabbed(self):
+
+        v1,v2,v3 = gts.Vertex(0,0), gts.Vertex(0,1), gts.Vertex(1,0)
+        e1,e2,e3 = gts.Edge(v1,v2), gts.Edge(v1,v3), gts.Edge(v2,v3)
+        t = self.Triangle(e1,e2,e3)
+
+        self.assert_( not t.is_stabbed(gts.Point(0.3,0.3,1)) )
+        self.assert_( t.is_stabbed(gts.Point(0.3,0.3,-1)) == t )
+        self.assert_( t.is_stabbed(gts.Point(0,0,-1)) == v1 )
+        self.assert_( t.is_stabbed(gts.Point(0,0.5,-1)) == e1 )
+
+
+    def test_interpolate_height(self):
+
+        v1,v2,v3 = gts.Vertex(0,0,2), gts.Vertex(0,1,2), gts.Vertex(1,0,2)
+        e1,e2,e3 = gts.Edge(v1,v2), gts.Edge(v1,v3), gts.Edge(v2,v3)
+        t = self.Triangle(e1,e2,e3)
+
+        self.assert_(t.interpolate_height(gts.Point(0.2,0.2)) == 2)
+        self.assert_(t.interpolate_height(gts.Point(-1,-1)) == 2)
+
+
 class TestFaceMethods(TestTriangleMethods):
 
     Triangle = gts.Face
@@ -1834,6 +1856,107 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(self.closed_surface.is_ok())
 
 
+    def test_manifold_faces(self):
+
+        #         v4
+        #      e3 e4 e5
+        #   v1 e1 v2 e2 v3
+        #      e6 e7 e8
+        #         v5
+
+        v1 = gts.Vertex(-1,0)
+        v2 = gts.Vertex(0,0)
+        v3 = gts.Vertex(1,0)
+        v4 = gts.Vertex(0,1)
+        v5 = gts.Vertex(0,-1)
+
+        e1 = gts.Edge(v1,v2)
+        e2 = gts.Edge(v2,v3)
+        e3 = gts.Edge(v1,v4)
+        e4 = gts.Edge(v4,v2)
+        e5 = gts.Edge(v4,v3)
+        e6 = gts.Edge(v1,v5)
+        e7 = gts.Edge(v5,v2)
+        e8 = gts.Edge(v5,v3)
+
+        s = gts.Surface()
+
+        f1 = gts.Face(e1,e4,e3)
+        f2 = gts.Face(e2,e5,e4)
+        f3 = gts.Face(e1,e7,e6)
+        f4 = gts.Face(e2,e8,e7)
+
+        for f in [f1,f2,f3,f4]:
+            s.add(f)
+
+        self.assert_(s.manifold_faces(e3)==None)
+        faces = s.manifold_faces(e1)
+        self.assert_(len(faces)==2)
+        self.assert_(f1 in faces)
+        self.assert_(f3 in faces)
+
+
+    def test_fan_oriented(self):
+
+        #         v4
+        #      e3 e4 e5
+        #   v1 e1 v2 e2 v3
+        #      e6 e7 e8
+        #         v5
+
+        v1 = gts.Vertex(-1,0)
+        v2 = gts.Vertex(0,0)
+        v3 = gts.Vertex(1,0)
+        v4 = gts.Vertex(0,1)
+        v5 = gts.Vertex(0,-1)
+
+        e1 = gts.Edge(v1,v2)
+        e2 = gts.Edge(v2,v3)
+        e3 = gts.Edge(v1,v4)
+        e4 = gts.Edge(v4,v2)
+        e5 = gts.Edge(v4,v3)
+        e6 = gts.Edge(v1,v5)
+        e7 = gts.Edge(v5,v2)
+        e8 = gts.Edge(v5,v3)
+
+        f1 = gts.Face(e1,e4,e3)
+        f2 = gts.Face(e2,e5,e4)
+        f3 = gts.Face(e1,e7,e6)
+        f4 = gts.Face(e2,e8,e7)
+
+        # Unoriented Surface (should fail)
+        s = gts.Surface()
+        for f in [f1,f2,f3,f4]:
+            s.add(f)
+        try:
+            edges = s.fan_oriented(v2)
+        except:
+            pass
+        else:
+            raise RuntimeError, "Did not detect unoriented Surface"
+
+
+        # Now try with an oriented Surface
+        s = gts.Surface()
+        for f in [f1,f2,f3,f4]:
+            if not f.is_compatible(s):
+                f.revert()
+            s.add(f)
+
+        edges = s.fan_oriented(v2)
+
+        self.assert_(len(edges)==4)
+        self.assert_(e3 in edges)
+        self.assert_(e5 in edges)
+        self.assert_(e6 in edges)
+        self.assert_(e8 in edges)
+
+        edges = s.fan_oriented(v1)
+        self.assert_(len(edges)==2)
+        self.assert_(e4 in edges)
+        self.assert_(e7 in edges)
+
+
     def test_is_orientable(self):
         f2 = list(self.closed_surface)[1]
         self.assert_(self.open_surface.is_orientable())
@@ -1989,6 +2112,83 @@ class TestSurfaceMethods(unittest.TestCase):
 
         self.assert_(s1.is_ok())
         self.assert_(s2.is_ok())
+
+
+    def test_distance(self):
+
+        # Two spheres
+        s1 = gts.sphere(4)
+        s2 = gts.sphere(4)
+        s2.scale(2,2,2)
+        s2.translate(10)
+
+        fr = s1.distance(s2)
+        self.assert_(fr['min']==7.0)
+        self.assert_(fr['max']==9.0)
+
+        fr = s2.distance(s1)
+        self.assert_(fr['min']==7.0)
+        self.assert_(fr['max']==11.0)
+
+
+    def test_distance_2(self):
+
+        # Surfaces with boundaries
+
+        def getsurf():
+            #         v4
+            #      e3 e4 e5
+            #   v1 e1 v2 e2 v3
+            #      e6 e7 e8
+            #         v5
+
+            v1 = gts.Vertex(-1,0)
+            v2 = gts.Vertex(0,0)
+            v3 = gts.Vertex(1,0)
+            v4 = gts.Vertex(0,1)
+            v5 = gts.Vertex(0,-1)
+
+            e1 = gts.Edge(v1,v2)
+            e2 = gts.Edge(v2,v3)
+            e3 = gts.Edge(v1,v4)
+            e4 = gts.Edge(v4,v2)
+            e5 = gts.Edge(v4,v3)
+            e6 = gts.Edge(v1,v5)
+            e7 = gts.Edge(v5,v2)
+            e8 = gts.Edge(v5,v3)
+
+            s = gts.Surface()
+
+            f1 = gts.Face(e1,e4,e3)
+            f2 = gts.Face(e2,e5,e4)
+            f3 = gts.Face(e1,e7,e6)
+            f4 = gts.Face(e2,e8,e7)
+
+            for f in [f1,f2,f3,f4]:
+                s.add(f)
+
+            return s
+
+        s1 = getsurf()
+        s2 = getsurf()
+        s2.scale(2)
+        s2.translate(10)
+
+        r = s1.distance(s2)
+        self.assert_(len(r)==2)
+        fr,br = r
+        self.assert_(fr['min']==7.0)
+        self.assert_(fr['max']==9.0)
+        self.assert_(br['min']==7.0)
+        self.assert_(br['max']==9.0)
+
+        r = s2.distance(s1)
+        self.assert_(len(r)==2)
+        fr,br = r
+        self.assert_(fr['min']==7.0)
+        self.assert_(fr['max']==11.0)
+        self.assert_(br['min']==7.0)
+        self.assert_(br['max']==11.0)
 
 
     def test_split(self):
@@ -2459,6 +2659,47 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(s.is_ok())
 
 
+    def test_parent(self):
+
+        #         v4
+        #      e3 e4 e5
+        #   v1 e1 v2 e2 v3
+        #      e6 e7 e8
+        #         v5
+
+        v1 = gts.Vertex(-1,0)
+        v2 = gts.Vertex(0,0)
+        v3 = gts.Vertex(1,0)
+        v4 = gts.Vertex(0,1)
+        v5 = gts.Vertex(0,-1)
+
+        e1 = gts.Edge(v1,v2)
+        e2 = gts.Edge(v2,v3)
+        e3 = gts.Edge(v1,v4)
+        e4 = gts.Edge(v4,v2)
+        e5 = gts.Edge(v4,v3)
+        e6 = gts.Edge(v1,v5)
+        e7 = gts.Edge(v5,v2)
+        e8 = gts.Edge(v5,v3)
+
+        s = gts.Surface()
+
+        f1 = gts.Face(e1,e4,e3)
+        f2 = gts.Face(e2,e5,e4)
+        f3 = gts.Face(e1,e7,e6)
+        f4 = gts.Face(e2,e8,e7)
+
+        for f in [f1,f2,f3,f4]:
+            s.add(f)
+
+        self.assert_(s.parent(e3)==f1)
+        self.assert_(s.parent(e5)==f2)
+        self.assert_(s.parent(e6)==f3)
+        self.assert_(s.parent(e8)==f4)
+        self.assert_(s.parent(e1)==f1 or s.parent(e1)==f3)
+        self.assert_(s.parent(e2)==f2 or s.parent(e2)==f4)
+
+
     def test_edges(self):
 
         #         v4
@@ -2678,6 +2919,16 @@ class TestFunctions(unittest.TestCase):
         self.assert_(f1 in triangles)
         self.assert_(f2 in triangles)
         self.assert_(f3 in triangles)
+
+        
+    def test_triangle_enclosing(self):
+
+        points=[gts.Point(-1,-1),gts.Point(-1,1),
+                gts.Vertex(1,-1),gts.Vertex(1,1)]
+        triangle = gts.triangle_enclosing(points)
+
+        for point in points:
+            self.assert_(point.is_in(triangle))
 
 
 tests = [TestPointMethods,

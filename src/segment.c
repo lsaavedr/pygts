@@ -160,7 +160,7 @@ static PyObject*
 midvertex(PygtsSegment *self, PyObject *args, PyObject *kwds)
 {
   PygtsVertex *vertex;
-  PygtsSegment *parent;
+  GtsSegment *parent;
   GtsVertex *v;
 
 #if PYGTS_DEBUG
@@ -187,7 +187,7 @@ midvertex(PygtsSegment *self, PyObject *args, PyObject *kwds)
   PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(v);
 
   /* Create the parent GtsSegment */
-  if( (parent=PYGTS_SEGMENT(pygts_vertex_parent(
+  if( (parent=GTS_SEGMENT(pygts_vertex_parent(
 	          GTS_VERTEX(PYGTS_OBJECT(vertex)->gtsobj)))) == NULL ) {
     Py_DECREF(vertex);
     return NULL;
