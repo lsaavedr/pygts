@@ -2238,7 +2238,7 @@ static PyMethodDef methods[] = {
 
   {"remove", (PyCFunction)pygts_remove,
    METH_VARARGS,
-   "Removes Face f to Surface s.\n"
+   "Removes Face f from this Surface s.\n"
    "\n"
    "Signature: s.remove(f)\n"
   },
