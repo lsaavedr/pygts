@@ -481,8 +481,8 @@ CONTENTS
   Below are the steps used to prepare a PyGTS release.  This only of
   interest to the PyGTS Release Manager.
 
-  1) Update the VERSION in setup.py and the ChangeLog.  Check everything 
-     into svn.
+  1) Update the VERSION in setup.py and the ChangeLog.  Update the pydoc
+     documentation.  Check everything into svn.
 
   2) Build the archive using
 
@@ -502,6 +502,11 @@ CONTENTS
   5) Create a new release on SourceForge at
 
        https://sourceforge.net/project/admin/editpackages.php?group_id=262159
+
+     Use the version number as the release name.  Paste in the Changelog
+     entries since the last release, choosing "Preserve my pre-formatted
+     text".  Don't bother with the Notes -- that is what the News releases 
+     are for.
 
   6) Update the Web site and upload it using
 
@@ -530,8 +535,8 @@ See the SF project page (https://sourceforge.net/projects/pygts/), screenshots (
 
   9) Make announcements on the mailing lists.
 
-  10) Check the following locations that advertise PyGTS, to ensure that
-      they have up-to-date information:
+  10) Check the following primary locations that advertise PyGTS, to ensure 
+      that they have up-to-date information:
 
         http://wiki.python.org/moin/NumericAndScientific
         http://www.scipy.org/Topical_Software
