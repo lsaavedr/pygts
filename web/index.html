@@ -41,9 +41,18 @@ Here is a brief summary of the main features of GTS:
 </p>
 
 <p>
-The PyGTS binding is not yet feature-complete, but has nearly full support
-for the geometric primitives and surface boolean operations (union, 
-difference, intersection) which allow constructive solid geometry.
+The PyGTS binding has complete support for the objects and methods
+of GTS's 
+<a href="http://gts.sourceforge.net/reference/c2933.html">Geometrical 
+Object Hierarchy</a>.  It also supports surface set operations (union, 
+difference, intersection) that can be used for constructive solid geometry.  
+Some of the more advanced GTS features (advanced 
+<a href="http://gts.sourceforge.net/reference/c12244.html">Surface 
+Operations</a>, 
+<a href="http://gts.sourceforge.net/reference/c15281.html">Progressive 
+and Hierarchical Surfaces</a>,
+and <a href="http://gts.sourceforge.net/reference/c17131.html">Graphs and 
+Operations on Graphs</a>) are not yet supported.
 </p>
 
 
@@ -51,7 +60,7 @@ difference, intersection) which allow constructive solid geometry.
 
 <p>
 <ul>
-<li><a href="https://sourceforge.net/project/showfiles.php?group_id=262159">Download</a> - current release is 0.1.4</li>
+<li><a href="https://sourceforge.net/project/showfiles.php?group_id=262159">Download</a> - current release is 0.2.0</li>
 <li><a href="http://pygts.svn.sourceforge.net/viewvc/pygts/doc/gts.html">API Documentation</a> - generated using pydoc</li>
 <li><a href="http://pygts.svn.sourceforge.net/viewvc/pygts/FAQ">FAQ</a> - frequently asked questions</li>
 <br />
@@ -73,15 +82,29 @@ difference, intersection) which allow constructive solid geometry.
 <p>
 Contributions are welcome.  Help is needed with:
 <ul>
-<li>Feedback on user experiences via the mailing lists</li>
+<li>Install testing</li>
+<li>User testing</li>
 <li>Development of the code (see README.developers)</li>
 <li>The Web site (obviously)</li>
 <li>A tutorial</li>
 <li>Example programs</li>
 <li>Other things that interest you</li>
 </ul>
-Please let us know what you would like to do via the mailing lists.
+Please provide your input via the 
+<a href="https://sourceforge.net/mail/?group_id=262159">mailing lists</a>.
 </p>
+
+
+<h2>Wish List</h2>
+
+<p>Here are some objectives for future development:
+<ul>
+<li>Allow coordinate lists to be used in place of Points, and other UI enhancements</li>
+<li>Fix intersecting surface problem with CSG</li>
+<li>Add Blender support</li>
+</ul>
+</p>
+
 
 </div>
 
