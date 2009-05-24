@@ -75,76 +75,78 @@ is_unattached(PygtsEdge *self, PyObject *args)
 }
 
 
-static PyObject*
-replace(PygtsEdge *self, PyObject *args)
-{
-  PyObject *e2_;
-  PygtsEdge *e2;
-  GSList *parents=NULL, *i, *cur;
+/* replace() works, but can break Triangles and so is disabled */
 
-#if PYGTS_DEBUG
-  if(!pygts_edge_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+/* static PyObject* */
+/* replace(PygtsEdge *self, PyObject *args) */
+/* { */
+/*   PyObject *e2_; */
+/*   PygtsEdge *e2; */
+/*   GSList *parents=NULL, *i, *cur; */
 
-  /* Parse the args */  
-  if(! PyArg_ParseTuple(args, "O", &e2_) ) {
-    return NULL;
-  }
+/* #if PYGTS_DEBUG */
+/*   if(!pygts_edge_check((PyObject*)self)) { */
+/*     PyErr_SetString(PyExc_TypeError, */
+/* 		    "problem with self object (internal error)"); */
+/*     return NULL; */
+/*   } */
+/* #endif */
 
-  /* Convert to PygtsObjects */
-  if(!pygts_edge_check(e2_)) {
-    PyErr_SetString(PyExc_TypeError,"expected an Edge");
-    return NULL;
-  }
-  e2 = PYGTS_EDGE(e2_);
+/*   /\* Parse the args *\/   */
+/*   if(! PyArg_ParseTuple(args, "O", &e2_) ) { */
+/*     return NULL; */
+/*   } */
 
-  if(PYGTS_OBJECT(self)->gtsobj!=PYGTS_OBJECT(e2)->gtsobj) {
-    /* (Ignore self-replacement) */
+/*   /\* Convert to PygtsObjects *\/ */
+/*   if(!pygts_edge_check(e2_)) { */
+/*     PyErr_SetString(PyExc_TypeError,"expected an Edge"); */
+/*     return NULL; */
+/*   } */
+/*   e2 = PYGTS_EDGE(e2_); */
 
-    /* Detach and save any parent triangles */
-    i = GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles;
-    while(i!=NULL) {
-      cur = i;
-      i = i->next;
-      if(PYGTS_IS_PARENT_TRIANGLE(cur->data)) {
-	GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles = 
-	  g_slist_remove_link(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles,
-			      cur);
-	parents = g_slist_prepend(parents,cur->data);
-	g_slist_free_1(cur);
-      }
-    }
+/*   if(PYGTS_OBJECT(self)->gtsobj!=PYGTS_OBJECT(e2)->gtsobj) { */
+/*     /\* (Ignore self-replacement) *\/ */
 
-    /* Perform the replace operation */
-    gts_edge_replace(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj),
-		     GTS_EDGE(PYGTS_OBJECT(e2)->gtsobj));
+/*     /\* Detach and save any parent triangles *\/ */
+/*     i = GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles; */
+/*     while(i!=NULL) { */
+/*       cur = i; */
+/*       i = i->next; */
+/*       if(PYGTS_IS_PARENT_TRIANGLE(cur->data)) { */
+/* 	GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles =  */
+/* 	  g_slist_remove_link(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles, */
+/* 			      cur); */
+/* 	parents = g_slist_prepend(parents,cur->data); */
+/* 	g_slist_free_1(cur); */
+/*       } */
+/*     } */
 
-    /* Reattach the parent segments */
-    i = parents;
-    while(i!=NULL) {
-      GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles = 
-	g_slist_prepend(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles,
-			i->data);
-      i = i->next;
-    }
-    g_slist_free(parents);
-  }
+/*     /\* Perform the replace operation *\/ */
+/*     gts_edge_replace(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj), */
+/* 		     GTS_EDGE(PYGTS_OBJECT(e2)->gtsobj)); */
 
-#if PYGTS_DEBUG
-  if(!pygts_edge_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+/*     /\* Reattach the parent segments *\/ */
+/*     i = parents; */
+/*     while(i!=NULL) { */
+/*       GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles =  */
+/* 	g_slist_prepend(GTS_EDGE(PYGTS_OBJECT(self)->gtsobj)->triangles, */
+/* 			i->data); */
+/*       i = i->next; */
+/*     } */
+/*     g_slist_free(parents); */
+/*   } */
 
-  Py_INCREF(Py_None);
-  return Py_None;
-}
+/* #if PYGTS_DEBUG */
+/*   if(!pygts_edge_check((PyObject*)self)) { */
+/*     PyErr_SetString(PyExc_TypeError, */
+/* 		    "problem with self object (internal error)"); */
+/*     return NULL; */
+/*   } */
+/* #endif */
+
+/*   Py_INCREF(Py_None); */
+/*   return Py_None; */
+/* } */
 
 
 static PyObject*
