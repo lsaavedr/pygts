@@ -270,6 +270,104 @@ is_manifold(PygtsSurface *self, PyObject *args)
 
 
 static PyObject*
+manifold_faces(PygtsSurface *self, PyObject *args)
+{
+  PyObject *e_;
+  PygtsEdge *e;
+  GtsFace *f1,*f2;
+  PygtsFace *face1,*face2;
+  GtsSurface *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &e_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!pygts_edge_check(e_)) {
+    PyErr_SetString(PyExc_TypeError,"expected an Edge");
+    return NULL;
+  }
+  e = PYGTS_EDGE(e_);
+
+  if(!gts_edge_manifold_faces(GTS_EDGE(PYGTS_OBJECT(e)->gtsobj),
+			      GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
+			      &f1, &f2)) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+
+  if( (face1 = PYGTS_FACE(g_hash_table_lookup(obj_table,GTS_OBJECT(f1))
+			 )) !=NULL ) {
+    Py_INCREF(face1);
+  }
+  else {
+
+    /* Chain up object allocation for faces */
+    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+    face1 = PYGTS_FACE(PygtsFaceType.tp_new(&PygtsFaceType, args, NULL));
+    Py_DECREF(args);
+    if( face1 == NULL ) {
+      PyErr_SetString(PyExc_TypeError,"could not create Face");
+      return NULL;
+    }
+
+    PYGTS_OBJECT(face1)->gtsobj = GTS_OBJECT(f1);
+
+    /* Create the parent GtsSurface */
+    if( (parent = GTS_SURFACE(pygts_face_parent(
+                      GTS_FACE(PYGTS_OBJECT(face1)->gtsobj)))) == NULL ) {
+	Py_DECREF(face1);
+	return NULL;
+    }
+    PYGTS_OBJECT(face1)->gtsobj_parent = GTS_OBJECT(parent);
+
+    pygts_object_register(face1);
+  }
+
+  if( (face2 = PYGTS_FACE(g_hash_table_lookup(obj_table,GTS_OBJECT(f2))
+			 )) !=NULL ) {
+    Py_INCREF(face2);
+  }
+  else {
+
+    /* Chain up object allocation for faces */
+    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+    face2 = PYGTS_FACE(PygtsFaceType.tp_new(&PygtsFaceType, args, NULL));
+    Py_DECREF(args);
+    if( face2 == NULL ) {
+      PyErr_SetString(PyExc_TypeError,"could not create Face");
+      Py_DECREF(face1);
+      return NULL;
+    }
+
+    PYGTS_OBJECT(face2)->gtsobj = GTS_OBJECT(f2);
+
+    /* Create the parent GtsSurface */
+    if( (parent = GTS_SURFACE(pygts_face_parent(
+                      GTS_FACE(PYGTS_OBJECT(face2)->gtsobj)))) == NULL ) {
+      Py_DECREF(face1);
+      Py_DECREF(face2);
+      return NULL;
+    }
+    PYGTS_OBJECT(face2)->gtsobj_parent = GTS_OBJECT(parent);
+
+    pygts_object_register(face2);
+  }
+
+  return Py_BuildValue("OO",face1,face2);
+}
+
+
+
+static PyObject*
 is_orientable(PygtsSurface *self, PyObject *args)
 {
 #if PYGTS_DEBUG
@@ -320,7 +418,7 @@ boundary(PyObject *self, PyObject *args)
   guint i,N;
   GSList *edges=NULL,*e;
   PygtsEdge *edge;
-  PygtsTriangle *parent;
+  GtsTriangle *parent;
 
 #if PYGTS_DEBUG
   if(!pygts_surface_check((PyObject*)self)) {
@@ -367,7 +465,7 @@ boundary(PyObject *self, PyObject *args)
 
       /* Create the parent GtsTriangle */
       if(GTS_IS_EDGE(e->data)) {
-	if( (parent=PYGTS_TRIANGLE(pygts_edge_parent(
+	if( (parent=GTS_TRIANGLE(pygts_edge_parent(
 		      GTS_EDGE(PYGTS_OBJECT(edge)->gtsobj)))) == NULL ) {
 	  Py_DECREF(edge);
 	  Py_DECREF(tuple);
@@ -506,6 +604,197 @@ pygts_write(PygtsSurface *self, PyObject *args)
 
   Py_INCREF(Py_None);
   return Py_None;
+}
+
+
+static PyObject*
+pygts_write_oogl(PygtsSurface *self, PyObject *args)
+{
+  PyObject *f_;
+  FILE *f;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &f_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!PyFile_Check(f_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a File");
+    return NULL;
+  }
+  f = PyFile_AsFile(f_);
+
+  /* Write to the file */
+  gts_surface_write_oogl(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),f);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+static PyObject*
+pygts_write_oogl_boundary(PygtsSurface *self, PyObject *args)
+{
+  PyObject *f_;
+  FILE *f;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &f_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!PyFile_Check(f_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a File");
+    return NULL;
+  }
+  f = PyFile_AsFile(f_);
+
+  /* Write to the file */
+  gts_surface_write_oogl_boundary(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),f);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+static PyObject*
+pygts_write_vtk(PygtsSurface *self, PyObject *args)
+{
+  PyObject *f_;
+  FILE *f;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &f_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!PyFile_Check(f_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a File");
+    return NULL;
+  }
+  f = PyFile_AsFile(f_);
+
+  /* Write to the file */
+  gts_surface_write_vtk(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),f);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+static PyObject*
+fan_oriented(PygtsSurface *self, PyObject *args)
+{
+  PyObject *v_;
+  PygtsVertex *v;
+  GSList *edges=NULL, *e;
+  guint i,N;
+  PyObject *tuple;
+  PygtsEdge *edge;
+  GtsTriangle *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &v_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!pygts_vertex_check(v_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a Vertex");
+    return NULL;
+  }
+  v = PYGTS_VERTEX(v_);
+
+  /* Check that the Surface is orientable; the calculation will
+   * fail otherwise.
+   */
+  if(!gts_surface_is_orientable(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))) {
+    PyErr_SetString(PyExc_RuntimeError,"surface must be orientable");
+    return NULL;
+  }
+
+  /* Make the call */
+  edges = gts_vertex_fan_oriented(GTS_VERTEX(PYGTS_OBJECT(v)->gtsobj),
+				  GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj));
+
+  /* Build the return tuple */
+  N = g_slist_length(edges);
+  if( (tuple=PyTuple_New(N)) == NULL) {
+    PyErr_SetString(PyExc_TypeError,"Could not create tuple");
+    return NULL;
+  }
+  e = edges;
+  for(i=0;i<N;i++) {
+    if( (edge = PYGTS_EDGE(g_hash_table_lookup(obj_table,
+					       GTS_OBJECT(e->data))
+			   )) !=NULL ) {
+      Py_INCREF(edge);
+    }
+    else {
+      
+      /* Chain up object allocation for edges*/
+      args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+      edge = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+      Py_DECREF(args);
+      if( edge == NULL ) {
+	PyErr_SetString(PyExc_TypeError,"could not create Edge");
+	Py_DECREF(tuple);
+	g_slist_free(edges);
+	return NULL;
+      }
+
+      PYGTS_OBJECT(edge)->gtsobj = GTS_OBJECT(e->data);
+
+      /* Create the parent GtsTriangle */
+      if(GTS_IS_EDGE(e->data)) {
+	if( (parent=GTS_TRIANGLE(pygts_edge_parent(
+		      GTS_EDGE(PYGTS_OBJECT(edge)->gtsobj)))) == NULL ) {
+	  Py_DECREF(edge);
+	  Py_DECREF(tuple);
+	  g_slist_free(edges);
+	  return NULL;
+	}
+	PYGTS_OBJECT(edge)->gtsobj_parent = GTS_OBJECT(parent);
+      }
+
+      pygts_object_register(edge);
+    }
+    PyTuple_SET_ITEM(tuple,i,(PyObject*)edge);
+    e = e->next;
+  }
+
+  return tuple;
 }
 
 
@@ -654,6 +943,75 @@ static void get_edge(GtsEdge *edge, GSList **edges)
   *edges = g_slist_prepend(*edges,edge);
 }
 
+
+static PyObject*
+parent(PygtsSurface *self, PyObject *args)
+{
+  PyObject *e_;
+  PygtsEdge *e;
+  GtsFace *f;
+  PygtsFace *face;
+  GtsSurface *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &e_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!pygts_edge_check(e_)) {
+    PyErr_SetString(PyExc_TypeError,"expected an Edge");
+    return NULL;
+  }
+  e = PYGTS_EDGE(e_);
+
+  if( (f=gts_edge_has_parent_surface(GTS_EDGE(PYGTS_OBJECT(e)->gtsobj),
+				     GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)))
+      == NULL ) {
+
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+
+  if( (face = PYGTS_FACE(g_hash_table_lookup(obj_table,GTS_OBJECT(f))
+			 )) !=NULL ) {
+      Py_INCREF(face);
+  }
+  else {
+
+    /* Chain up object allocation for faces */
+    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+    face = PYGTS_FACE(PygtsFaceType.tp_new(&PygtsFaceType, args, NULL));
+    Py_DECREF(args);
+    if( face == NULL ) {
+      PyErr_SetString(PyExc_TypeError,"could not create Face");
+      return NULL;
+    }
+
+    PYGTS_OBJECT(face)->gtsobj = GTS_OBJECT(f);
+
+    /* Create the parent GtsSurface */
+    if( (parent=GTS_SURFACE(pygts_face_parent(
+		    GTS_FACE(PYGTS_OBJECT(face)->gtsobj)))) == NULL ) {
+	Py_DECREF(face);
+	return NULL;
+    }
+    PYGTS_OBJECT(face)->gtsobj_parent = GTS_OBJECT(parent);
+
+    pygts_object_register(face);
+  }
+
+  return (PyObject*)face;
+}
+
+
 static PyObject*
 edges(PyObject *self, PyObject *args)
 {
@@ -661,7 +1019,7 @@ edges(PyObject *self, PyObject *args)
   guint i,N;
   GSList *edges=NULL,*vertices=NULL,*e;
   PygtsEdge *edge;
-  PygtsTriangle *parent;
+  GtsTriangle *parent;
 
 #if PYGTS_DEBUG
   if(!pygts_surface_check((PyObject*)self)) {
@@ -747,7 +1105,7 @@ edges(PyObject *self, PyObject *args)
 
       /* Create the parent GtsTriangle */
       if(GTS_IS_EDGE(e->data)) {
-	if( (parent=PYGTS_TRIANGLE(pygts_edge_parent(
+	if( (parent=GTS_TRIANGLE(pygts_edge_parent(
 		      GTS_EDGE(PYGTS_OBJECT(edge)->gtsobj)))) == NULL ) {
 	  Py_DECREF(edge);
 	  Py_DECREF(tuple);
@@ -782,7 +1140,7 @@ faces(PyObject *self, PyObject *args)
   guint i,N;
   GSList *edges=NULL,*faces=NULL,*f;
   PygtsFace *face;
-  PygtsSurface *parent;
+  GtsSurface *parent;
 
 #if PYGTS_DEBUG
   if(!pygts_surface_check((PyObject*)self)) {
@@ -870,7 +1228,7 @@ faces(PyObject *self, PyObject *args)
       PYGTS_OBJECT(face)->gtsobj = GTS_OBJECT(f->data);
 
       /* Create the parent GtsSurface */
-      if( (parent=PYGTS_SURFACE(pygts_face_parent(
+      if( (parent=GTS_SURFACE(pygts_face_parent(
                       GTS_FACE(PYGTS_OBJECT(face)->gtsobj)))) == NULL ) {
 	Py_DECREF(face);
 	Py_DECREF(tuple);
@@ -1000,6 +1358,74 @@ face_indices(PygtsSurface *self, PyObject *args)
   }
 
   return indices;
+}
+
+
+static PyObject*
+distance(PygtsSurface *self, PyObject *args)
+{
+  PyObject *s_;
+  PygtsSurface *s;
+  gdouble delta=0.1;
+  GtsRange face_range, boundary_range;
+  PyObject *fr, *br;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O|d", &s_,&delta) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!pygts_surface_check(s_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a Surface");
+    return NULL;
+  }
+  s = PYGTS_SURFACE(s_);
+
+  gts_surface_distance(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj),
+		       GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj),
+		       delta, &face_range, &boundary_range);
+
+  /* Populate the fr (face range) dict */
+  if( (fr = PyDict_New()) == NULL ) {
+    PyErr_SetString(PyExc_RuntimeError,"cannot create dict");
+    return NULL;
+  }
+  PyDict_SetItemString(fr, "min", Py_BuildValue("d",face_range.min));
+  PyDict_SetItemString(fr, "max", Py_BuildValue("d",face_range.max));
+  PyDict_SetItemString(fr, "sum", Py_BuildValue("d",face_range.sum));
+  PyDict_SetItemString(fr, "sum2", Py_BuildValue("d",face_range.sum2));
+  PyDict_SetItemString(fr, "mean", Py_BuildValue("d",face_range.mean));
+  PyDict_SetItemString(fr, "stddev", Py_BuildValue("d",face_range.stddev));
+  PyDict_SetItemString(fr, "n", Py_BuildValue("i",face_range.n));
+
+  /* Populate the br (boundary range) dict */
+  if(gts_surface_boundary(GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj))!=NULL) {
+    if( (br = PyDict_New()) == NULL ) {
+      PyErr_SetString(PyExc_RuntimeError,"cannot create dict");
+      Py_DECREF(fr);
+      return NULL;
+    }
+    PyDict_SetItemString(br,"min",Py_BuildValue("d",boundary_range.min));
+    PyDict_SetItemString(br,"max",Py_BuildValue("d",boundary_range.max));
+    PyDict_SetItemString(br,"sum",Py_BuildValue("d",boundary_range.sum));
+    PyDict_SetItemString(br,"sum2",Py_BuildValue("d",boundary_range.sum2));
+    PyDict_SetItemString(br,"mean",Py_BuildValue("d",boundary_range.mean));
+    PyDict_SetItemString(br,"stddev",Py_BuildValue("d",boundary_range.stddev));
+    PyDict_SetItemString(br, "n",Py_BuildValue("i",boundary_range.n));
+
+    return Py_BuildValue("OO",fr,br);
+  }
+  else {
+    return Py_BuildValue("O",fr);
+  }
 }
 
 
@@ -1802,21 +2228,21 @@ static PyMethodDef methods[] = {
    "True if this Surface s is OK.  False otherwise.\n"
    "\n"
    "Signature: s.is_ok()\n"
-  },  
+  },
 
   {"add", (PyCFunction)add,
    METH_VARARGS,
    "Adds Face f to Surface s.\n"
    "\n"
    "Signature: s.add(f)\n"
-  },  
+  },
 
   {"remove", (PyCFunction)pygts_remove,
    METH_VARARGS,
    "Removes Face f to Surface s.\n"
    "\n"
    "Signature: s.remove(f)\n"
-  },  
+  },
 
   {"copy", (PyCFunction)copy,
    METH_VARARGS,
@@ -1825,14 +2251,14 @@ static PyMethodDef methods[] = {
    "Signature: s1.copy(s2)\n"
    "\n"
    "Returns s1.\n"
-  },  
+  },
 
   {"merge", (PyCFunction)merge,
    METH_VARARGS,
    "Adds faces of Surface s2 which do not belong to Surface s1 to s1.\n"
    "\n"
    "Signature: s1.merge(s2)\n"
-  },  
+  },
 
   {"read", (PyCFunction)pygts_read,
    METH_VARARGS,
@@ -1841,14 +2267,22 @@ static PyMethodDef methods[] = {
    "s.write())\n"
    "\n"
    "Signature: s.read(f)\n"
-  },  
+  },
 
   {"is_manifold", (PyCFunction)is_manifold,
    METH_NOARGS,
    "True if Surface s is a manifold, False otherwise.\n"
    "\n"
    "Signature: s.is_manifold()\n"
-  },  
+  },
+
+  {"manifold_faces", (PyCFunction)manifold_faces,
+   METH_VARARGS,
+   "Returns the 2 manifold Faces of Edge e on this Surface s\n"
+   "if they exist, or None.\n"
+   "\n"
+   "Signature: s.manifold_faces(e)\n"
+  },
 
   {"is_orientable", (PyCFunction)is_orientable,
    METH_NOARGS,
@@ -1858,7 +2292,7 @@ static PyMethodDef methods[] = {
    "orientable surface is also a manifold.\n"
    "\n"
    "Signature: s.is_orientable()\n"
-  },  
+  },
 
   {"is_closed", (PyCFunction)is_closed,
    METH_NOARGS,
@@ -1866,14 +2300,14 @@ static PyMethodDef methods[] = {
    "Note that a closed Surface is also a manifold.\n"
    "\n"
    "Signature: s.is_closed()\n"
-  },  
+  },
 
   {"boundary", (PyCFunction)boundary,
    METH_NOARGS,
    "Returns a tuple of boundary Edges of Surface s.\n"
    "\n"
    "Signature: s.boundary()\n"
-  },  
+  },
 
   {"area", (PyCFunction)area,
    METH_NOARGS,
@@ -1881,28 +2315,28 @@ static PyMethodDef methods[] = {
    "The area is taken as the sum of the signed areas of the Faces of s.\n"
    "\n"
    "Signature: s.area()\n"
-  },  
+  },
 
   {"volume", (PyCFunction)volume,
    METH_NOARGS,
    "Returns the signed volume of the domain bounded by the Surface s.\n"
    "\n"
    "Signature: s.volume()\n"
-  },  
+  },
 
   {"center_of_mass", (PyCFunction)center_of_mass,
    METH_NOARGS,
    "Returns the coordinates of the center of mass of Surface s.\n"
    "\n"
    "Signature: s.center_of_mass()\n"
-  },  
+  },
 
   {"center_of_area", (PyCFunction)center_of_area,
    METH_NOARGS,
    "Returns the coordinates of the center of area of Surface s.\n"
    "\n"
    "Signature: s.center_of_area()\n"
-  },  
+  },
 
   {"write", (PyCFunction)pygts_write,
    METH_VARARGS,
@@ -1910,14 +2344,62 @@ static PyMethodDef methods[] = {
    "All the lines beginning with #! are ignored.\n"
    "\n"
    "Signature: s.write(f)\n"
-  },  
+  },
+
+  {"write_oogl", (PyCFunction)pygts_write_oogl,
+   METH_VARARGS,
+   "Saves Surface s to File f in OOGL (Geomview) format.\n"
+   "\n"
+   "Signature: s.write_oogl(f)\n"
+  },
+
+  {"write_oogl_boundary", (PyCFunction)pygts_write_oogl_boundary,
+   METH_VARARGS,
+   "Saves boundary of Surface s to File f in OOGL (Geomview) format.\n"
+   "\n"
+   "Signature: s.write_oogl_boundary(f)\n"
+  },
+
+  {"write_vtk", (PyCFunction)pygts_write_vtk,
+   METH_VARARGS,
+   "Saves Surface s to File f in VTK format.\n"
+   "\n"
+   "Signature: s.write_vtk(f)\n"
+  },
+
+  {"fan_oriented", (PyCFunction)fan_oriented,
+   METH_VARARGS,
+   "Returns a tuple of outside Edges of the Faces fanning from\n"
+   "Vertex v on this Surface s.  The Edges are given in \n"
+   "counter-clockwise order.\n"
+   "\n"
+   "Signature: s.fan_oriented(v)\n"
+  },
 
   {"split", (PyCFunction)split,
    METH_NOARGS,
    "Splits a surface into a tuple of connected and manifold components.\n"
    "\n"
    "Signature: s.split()\n"
-  },  
+  },
+
+  {"distance", (PyCFunction)distance,
+   METH_VARARGS,
+   "Calculates the distance between the faces of this Surface s1 and\n"
+   "the nearest Faces of other s2, and (if applicable) the distance\n"
+   "between the boundary of this Surface s1 and the nearest boundary\n"
+   "Edges of other s2.\n"
+   "\n"
+   "One or two dictionaries are returned (where applicable), the first\n"
+   "for the face range and the second for the boundary range.  The\n"
+   "fields in each dictionary describe statistical results for each\n"
+   "population: {min,max,sum,sum2,mean,stddev,n}.\n"
+   "\n"
+   "Signature: s1.distance(s2) or s1.distance(s2,delta)\n"
+   "\n"
+   "The value delta is a spatial increment defined as the percentage\n"
+   "of the diagonal of the bounding box of s2 (default 0.1).\n"
+  },
 
   {"strip", (PyCFunction)strip,
    METH_NOARGS,
@@ -1925,7 +2407,7 @@ static PyMethodDef methods[] = {
    "that are successive and have one edge in common.\n"
    "\n"
    "Signature: s.split()\n"
-  },  
+  },
 
   {"stats", (PyCFunction)stats,
    METH_NOARGS,
@@ -1936,7 +2418,7 @@ static PyMethodDef methods[] = {
    "faces_per_edge.  Each of these names are dictionary keys.\n"
    "\n"
    "Signature: s.stats()\n"
-  },  
+  },
 
   {"quality_stats", (PyCFunction)quality_stats,
    METH_NOARGS,
@@ -1947,7 +2429,7 @@ static PyMethodDef methods[] = {
    "See Triangle.quality() for an explanation of the face_quality.\n"
    "\n"
    "Signature: s.quality_stats()\n"
-  },  
+  },
 
   {"tessellate", (PyCFunction)tessellate,
    METH_NOARGS,
@@ -1955,14 +2437,22 @@ static PyMethodDef methods[] = {
    "The number of triangles is increased by a factor of 4.\n"
    "\n"
    "Signature: s.tessellate()\n"
-  },  
+  },
 
   {"vertices", (PyCFunction)vertices,
    METH_NOARGS,
    "Returns a tuple containing the vertices of Surface s.\n"
    "\n"
    "Signature: s.vertices()\n"
-  },  
+  },
+
+  {"parent", (PyCFunction)parent,
+   METH_VARARGS,
+   "Returns Face on this Surface s that has Edge e, or None\n"
+   "if the Edge is not on this Surface.\n"
+   "\n"
+   "Signature: s.parent(e)\n"
+  },
 
   {"edges", (PyCFunction)edges,
    METH_VARARGS,
@@ -1970,7 +2460,7 @@ static PyMethodDef methods[] = {
    "If a list is not given then all of the Edges are returned.\n"
    "\n"
    "Signature: s.edges(list) or s.edges()\n"
-  },  
+  },
 
   {"faces", (PyCFunction)faces,
    METH_VARARGS,
@@ -1978,7 +2468,7 @@ static PyMethodDef methods[] = {
    "If a list is not given then all of the Faces are returned.\n"
    "\n"
    "Signature: s.faces(list) s.faces()\n"
-  },  
+  },
 
   {"face_indices", (PyCFunction)face_indices,
    METH_VARARGS,
@@ -1987,28 +2477,28 @@ static PyMethodDef methods[] = {
    "where it is found in the Vertex tuple vs.\n"
    "\n"
    "Signature: s.face_indices(vs)\n"
-  },  
+  },
 
   {"intersection", (PyCFunction)intersection,
    METH_VARARGS,
    "Returns the intersection of this Surface s1 with Surface s2.\n"
    "\n"
    "Signature: s1.intersection(s2)\n"
-  },  
+  },
 
   {"union", (PyCFunction)pygts_union,
    METH_VARARGS,
    "Returns the union of this Surface s1 with Surface s2.\n"
    "\n"
    "Signature: s1.union(s2)\n"
-  },  
+  },
 
   {"difference", (PyCFunction)difference,
    METH_VARARGS,
    "Returns the difference of this Surface s1 with Surface s2.\n"
    "\n"
    "Signature: s1.difference(s2)\n"
-  },  
+  },
 
   {"rotate", (PyCFunction)rotate,
    METH_VARARGS | METH_KEYWORDS,
@@ -2016,21 +2506,21 @@ static PyMethodDef methods[] = {
    "The sense of the rotation is given by the right-hand-rule.\n"
    "\n"
    "Signature: s.rotate(dx,dy,dz,a)\n"
-  },  
+  },
 
   {"scale", (PyCFunction)scale,
    METH_VARARGS | METH_KEYWORDS,
    "Scales Surface s by vector dx,dy,dz.\n"
    "\n"
    "Signature: s.scale(dx=1,dy=1,dz=1)\n"
-  },  
+  },
 
   {"translate", (PyCFunction)translate,
    METH_VARARGS | METH_KEYWORDS,
    "Translates Surface s by vector dx,dy,dz.\n"
    "\n"
    "Signature: s.translate(dx=0,dy=0,dz=0)\n"
-  },  
+  },
 
   {"is_self_intersecting", (PyCFunction)is_self_intersecting,
    METH_NOARGS,
@@ -2038,7 +2528,7 @@ static PyMethodDef methods[] = {
    "False otherwise.\n"
    "\n"
    "Signature: s.is_self_intersecting()\n"
-  },  
+  },
 
   {"cleanup", (PyCFunction)cleanup,
    METH_VARARGS,
@@ -2049,7 +2539,7 @@ static PyMethodDef methods[] = {
    "If threhold is given, then Vertices that are spaced less than\n"
    "the threshold are merged.  Degenerate Edges and Faces are also\n"
    "removed.\n"
-  },  
+  },
 
   {"coarsen", (PyCFunction)coarsen,
    METH_VARARGS,
@@ -2059,7 +2549,7 @@ static PyMethodDef methods[] = {
    "\n"
    "n is the smallest number of desired edges (but you may get fewer).\n"
    "amin is the smallest angle between Faces.\n"
-  },  
+  },
 
   {NULL}  /* Sentinel */
 };

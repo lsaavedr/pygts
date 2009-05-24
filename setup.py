@@ -32,7 +32,7 @@ from distutils import sysconfig
 import commands
 import os, sys
 
-VERSION = '0.1.4'
+VERSION = '0.2.0'
 
 PYGTS_DEBUG = '1'  # '1' for on, '0' for off
 

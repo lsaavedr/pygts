@@ -103,7 +103,7 @@ vertices(PyObject *self, PyObject *args)
   guint i,N;
   GSList *segments=NULL,*vertices=NULL,*v;
   PygtsVertex *vertex;
-  PygtsSegment *parent;
+  GtsSegment *parent;
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &tuple) ) {
@@ -168,7 +168,7 @@ vertices(PyObject *self, PyObject *args)
       PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(v->data);
 
       /* Create the parent GtsSegment */
-      if( (parent=PYGTS_SEGMENT(pygts_vertex_parent(
+      if( (parent=GTS_SEGMENT(pygts_vertex_parent(
 		      GTS_VERTEX(PYGTS_OBJECT(vertex)->gtsobj)))) == NULL ) {
 	Py_DECREF(vertex);
 	Py_DECREF(tuple);
@@ -196,7 +196,7 @@ segments(PyObject *self, PyObject *args)
   guint i,n,N;
   GSList *segments=NULL,*vertices=NULL,*s;
   PygtsSegment *segment;
-  PygtsTriangle *parent;
+  GtsTriangle *parent;
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &tuple) ) {
@@ -282,7 +282,7 @@ segments(PyObject *self, PyObject *args)
 
       /* Create the parent GtsTriangle */
       if(GTS_IS_EDGE(s->data)) {
-	if( (parent=PYGTS_TRIANGLE(pygts_edge_parent(
+	if( (parent=GTS_TRIANGLE(pygts_edge_parent(
 		      GTS_EDGE(PYGTS_OBJECT(segment)->gtsobj)))) == NULL ) {
 	  Py_DECREF(segment);
 	  Py_DECREF(tuple);
@@ -317,7 +317,7 @@ triangles(PyObject *self, PyObject *args)
   guint i,n,N;
   GSList *edges=NULL,*triangles=NULL,*t;
   PygtsTriangle *triangle;
-  PygtsSurface *parent;
+  GtsSurface *parent;
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &tuple) ) {
@@ -403,7 +403,7 @@ triangles(PyObject *self, PyObject *args)
 
       /* Create the parent GtsSurface */
       if(GTS_IS_FACE(t->data)) {
-	if( (parent=PYGTS_SURFACE(pygts_face_parent(
+	if( (parent=GTS_SURFACE(pygts_face_parent(
 		      GTS_FACE(PYGTS_OBJECT(triangle)->gtsobj)))) == NULL ) {
 	  Py_DECREF(triangle);
 	  Py_DECREF(tuple);
@@ -428,6 +428,140 @@ triangles(PyObject *self, PyObject *args)
   }
 
   return tuple;
+}
+
+
+static PyObject*
+parent(PygtsSurface *self, PyObject *args)
+{
+  PyObject *e_;
+  PygtsEdge *e;
+  GtsFace *f;
+  PygtsFace *face;
+  GtsSurface *parent;
+
+#if PYGTS_DEBUG
+  if(!pygts_surface_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &e_) )
+    return NULL;
+
+  /* Convert to PygtsObjects */
+  if(!pygts_edge_check(e_)) {
+    PyErr_SetString(PyExc_TypeError,"expected an Edge");
+    return NULL;
+  }
+  e = PYGTS_EDGE(e_);
+
+  if( (f=gts_edge_has_parent_surface(GTS_EDGE(PYGTS_OBJECT(e)->gtsobj),
+				     GTS_SURFACE(PYGTS_OBJECT(self)->gtsobj)))
+      == NULL ) {
+
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+
+  if( (face = PYGTS_FACE(g_hash_table_lookup(obj_table,GTS_OBJECT(f))
+			 )) !=NULL ) {
+      Py_INCREF(face);
+  }
+  else {
+
+    /* Chain up object allocation for faces */
+    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+    face = PYGTS_FACE(PygtsFaceType.tp_new(&PygtsFaceType, args, NULL));
+    Py_DECREF(args);
+    if( face == NULL ) {
+      PyErr_SetString(PyExc_TypeError,"could not create Face");
+      return NULL;
+    }
+
+    PYGTS_OBJECT(face)->gtsobj = GTS_OBJECT(f);
+
+    /* Create the parent GtsSurface */
+    if( (parent=GTS_SURFACE(pygts_face_parent(
+		    GTS_FACE(PYGTS_OBJECT(face)->gtsobj)))) == NULL ) {
+	Py_DECREF(face);
+	return NULL;
+    }
+    PYGTS_OBJECT(face)->gtsobj_parent = GTS_OBJECT(parent);
+
+    pygts_object_register(face);
+  }
+
+  return (PyObject*)face;
+}
+
+
+static PyObject*
+triangle_enclosing(PyObject *self, PyObject *args)
+{
+  PyObject *tuple, *obj;
+  guint i,N;
+  GSList *points=NULL;
+  GtsTriangle *t;
+  PygtsTriangle *triangle;
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &tuple) ) {
+    return NULL;
+  }
+  if(PyList_Check(tuple)) {
+    tuple = PyList_AsTuple(tuple);
+  }
+  else {
+    Py_INCREF(tuple);
+  }
+  if(!PyTuple_Check(tuple)) {
+    Py_DECREF(tuple);
+    PyErr_SetString(PyExc_TypeError,"expected a list or tuple of points");
+    return NULL;
+  }
+
+  /* Assemble the GSList */
+  N = PyTuple_Size(tuple);
+  for(i=0;i<N;i++) {
+    obj = PyTuple_GET_ITEM(tuple,i);
+    if(!pygts_point_check(obj)) {
+      Py_DECREF(tuple);
+      g_slist_free(points);
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of points");
+      return NULL;
+    }
+    points = g_slist_prepend(points,GTS_POINT(PYGTS_OBJECT(obj)->gtsobj));
+  }
+  Py_DECREF(tuple);
+
+  /* Make the call */
+  t = gts_triangle_enclosing(gts_triangle_class(),points,1.0);
+  g_slist_free(points);
+
+  if(t==NULL) {
+    PyErr_SetString(PyExc_RuntimeError,"could not compute triangle");
+    return NULL;
+  }
+
+  /* Prepare the return Triangle */
+  args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+  triangle = PYGTS_TRIANGLE(PygtsTriangleType.tp_new(&PygtsTriangleType, 
+						     args, NULL));
+  Py_DECREF(args);
+  if( triangle == NULL ) {
+    PyErr_SetString(PyExc_TypeError,"Could not create Triangle");
+    return NULL;
+  }
+
+  PYGTS_OBJECT(triangle)->gtsobj = GTS_OBJECT(t);
+
+  pygts_object_register(triangle);
+
+  return (PyObject*)triangle;
 }
 
 
@@ -490,6 +624,15 @@ static PyMethodDef gts_methods[] = {
 
   { "triangles", triangles, METH_VARARGS,
     "Returns tuple of Triangles from a list or tuple of Edges.\n"
+    "\n"
+    "Signature: triangles(list)\n"
+  },
+
+  { "triangle_enclosing", triangle_enclosing, METH_VARARGS,
+    "Returns a Triangle that encloses the plane projection of a list\n"
+    "or tuple of Points.  The Triangle is equilateral and encloses a\n"
+    "rectangle defined by the maximum and minimum x and y coordinates\n"
+    "of the points.\n"
     "\n"
     "Signature: triangles(list)\n"
   },

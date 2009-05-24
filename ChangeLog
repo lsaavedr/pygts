@@ -1,11 +1,17 @@
 2009-05-17  Thomas J. Duck  <tom.duck@dal.ca>
 
+	* Version 0.2.0
+	
 	* Added functions cube(), merge(), vertices(), segments(),
-	triangles()
+	triangles(), triangle_enclosing()
 
 	* Added methods Vertex.triangles(), Edge.is_boundary(),
-	Triangle.vertex(), Surface.cleanup(), Surface.coarsen(), 
-	Surface.edges(), Surface.faces(), Surface.boundary()
+	Triangle.vertex(), Triangle.is_stabbed(), 
+	Triangle.interpolate_height(), Surface.cleanup(), 
+	Surface.coarsen(), Surface.edges(), Surface.faces(), 
+	Surface.boundary(), Surface.parent(), Surface.manifold_faces(), 
+	Surface.fan_oriented(),	Surface.distance(), Surface.write_vtk(), 
+	Surface.write_oogl(), Surface.write_oogl_boundary(),
 
 	* Renamed examples/tetrahedron.py to examples/polyhedrons.py,
 	and modified to display tetrahedon, cube and sphere
@@ -16,7 +22,9 @@
 	and intersection(), which is not allowed (resulted in a GTS
 	failure mode before)
 
-	* Fixed fatal bug when getting edges from triangles
+	* Fixed fatal bug when getting Edges e1, e2 and e3 from a Triangle
+
+	* Fixed other minor bugs
 
 	
 2009-05-15  Thomas J. Duck  <tom.duck@dal.ca>

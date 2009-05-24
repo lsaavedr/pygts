@@ -559,13 +559,13 @@ vertex(PygtsTriangle *self,PyObject *args)
   return (PyObject*)v1;
 }
 
+
 static PyObject *
 circumcenter(PygtsTriangle *self,PyObject *args)
 {
   PygtsVertex *v;
   GtsVertex *vertex;
   GtsSegment *parent;
-
 
 #if PYGTS_DEBUG
   if(!pygts_triangle_check((PyObject*)self)) {
@@ -610,6 +610,146 @@ circumcenter(PygtsTriangle *self,PyObject *args)
   }
 
   return (PyObject*)v;
+}
+
+
+static PyObject *
+is_stabbed(PygtsTriangle *self,PyObject *args)
+{
+  PyObject *p_;
+  PygtsVertex *p;
+  GtsObject *obj;
+  PygtsVertex *vertex;
+  PygtsEdge *edge;
+  GtsSegment *parent1;
+  GtsTriangle *parent2;
+
+#if PYGTS_DEBUG
+  if(!pygts_triangle_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &p_) ) {
+    return NULL;
+  }
+
+  /* Convert to PygtsObjects */
+  if(!pygts_point_check(p_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a Point");
+    return NULL;
+  }
+  p = PYGTS_POINT(p_);
+
+  obj = gts_triangle_is_stabbed(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
+				GTS_POINT(PYGTS_OBJECT(p)->gtsobj),
+				NULL);
+
+  if( obj == NULL ) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+
+  if(GTS_IS_VERTEX(obj)) {
+
+    /* If corresponding PyObject found in object table, we are done */
+    if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,obj))) != NULL ) {
+      Py_INCREF(vertex);
+      return (PyObject*)vertex;
+    }
+
+    /* Chain up object allocation */
+    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
+    vertex = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType,args,NULL));
+    Py_DECREF(args);
+    if( vertex == NULL ) {
+      PyErr_SetString(PyExc_RuntimeError, "Could not create Vertex");
+      return NULL;
+    }
+    PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(obj);
+
+    /* Attach parent */
+    if( (parent1=pygts_vertex_parent(GTS_VERTEX(obj))) == NULL ) {
+      Py_DECREF(vertex);
+      return NULL;
+    }
+    PYGTS_OBJECT(vertex)->gtsobj_parent = GTS_OBJECT(parent1);
+
+    pygts_object_register(PYGTS_OBJECT(vertex));
+    return (PyObject*)vertex;
+  }
+
+  if(GTS_IS_EDGE(obj)) {
+
+    /* If corresponding PyObject found in object table, we are done */
+    if( (edge = PYGTS_EDGE(g_hash_table_lookup(obj_table,obj))) != NULL ) {
+      Py_INCREF(edge);
+      return (PyObject*)edge;
+    }
+
+    /* Chain up object allocation */
+    args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
+    edge = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
+    Py_DECREF(args);
+    if( edge == NULL ) {
+      PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
+      return NULL;
+    }
+    PYGTS_OBJECT(edge)->gtsobj = GTS_OBJECT(obj);
+
+    /* Attach parent */
+    if( (parent2 = pygts_edge_parent(GTS_EDGE(obj))) == NULL ) {
+      Py_DECREF(edge);
+      return NULL;
+    }
+    PYGTS_OBJECT(edge)->gtsobj_parent = GTS_OBJECT(parent2);
+    
+    pygts_object_register(PYGTS_OBJECT(edge));
+    return (PyObject*)edge;
+  }
+
+  Py_INCREF(self);
+  return (PyObject*)self;
+}
+
+
+static PyObject *
+interpolate_height(PygtsTriangle *self,PyObject *args)
+{
+  PyObject *p_;
+  PygtsPoint *p;
+  GtsPoint point;
+
+#if PYGTS_DEBUG
+  if(!pygts_triangle_check((PyObject*)self)) {
+    PyErr_SetString(PyExc_TypeError,
+		    "problem with self object (internal error)");
+    return NULL;
+  }
+#endif
+
+  /* Parse the args */  
+  if(! PyArg_ParseTuple(args, "O", &p_) ) {
+    return NULL;
+  }
+
+  /* Convert to PygtsObjects */
+  if(!pygts_point_check(p_)) {
+    PyErr_SetString(PyExc_TypeError,"expected a Point");
+    return NULL;
+  }
+  p = PYGTS_POINT(p_);
+
+  point.x = GTS_POINT(PYGTS_OBJECT(p)->gtsobj)->x;
+  point.y = GTS_POINT(PYGTS_OBJECT(p)->gtsobj)->y;
+
+  gts_triangle_interpolate_height(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
+				  &point);
+
+  return Py_BuildValue("d",point.z);
 }
 
 
@@ -734,6 +874,25 @@ static PyMethodDef methods[] = {
    "defined.\n"
    "\n"
    "Signature: t.circumcircle_center()\n"
+  },  
+
+  {"is_stabbed", (PyCFunction)is_stabbed,
+   METH_VARARGS,
+   "Returns the component of this Triangle t that is stabbed by a\n"
+   "ray projecting from Point p to z=infinity.  The result\n"
+   "can be this Triangle t, one of its Edges or Vertices, or None.\n"
+   "If the ray is contained in the plan of this Triangle then None is\n"
+   "also returned.\n"
+   "\n"
+   "Signature: t.is_stabbed(p)\n"
+  },  
+
+  {"interpolate_height", (PyCFunction)interpolate_height,
+   METH_VARARGS,
+   "Returns the height of the plane defined by Triangle t at Point p.\n"
+   "Only the x- and y-coordinates of p are considered.\n"
+   "\n"
+   "Signature: t.interpolate_height(p)\n"
   },  
 
   {NULL}  /* Sentinel */
