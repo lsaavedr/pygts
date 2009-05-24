@@ -103,7 +103,7 @@ class TestPointMethods(unittest.TestCase):
         p.x,p.y,p.z = 4,5,6
         self.assert_(p.is_ok())
         self.assert_(p.x==4 and p.y==5 and p.z==6)
-        self.assert_( p.get()==(p.x,p.y,p.z) )
+        self.assert_( p.coords()==(p.x,p.y,p.z) )
 
 
     def test_is_in_rectangle(self):
