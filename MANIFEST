@@ -5,10 +5,11 @@ README
 README.developers
 setup.py
 doc/gts.html
-examples/boolean.py
+examples/cube.py
 examples/plotgts.py
+examples/polyhedrons.py
 examples/seashell.gts
-examples/tetrahedon.py
+examples/set_operations.py
 src/cleanup.c
 src/cleanup.h
 src/edge.c

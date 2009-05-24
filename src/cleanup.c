@@ -189,7 +189,6 @@ void
 pygts_vertex_cleanup(GtsSurface *s, gdouble threshold)
 {
   GList * vertices = NULL;
-  gboolean boundary = FALSE;
 
   /* merge vertices which are close enough */
   /* build list of vertices */
