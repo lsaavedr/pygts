@@ -1,5 +1,17 @@
 2009-05-25  Thomas J. Duck  <tom.duck@dal.ca>
 
+	* Packaged pygts into a true python package, rather than
+	just a module.
+	
+	* Renamed Vertex.get() to Vertex.coords(),
+	get_mayavi_coords_and_triangles() to get_coords_and_face_indices()
+
+	* Changed interface of get_coords_and_face_indices() for use with
+	things other than mayavi.
+	
+
+2009-05-25  Thomas J. Duck  <tom.duck@dal.ca>
+
 	* Version 0.2.0
 	
 	* Added functions cube(), merge(), vertices(), segments(),
