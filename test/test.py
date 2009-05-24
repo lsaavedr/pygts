@@ -41,6 +41,17 @@ import gts
 TEST_IS_OK = False
 
 
+# Sometimes python is missing the all() function
+try:
+    all([True])
+except:
+    def all(xs):
+        for x in xs:
+            if not x:
+                return False
+        return True
+
+
 class TestPointMethods(unittest.TestCase):
 
     Point = gts.Point
