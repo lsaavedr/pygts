@@ -414,7 +414,7 @@ is_closed(PygtsSurface *self, PyObject *args)
 static PyObject*
 boundary(PyObject *self, PyObject *args)
 {
-  PyObject *tuple, *obj;
+  PyObject *tuple;
   guint i,N;
   GSList *edges=NULL,*e;
   PygtsEdge *edge;
@@ -2193,7 +2193,6 @@ cleanup(PygtsSurface *self, PyObject *args)
 static PyObject*
 coarsen(PygtsSurface *self, PyObject *args)
 {
-  GtsSurface *s;
   guint n;
   gdouble amin=0.;
   GtsVolumeOptimizedParams params = {0.5,0.5,1.e-10};
