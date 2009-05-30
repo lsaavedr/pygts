@@ -103,17 +103,27 @@ CONTENTS
 
     http://sourceforge.net/mail/?group_id=262159
 
-  To build the softare, type the following on the command line:
+  To upgrade from version 0.2.0 or earlier, first remove any installed
+  PyGTS modules (gts.py, _gts.so) from python's site-packages directory.
+
+  Unpack the distribution by entering
+
+    tar -zxvf pygts.XX.XX.XX.tar.gz
+
+  on the command-line.  Replace the XX's with the appropriate version
+  numbers.
+
+  To build PyGTS, cd into the distribution's directory and execute the 
+  following:
 
     python setup.py build
 
-  Install the software (as root) by typing:
+  Install the software (as root) by entering:
 
     python setup.py install
 
-  Run the test.py script to test your installation:
+  To test your installation, cd into the test directory and execute:
 
-    cd test
     python test.py
 
   You may also want to run the example programs as a further test:

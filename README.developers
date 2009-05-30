@@ -30,25 +30,25 @@ CONTENTS
   for a good tutorial on Defining New Types.
 
        The objective is to allow python to access GTS types in a 
-  transparent fashion.  The programming is done in C, the language that 
-  the standard python interpreter is programmed in.  We encapsulate the 
-  GtsObject, GtsPoint, and GtsVertex types etc in corresponding 
-  PygtsObject, PygtsPoint and PygtsVertex classes, etc.  Note that type 
-  and class mean the same thing in python.
+  transparent fashion.  The programming is done in C, the language of 
+  the standard python interpreter.  The GtsObject, GtsPoint, and GtsVertex 
+  types etc are encapsujlated in corresponding PygtsObject, PygtsPoint and 
+  PygtsVertex classes, etc.  Note that type and class mean the same thing 
+  in python.
 
        Python and GTS have different approaches to the management of 
   object life-cycles.  Python uses reference counting: Once an object's 
   reference count is reduced to zero, it is freed.  In GTS, on the other 
   hand, each object such as GtsVertex, GtsEdge, and GtsFace, maintains a 
   list of objects it is attached to.  The object is freed when the last 
-  object its attachment list is freed.  This can be seen as an alternative 
+  object in its attachment list is freed.  This can be seen as an alternative 
   implementation of reference counting.  We need to merge the two approaches.
 
        Aside: GTS has intriniscally unattached objects, like 
        GtsPoint, GtsSegment, GtsTriangle, and GtsSurface.  These 
        are rather more straight-forward to handle.  It is also 
-       possible to free an object that is attached to others, in 
-       which case those others are all freed as well.  We will 
+       possible under GTS to free an object that is attached to others, 
+       in which case those others are all freed as well.  We will 
        deliberately avoid doing this in order to maintain a simple 
        approach to the reference-counting problem.
 
@@ -102,11 +102,11 @@ CONTENTS
   composed from more general GTS functions.
 
       The main module file is pygts.c, and it handles binding the new
-  types into python.  It also creates the "object table" described above.
-  The C extensions are compiled into _gts.so, and its types are imported 
-  into the main module file gts.py.  This allows the incorporation of
-  top-level documentation and the inclusion of functions written in
-  pure python.
+  types into python.  It also creates the "object table" described above,
+  and contains the functions that PyGTS provides.  The C extensions 
+  are compiled into _gts.so, and its types are imported into the main 
+  module file gts.py.  This allows the incorporation of top-level 
+  documentation and the inclusion of functions written in pure python.
 
 
 2. GTS BINDING STATUS
