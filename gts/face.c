@@ -306,8 +306,6 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   PyObject *o;
   PygtsObject *obj;
   guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"o1", "o2", "o3", NULL};
-
   PyObject *o1_,*o2_,*o3_;
   GtsVertex *v1=NULL, *v2=NULL, *v3=NULL;
   GtsEdge *e1=NULL,*e2=NULL,*e3=NULL,*e;
@@ -315,6 +313,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   gboolean flag=FALSE;  /* Flag when the args are gts.Point objects */
   GtsFace *f;
   GtsTriangle *t;
+  guint N;
 
   /* Parse the args */
   if(kwds) {
@@ -325,12 +324,6 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if(o!=NULL) {
       PyDict_DelItemString(kwds, "alloc_gtsobj");
     }
-  }  
-  if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OOO", kwlist,
-				     &o1_,&o2_,&o3_) ) {
-      return NULL;
-    }
   }
   if(kwds) {
     Py_INCREF(Py_False);
@@ -339,6 +332,15 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
   /* Allocate the gtsobj (if needed) */
   if( alloc_gtsobj ) {
+
+    /* Parse the args */
+    if( (N = PyTuple_Size(args)) < 3 ) {
+      PyErr_SetString(PyExc_TypeError,"expected three Edges or three Vertices");
+      return NULL;
+    }
+    o1_ = PyTuple_GET_ITEM(args,0);
+    o2_ = PyTuple_GET_ITEM(args,1);
+    o3_ = PyTuple_GET_ITEM(args,2);
 
     /* Convert to PygtsObjects */
     if( pygts_edge_check(o1_) ) {
