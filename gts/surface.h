@@ -30,7 +30,9 @@
 
 typedef struct _PygtsSurface PygtsSurface;
 
-#define PYGTS_SURFACE(obj) ((PygtsSurface*)obj)
+#define PYGTS_SURFACE(o) ((PygtsSurface*)o)
+
+#define PYGTS_SURFACE_AS_GTS_SURFACE(o) (GTS_SURFACE(PYGTS_OBJECT(o)->gtsobj))
 
 struct _PygtsSurface {
   PygtsObject o;
@@ -41,5 +43,6 @@ extern PyTypeObject PygtsSurfaceType;
 
 gboolean pygts_surface_check(PyObject* o);
 gboolean pygts_surface_is_ok(PygtsSurface *s);
+PygtsSurface* pygts_surface_new(GtsSurface *s);
 
 #endif /* __PYGTS_SURFACE_H__ */

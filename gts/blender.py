@@ -36,7 +36,7 @@ class Surface(gts.Surface):
     def __init__(self,name):
         self.name = name
         self.mesh = None
-        gts.Surface.__init__(self)
+#        gts.Surface.__init__(self)
 
 
     def pull(self):

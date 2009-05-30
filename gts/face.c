@@ -28,11 +28,22 @@
 #include "pygts.h"
 
 
+#if PYGTS_DEBUG
+  #define SELF_CHECK if(!pygts_face_check((PyObject*)self)) {         \
+                       PyErr_SetString(PyExc_RuntimeError,            \
+                       "problem with self object (internal error)");  \
+		       return NULL;                                   \
+                     }
+#else
+  #define SELF_CHECK
+#endif
+
+
 /*-------------------------------------------------------------------------*/
 /* Methods exported to python */
 
 static PyObject*
-is_ok(PygtsFace *self, PyObject *args, PyObject *kwds)
+is_ok(PygtsFace *self, PyObject *args)
 {
   if(pygts_face_is_ok(self)) {
     Py_INCREF(Py_True);
@@ -46,12 +57,12 @@ is_ok(PygtsFace *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-is_unattached(PygtsFace *self, PyObject *args, PyObject *kwds)
+is_unattached(PygtsFace *self, PyObject *args)
 {
   guint n;
 
   /* Check for attachments other than to the gtsobj_parent */
-  n = g_slist_length(GTS_FACE(PYGTS_OBJECT(self)->gtsobj)->surfaces);
+  n = g_slist_length(PYGTS_FACE_AS_GTS_FACE(self)->surfaces);
   if( n > 1 ) {
     Py_INCREF(Py_False);
     return Py_False;
@@ -61,7 +72,7 @@ is_unattached(PygtsFace *self, PyObject *args, PyObject *kwds)
     return Py_True;
   }
   else {
-    PyErr_SetString(PyExc_TypeError,"Face lost parent (internal error)");
+    PyErr_SetString(PyExc_RuntimeError, "Face lost parent (internal error)");
     return NULL;
   }
 }
@@ -73,13 +84,7 @@ neighbor_number(PygtsFace *self, PyObject *args)
   PyObject *s_=NULL;
   PygtsSurface *s=NULL;
 
-#if PYGTS_DEBUG
-  if(!pygts_face_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &s_) )
@@ -90,14 +95,13 @@ neighbor_number(PygtsFace *self, PyObject *args)
     s = PYGTS_SURFACE(s_);
   }
   else {
-    PyErr_SetString(PyExc_TypeError,
-		    "expected a Surface");
+    PyErr_SetString(PyExc_TypeError, "expected a Surface");
       return NULL;
   }
 
   return Py_BuildValue("i",
-      gts_face_neighbor_number(GTS_FACE(PYGTS_OBJECT(self)->gtsobj),
-			       GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj)));
+      gts_face_neighbor_number(PYGTS_FACE_AS_GTS_FACE(self),
+			       PYGTS_SURFACE_AS_GTS_SURFACE(s)));
 }
 
 
@@ -110,15 +114,8 @@ neighbors(PygtsFace *self, PyObject *args)
   PyObject *tuple;
   GSList *faces,*f;
   PygtsFace *face;
-  GtsSurface *parent;
 
-#if PYGTS_DEBUG
-  if(!pygts_face_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &s_) )
@@ -129,55 +126,29 @@ neighbors(PygtsFace *self, PyObject *args)
     s = PYGTS_SURFACE(s_);
   }
   else {
-    PyErr_SetString(PyExc_TypeError,
-		    "expected a Surface");
+    PyErr_SetString(PyExc_TypeError, "expected a Surface");
       return NULL;
   }
 
-  N = gts_face_neighbor_number(GTS_FACE(PYGTS_OBJECT(self)->gtsobj),
-			       GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj));
+  N = gts_face_neighbor_number(PYGTS_FACE_AS_GTS_FACE(self),
+			       PYGTS_SURFACE_AS_GTS_SURFACE(s));
 
   if( (tuple=PyTuple_New(N)) == NULL) {
-    PyErr_SetString(PyExc_TypeError,"Could not create tuple");
+    PyErr_SetString(PyExc_MemoryError, "Could not create tuple");
     return NULL;
   }
 
   /* Get the neighbors */
-  faces = gts_face_neighbors(GTS_FACE(PYGTS_OBJECT(self)->gtsobj),
-			     GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj));
+  faces = gts_face_neighbors(PYGTS_FACE_AS_GTS_FACE(self),
+			     PYGTS_SURFACE_AS_GTS_SURFACE(s));
   f = faces;
 			     
   for(i=0;i<N;i++) {
-    if( (face=PYGTS_FACE(g_hash_table_lookup(obj_table,PYGTS_OBJECT(f->data))))
-	== NULL ) {
-
-      /* Chain up object allocation */
-      args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
-      face = PYGTS_FACE(PygtsFaceType.tp_new(&PygtsFaceType, args, NULL));
-      Py_DECREF(args);
-      if( face == NULL ) {
-	Py_DECREF(tuple);
-	PyErr_SetString(PyExc_RuntimeError, "Could not create Face");
-	return NULL;
-      }
-
-      /* Initialization */
-      if( (parent = pygts_face_parent(GTS_FACE(f->data))) == NULL ) {
-	Py_DECREF(tuple);
-	Py_DECREF(face);
-	return NULL;
-      }
-      PYGTS_OBJECT(face)->gtsobj = GTS_OBJECT(f->data);
-      PYGTS_OBJECT(face)->gtsobj_parent = GTS_OBJECT(parent);
+    if( (face = pygts_face_new(GTS_FACE(f->data))) == NULL ) {
+      Py_DECREF(tuple);
+      return NULL;
     }
-    else {
-      Py_INCREF(face);
-    }
-
-    /* Add Face to the tuple */
     PyTuple_SET_ITEM(tuple, i, (PyObject*)face);
-    pygts_object_register(PYGTS_OBJECT(face));
-
     f = g_slist_next(f);
   }  
 
@@ -193,13 +164,7 @@ is_compatible(PygtsFace *self, PyObject *args)
   PygtsTriangle *t=NULL;
   PygtsSurface *s=NULL;
 
-#if PYGTS_DEBUG
-  if(!pygts_face_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &o1_) )
@@ -214,20 +179,20 @@ is_compatible(PygtsFace *self, PyObject *args)
       s = PYGTS_SURFACE(o1_);
     }
     else {
-      PyErr_SetString(PyExc_TypeError,"expected a Triangle or Surface");
+      PyErr_SetString(PyExc_TypeError, "expected a Triangle or Surface");
       return NULL;
     }
   }
 
   if(t!=NULL) {
-    if( (e = gts_triangles_common_edge(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
-				       GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj))) 
+    if( (e = gts_triangles_common_edge(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
+				       PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t))) 
 	== NULL ) {
-      PyErr_SetString(PyExc_TypeError,"Faces do not share common edge");
+      PyErr_SetString(PyExc_RuntimeError, "Faces do not share common edge");
       return NULL;
     }
-    if(gts_triangles_are_compatible(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
-				    GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj),
+    if(gts_triangles_are_compatible(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
+				    PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t),
 				    e)==TRUE) {
 
       Py_INCREF(Py_True);
@@ -235,8 +200,8 @@ is_compatible(PygtsFace *self, PyObject *args)
     }
   }
   else {
-    if(gts_face_is_compatible(GTS_FACE(PYGTS_OBJECT(self)->gtsobj),
-			      GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))==TRUE) {
+    if(gts_face_is_compatible(PYGTS_FACE_AS_GTS_FACE(self),
+			      PYGTS_SURFACE_AS_GTS_SURFACE(s))==TRUE) {
       Py_INCREF(Py_True);
       return Py_True;
     }
@@ -252,13 +217,7 @@ is_on(PygtsFace *self, PyObject *args)
   PyObject *s_=NULL;
   PygtsSurface *s=NULL;
 
-#if PYGTS_DEBUG
-  if(!pygts_face_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &s_) )
@@ -269,13 +228,12 @@ is_on(PygtsFace *self, PyObject *args)
     s = PYGTS_SURFACE(s_);
   }
   else {
-    PyErr_SetString(PyExc_TypeError,
-		    "expected a Surface");
+    PyErr_SetString(PyExc_TypeError, "expected a Surface");
       return NULL;
   }
 
-  if( gts_face_has_parent_surface(GTS_FACE(PYGTS_OBJECT(self)->gtsobj),
-				  GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj)) ) {
+  if( gts_face_has_parent_surface(PYGTS_FACE_AS_GTS_FACE(self),
+				  PYGTS_SURFACE_AS_GTS_SURFACE(s)) ) {
     Py_INCREF(Py_True);
     return Py_True;
   }
@@ -340,28 +298,43 @@ static PyMethodDef methods[] = {
 /* Python type methods */
 
 
+static GtsObject * parent(GtsFace *face);
+
 static PyObject *
 new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
+  PyObject *o;
   PygtsObject *obj;
-  GtsTriangle *tmp;
-  GtsObject *face=NULL;
-  GtsSurface *parent;
+  guint alloc_gtsobj = TRUE;
+  static char *kwlist[] = {"o1", "o2", "o3", NULL};
 
   PyObject *o1_,*o2_,*o3_;
-  PygtsVertex *v1=NULL, *v2=NULL, *v3=NULL;
-  PygtsEdge *e1=NULL,*e2=NULL,*e3=NULL;
+  GtsVertex *v1=NULL, *v2=NULL, *v3=NULL;
+  GtsEdge *e1=NULL,*e2=NULL,*e3=NULL,*e;
   GtsSegment *s1,*s2,*s3;
   gboolean flag=FALSE;  /* Flag when the args are gts.Point objects */
-  guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"o1", "o2", "o3", "alloc_gtsobj", NULL};
+  GtsFace *f;
+  GtsTriangle *t;
 
-  /* Parse the args */  
+  /* Parse the args */
+  if(kwds) {
+    o = PyDict_GetItemString(kwds,"alloc_gtsobj");
+    if(o==Py_False) {
+      alloc_gtsobj = FALSE;
+    }
+    if(o!=NULL) {
+      PyDict_DelItemString(kwds, "alloc_gtsobj");
+    }
+  }  
   if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OOO|i", kwlist,&o1_,&o2_,&o3_,
-				     &alloc_gtsobj) ) {
+    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OOO", kwlist,
+				     &o1_,&o2_,&o3_) ) {
       return NULL;
     }
+  }
+  if(kwds) {
+    Py_INCREF(Py_False);
+    PyDict_SetItemString(kwds,"alloc_gtsobj", Py_False);
   }
 
   /* Allocate the gtsobj (if needed) */
@@ -369,31 +342,31 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* Convert to PygtsObjects */
     if( pygts_edge_check(o1_) ) {
-      e1 = PYGTS_EDGE(o1_);
+      e1 = PYGTS_EDGE_AS_GTS_EDGE(o1_);
     }
     else {
       if( pygts_vertex_check(o1_) ) {
-	v1 = PYGTS_VERTEX(o1_);
+	v1 = PYGTS_VERTEX_AS_GTS_VERTEX(o1_);
 	flag = TRUE;
       }
     }
 
     if( pygts_edge_check(o2_) ) {
-      e2 = PYGTS_EDGE(o2_);
+      e2 = PYGTS_EDGE_AS_GTS_EDGE(o2_);
     }
     else {
       if( pygts_vertex_check(o2_) ) {
-	v2 = PYGTS_VERTEX(o2_);
+	v2 = PYGTS_VERTEX_AS_GTS_VERTEX(o2_);
 	flag = TRUE;
       }
     }
 
     if( pygts_edge_check(o3_) ) {
-      e3 = PYGTS_EDGE(o3_);
+      e3 = PYGTS_EDGE_AS_GTS_EDGE(o3_);
     }
     else {
       if(pygts_vertex_check(o3_)) {
-	v3 = PYGTS_VERTEX(o3_);
+	v3 = PYGTS_VERTEX_AS_GTS_VERTEX(o3_);
 	flag = TRUE;
       }
     }
@@ -402,44 +375,48 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if( !((e1!=NULL && e2!=NULL && e3!=NULL) ||
 	  (v1!=NULL && v2!=NULL && v3!=NULL)) ) {
       PyErr_SetString(PyExc_TypeError,
-		      "3 gts.Edge or gts.Vertex objects expected");
+		      "three Edge or three Vertex objects expected");
       return NULL;
     }
 
-    /* Get gts edges */
     if(flag) {
-      if( (s1 = GTS_SEGMENT(gts_edge_new(gts_edge_class(),
-					 GTS_VERTEX(PYGTS_OBJECT(v1)->gtsobj),
-					 GTS_VERTEX(PYGTS_OBJECT(v2)->gtsobj)
-					 )))==NULL ) {
-	PyErr_SetString(PyExc_TypeError,"GTS could not create edge");
+
+      /* Create gts edges */
+      if( (e1 = gts_edge_new(gts_edge_class(),v1,v2)) == NULL ) {
+	PyErr_SetString(PyExc_MemoryError, "could not create Edge");
 	return NULL;
       }
-      if( (s2 = GTS_SEGMENT(gts_edge_new(gts_edge_class(),
-					 GTS_VERTEX(PYGTS_OBJECT(v2)->gtsobj),
-					 GTS_VERTEX(PYGTS_OBJECT(v3)->gtsobj)
-					 )))==NULL ) {
-	PyErr_SetString(PyExc_TypeError,"GTS could not create edge");
-	gts_object_destroy(GTS_OBJECT(s1));
+      if( (e2 = gts_edge_new(gts_edge_class(),v2,v3)) == NULL ) {
+	PyErr_SetString(PyExc_MemoryError, "could not create Edge");
+	gts_object_destroy(GTS_OBJECT(e1));
 	return NULL;
       }
-      if( (s3 = GTS_SEGMENT(gts_edge_new(gts_edge_class(),
-					 GTS_VERTEX(PYGTS_OBJECT(v3)->gtsobj),
-					 GTS_VERTEX(PYGTS_OBJECT(v1)->gtsobj)
-					 )))==NULL ) {
-	PyErr_SetString(PyExc_TypeError,"GTS could not create edge");
-	gts_object_destroy(GTS_OBJECT(s1));
-	gts_object_destroy(GTS_OBJECT(s2));
+      if( (e3 = gts_edge_new(gts_edge_class(),v3,v1)) == NULL ) {
+	PyErr_SetString(PyExc_MemoryError, "could not create Edge");
+	gts_object_destroy(GTS_OBJECT(e1));
+	gts_object_destroy(GTS_OBJECT(e2));
 	return NULL;
       }
-    }
-    else {
-      s1 = GTS_SEGMENT(PYGTS_OBJECT(e1)->gtsobj);
-      s2 = GTS_SEGMENT(PYGTS_OBJECT(e2)->gtsobj);
-      s3 = GTS_SEGMENT(PYGTS_OBJECT(e3)->gtsobj);
+      
+      /* Check for duplicates */
+      if( (e = gts_edge_is_duplicate(e1)) != NULL ) {
+	gts_object_destroy(GTS_OBJECT(e1));
+	e1 = e;
+      }
+      if( (e = gts_edge_is_duplicate(e2)) != NULL ) {
+	gts_object_destroy(GTS_OBJECT(e2));
+	e2 = e;
+      }
+      if( (e = gts_edge_is_duplicate(e3)) != NULL ) {
+	gts_object_destroy(GTS_OBJECT(e3));
+	e3 = e;
+      }
     }
   
-    /* Check that edges connect with common vertices */
+    /* Check that edges connect */
+    s1 = GTS_SEGMENT(e1);
+    s2 = GTS_SEGMENT(e2);
+    s3 = GTS_SEGMENT(e3);
     if( !((s1->v1==s3->v2 && s1->v2==s2->v1 && s2->v2==s3->v1) ||
 	  (s1->v1==s3->v2 && s1->v2==s2->v2 && s2->v1==s3->v1) ||
 	  (s1->v1==s3->v1 && s1->v2==s2->v1 && s2->v2==s3->v2) ||
@@ -448,61 +425,64 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	  (s1->v2==s3->v2 && s1->v1==s2->v2 && s2->v1==s3->v1) ||
 	  (s1->v2==s3->v1 && s1->v1==s2->v1 && s2->v2==s3->v2) ||
 	  (s1->v2==s3->v1 && s1->v1==s2->v2 && s2->v1==s3->v2)) ) {
-      PyErr_SetString(PyExc_TypeError,
-		      "Edges in face must have common vertices");
-      if(flag) {
-	gts_object_destroy(GTS_OBJECT(s1));
-	gts_object_destroy(GTS_OBJECT(s2));
-	gts_object_destroy(GTS_OBJECT(s3));
+      PyErr_SetString(PyExc_RuntimeError, "Edges in face must connect");
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e1));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e2));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e3));
       }
       return NULL;
     }
 
     /* Create the GtsFace */
-    face = GTS_OBJECT(gts_face_new(gts_face_class(),
-				   GTS_EDGE(s1),
-				   GTS_EDGE(s2),
-				   GTS_EDGE(s3)));
-    if( face == NULL )  {
-      PyErr_SetString(PyExc_RuntimeError, "GTS could not create Face");
-      if(flag) {
-	gts_object_destroy(GTS_OBJECT(s1));
-	gts_object_destroy(GTS_OBJECT(s2));
-	gts_object_destroy(GTS_OBJECT(s3));
+    if( (f = gts_face_new(gts_face_class(),e1,e2,e3)) == NULL )  {
+      PyErr_SetString(PyExc_MemoryError, "could not create Face");
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e1));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e2));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e3));
       }
       return NULL;
     }
 
     /* Check for duplicate */
-    tmp = gts_triangle_is_duplicate(GTS_TRIANGLE(face));
-    if( tmp != NULL ) {
-      gts_object_destroy(face);
-      face = GTS_OBJECT(tmp);
+    t = gts_triangle_is_duplicate(GTS_TRIANGLE(f));
+    if( t != NULL ) {
+      gts_object_destroy(GTS_OBJECT(f));
+      if(!GTS_IS_FACE(t)) {
+	PyErr_SetString(PyExc_TypeError, "expected a Face (internal error)");
+      }
+      f = GTS_FACE(t);
     }
 
     /* If corresponding PyObject found in object table, we are done */
-    if( (obj=g_hash_table_lookup(obj_table,face)) != NULL ) {
+    if( (obj=g_hash_table_lookup(obj_table,GTS_OBJECT(f))) != NULL ) {
       Py_INCREF(obj);
       return (PyObject*)obj;
     }
   }
   
   /* Chain up */
-  args = Py_BuildValue("OOOi",&o1_,&o2_,&o3_,FALSE);
-  obj = PYGTS_OBJECT(PygtsTriangleType.tp_new(type,args,NULL));
-  Py_DECREF(args);
+  obj = PYGTS_OBJECT(PygtsTriangleType.tp_new(type,args,kwds));
 
   if( alloc_gtsobj ) {
 
-    obj->gtsobj = face;
+    obj->gtsobj = GTS_OBJECT(f);
 
     /* Create the parent GtsSurface */
-    if( (parent = pygts_face_parent(GTS_FACE(obj->gtsobj))) == NULL ) {
+    if( (obj->gtsobj_parent = parent(GTS_FACE(obj->gtsobj))) == NULL ) {
       gts_object_destroy(obj->gtsobj);
       obj->gtsobj = NULL;
       return NULL;
     }
-    obj->gtsobj_parent = GTS_OBJECT(parent);
 
     pygts_object_register(PYGTS_OBJECT(obj));
   }
@@ -520,14 +500,6 @@ init(PygtsFace *self, PyObject *args, PyObject *kwds)
   if( (ret=PygtsTriangleType.tp_init((PyObject*)self,args,kwds)) != 0 ){
     return ret;
   }
-
-#if PYGTS_DEBUG
-  if(!pygts_face_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return -1;
-  }
-#endif
 
   return 0;
 }
@@ -618,20 +590,55 @@ pygts_face_is_ok(PygtsFace *f)
 }
 
 
-GtsSurface*
-pygts_face_parent(GtsFace *face) {
-  GtsSurface *parent;
+static GtsObject *
+parent(GtsFace *face) {
+  GtsSurface *p;
 
-  parent = gts_surface_new(gts_surface_class(),
-			   gts_face_class(),
-			   gts_edge_class(),
-			   gts_vertex_class());
+  p = gts_surface_new(gts_surface_class(), gts_face_class(),
+		      gts_edge_class(), gts_vertex_class());
 
-  if( parent == NULL )  {
-    PyErr_SetString(PyExc_RuntimeError, "GTS could not create Surface");
+  if( p == NULL )  {
+    PyErr_SetString(PyExc_MemoryError, "could not create parent");
     return NULL;
   }
-  gts_surface_add_face(parent,face);
+  gts_surface_add_face(p,face);
 
-  return parent;
+  return GTS_OBJECT(p);
+}
+
+
+PygtsFace *
+pygts_face_new(GtsFace *f)
+{
+  PyObject *args, *kwds;
+  PygtsObject *face;
+
+  /* Check for Face in the object table */
+  if( (face=PYGTS_OBJECT(g_hash_table_lookup(obj_table,GTS_OBJECT(f))))
+      != NULL ) {
+    Py_INCREF(face);
+    return PYGTS_FACE(face);
+  }
+
+  /* Build a new Face */
+  args = Py_BuildValue("OOO",Py_None,Py_None,Py_None);
+  kwds = Py_BuildValue("{s:O}","alloc_gtsobj",Py_False);
+  face = PYGTS_OBJECT(PygtsFaceType.tp_new(&PygtsFaceType, args, kwds));
+  Py_DECREF(args);
+  Py_DECREF(kwds);
+  if( face == NULL ) {
+    PyErr_SetString(PyExc_MemoryError, "could not create Face");
+    return NULL;
+  }
+  face->gtsobj = GTS_OBJECT(f);
+
+  /* Attach the parent */
+  if( (face->gtsobj_parent = parent(f)) == NULL ) {
+    Py_DECREF(face);
+    return NULL;
+  }
+  
+  /* Register and return */
+  pygts_object_register(face);
+  return PYGTS_FACE(face);
 }

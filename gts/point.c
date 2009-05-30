@@ -28,11 +28,22 @@
 #include "pygts.h"
 
 
+#if PYGTS_DEBUG
+  #define SELF_CHECK if(!pygts_point_check((PyObject*)self)) {      \
+                       PyErr_SetString(PyExc_RuntimeError,            \
+                       "problem with self object (internal error)");  \
+		       return NULL;                                   \
+                     }
+#else
+  #define SELF_CHECK
+#endif
+
+
 /*-------------------------------------------------------------------------*/
 /* Methods exported to python */
 
 static PyObject*
-is_ok(PygtsPoint *self, PyObject *args, PyObject *kwds)
+is_ok(PygtsPoint *self, PyObject *args)
 {
   if(pygts_point_is_ok(self)) {
     Py_INCREF(Py_True);
@@ -50,20 +61,14 @@ set(PygtsPoint *self, PyObject *args)
 {
   gdouble x=0,y=0,z=0;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "|ddd",  &x,&y,&z)) {
     return NULL;
   }
 
-  gts_point_set(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),x,y,z);
+  gts_point_set(PYGTS_POINT_AS_GTS_POINT(self),x,y,z);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -73,17 +78,11 @@ set(PygtsPoint *self, PyObject *args)
 static PyObject*
 coords(PygtsPoint *self, PyObject *args)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  return Py_BuildValue("ddd",GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->x,
-		       GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->y,
-		       GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->z);
+  return Py_BuildValue("ddd",PYGTS_POINT_AS_GTS_POINT(self)->x,
+		       PYGTS_POINT_AS_GTS_POINT(self)->y,
+		       PYGTS_POINT_AS_GTS_POINT(self)->z);
 }
 
 
@@ -95,13 +94,7 @@ is_in_rectangle(PygtsPoint* self, PyObject *args)
   gboolean flag = FALSE;
   gdouble x,y;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "OO", &o1_, &o2_) ) {
@@ -114,18 +107,18 @@ is_in_rectangle(PygtsPoint* self, PyObject *args)
     p2 = PYGTS_POINT(o2_);
 
     /* Test if point *may* be on rectangle perimeter */
-    x = GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->x;
-    y = GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->y;
-    if( GTS_POINT(PYGTS_OBJECT(p1)->gtsobj)->x == x ||
-	GTS_POINT(PYGTS_OBJECT(p1)->gtsobj)->y == y ||
-	GTS_POINT(PYGTS_OBJECT(p2)->gtsobj)->x == x ||
-	GTS_POINT(PYGTS_OBJECT(p2)->gtsobj)->y == y ) {
+    x = PYGTS_POINT_AS_GTS_POINT(self)->x;
+    y = PYGTS_POINT_AS_GTS_POINT(self)->y;
+    if( PYGTS_POINT_AS_GTS_POINT(p1)->x == x ||
+	PYGTS_POINT_AS_GTS_POINT(p1)->y == y ||
+	PYGTS_POINT_AS_GTS_POINT(p2)->x == x ||
+	PYGTS_POINT_AS_GTS_POINT(p2)->y == y ) {
       flag = TRUE;
     }
 
-    if( gts_point_is_in_rectangle(GTS_POINT(PYGTS_OBJECT(self)->gtsobj), 
-				  GTS_POINT(PYGTS_OBJECT(p1)->gtsobj), 
-				  GTS_POINT(PYGTS_OBJECT(p2)->gtsobj)) ) {
+    if( gts_point_is_in_rectangle(PYGTS_POINT_AS_GTS_POINT(self), 
+				  PYGTS_POINT_AS_GTS_POINT(p1), 
+				  PYGTS_POINT_AS_GTS_POINT(p2)) ) {
       if(flag) {
 	return Py_BuildValue("i",0);
       }
@@ -135,9 +128,9 @@ is_in_rectangle(PygtsPoint* self, PyObject *args)
     }
     else {
       if( flag && 
-	  gts_point_is_in_rectangle(GTS_POINT(PYGTS_OBJECT(self)->gtsobj), 
-				    GTS_POINT(PYGTS_OBJECT(p2)->gtsobj), 
-				    GTS_POINT(PYGTS_OBJECT(p1)->gtsobj))) {
+	  gts_point_is_in_rectangle(PYGTS_POINT_AS_GTS_POINT(self), 
+				    PYGTS_POINT_AS_GTS_POINT(p2), 
+				    PYGTS_POINT_AS_GTS_POINT(p1))) {
 	return Py_BuildValue("i",0);
       }
       else {
@@ -146,7 +139,7 @@ is_in_rectangle(PygtsPoint* self, PyObject *args)
     }
   }
 
-  PyErr_SetString(PyExc_TypeError,"Expected two points");
+  PyErr_SetString(PyExc_TypeError,"expected two Points");
   return NULL;
 }
 
@@ -159,13 +152,7 @@ distance(PygtsPoint* self, PyObject *args)
   PygtsSegment *s=NULL;
   PygtsTriangle *t=NULL;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &o_) ) {
@@ -194,20 +181,20 @@ distance(PygtsPoint* self, PyObject *args)
 
   if(p!=NULL) {
     return Py_BuildValue("d",
-        gts_point_distance(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-			   GTS_POINT(PYGTS_OBJECT(p)->gtsobj)));
+        gts_point_distance(PYGTS_POINT_AS_GTS_POINT(self),
+			   PYGTS_POINT_AS_GTS_POINT(p)));
   }
   else {
     if(s!=NULL) {
       return Py_BuildValue("d",
-          gts_point_segment_distance(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-				     GTS_SEGMENT(PYGTS_OBJECT(s)->gtsobj) )
+          gts_point_segment_distance(PYGTS_POINT_AS_GTS_POINT(self),
+				     PYGTS_SEGMENT_AS_GTS_SEGMENT(s) )
 			   );
     }
     else {
       return Py_BuildValue("d",
-          gts_point_triangle_distance(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-				      GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj) )
+          gts_point_triangle_distance(PYGTS_POINT_AS_GTS_POINT(self),
+				      PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t) )
 			   );
     }
   }
@@ -222,13 +209,7 @@ distance2(PygtsPoint* self, PyObject *args)
   PygtsSegment *s=NULL;
   PygtsTriangle *t=NULL;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &o_) ) {
@@ -257,20 +238,20 @@ distance2(PygtsPoint* self, PyObject *args)
 
   if(p!=NULL) {
     return Py_BuildValue("d",
-        gts_point_distance2(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-			    GTS_POINT(PYGTS_OBJECT(p)->gtsobj)));
+        gts_point_distance2(PYGTS_POINT_AS_GTS_POINT(self),
+			    PYGTS_POINT_AS_GTS_POINT(p)));
   }
   else {
     if(s!=NULL) {
       return Py_BuildValue("d",
-        gts_point_segment_distance2(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-				    GTS_SEGMENT(PYGTS_OBJECT(s)->gtsobj) )
+        gts_point_segment_distance2(PYGTS_POINT_AS_GTS_POINT(self),
+				    PYGTS_SEGMENT_AS_GTS_SEGMENT(s) )
 			   );
     }
     else {
       return Py_BuildValue("d",
-          gts_point_triangle_distance2(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-				       GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj) )
+          gts_point_triangle_distance2(PYGTS_POINT_AS_GTS_POINT(self),
+				       PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t) )
 			   );
     }
   }
@@ -283,13 +264,7 @@ orientation_3d(PygtsPoint* self, PyObject *args)
   PyObject *p1_,*p2_,*p3_;
   PygtsPoint *p1,*p2,*p3;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "OOO", &p1_, &p2_, &p3_) ) {
@@ -298,15 +273,15 @@ orientation_3d(PygtsPoint* self, PyObject *args)
 
   /* Convert to PygtsObjects */
   if(!pygts_point_check(p1_)) {
-    PyErr_SetString(PyExc_TypeError,"p1 is not a Point");
+    PyErr_SetString(PyExc_TypeError,"expected three Points");
     return NULL;
   }
   if(!pygts_point_check(p2_)) {
-    PyErr_SetString(PyExc_TypeError,"p2 is not a Point");
+    PyErr_SetString(PyExc_TypeError,"expected three Points");
     return NULL;
   }
   if(!pygts_point_check(p3_)) {
-    PyErr_SetString(PyExc_TypeError,"p3 is not a Point");
+    PyErr_SetString(PyExc_TypeError,"expected three Points");
     return NULL;
   }
   p1 = PYGTS_POINT(p1_);
@@ -314,10 +289,10 @@ orientation_3d(PygtsPoint* self, PyObject *args)
   p3 = PYGTS_POINT(p3_);
 
   return Py_BuildValue("d",
-             gts_point_orientation_3d(GTS_POINT(PYGTS_OBJECT(p1)->gtsobj),
-				      GTS_POINT(PYGTS_OBJECT(p2)->gtsobj),
-				      GTS_POINT(PYGTS_OBJECT(p3)->gtsobj),
-				      GTS_POINT(PYGTS_OBJECT(self)->gtsobj)));
+             gts_point_orientation_3d(PYGTS_POINT_AS_GTS_POINT(p1),
+				      PYGTS_POINT_AS_GTS_POINT(p2),
+				      PYGTS_POINT_AS_GTS_POINT(p3),
+				      PYGTS_POINT_AS_GTS_POINT(self)));
 }
 
 
@@ -327,13 +302,7 @@ orientation_3d_sos(PygtsPoint* self, PyObject *args)
   PyObject *p1_,*p2_,*p3_;
   PygtsPoint *p1,*p2,*p3;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "OOO", &p1_, &p2_, &p3_) ) {
@@ -342,15 +311,15 @@ orientation_3d_sos(PygtsPoint* self, PyObject *args)
 
   /* Convert to PygtsObjects */
   if(!pygts_point_check(p1_)) {
-    PyErr_SetString(PyExc_TypeError,"p1 is not a Point");
+    PyErr_SetString(PyExc_TypeError,"expected three Points");
     return NULL;
   }
   if(!pygts_point_check(p2_)) {
-    PyErr_SetString(PyExc_TypeError,"p2 is not a Point");
+    PyErr_SetString(PyExc_TypeError,"expected three Points");
     return NULL;
   }
   if(!pygts_point_check(p3_)) {
-    PyErr_SetString(PyExc_TypeError,"p3 is not a Point");
+    PyErr_SetString(PyExc_TypeError,"expected three Points");
     return NULL;
   }
   p1 = PYGTS_POINT(p1_);
@@ -358,10 +327,10 @@ orientation_3d_sos(PygtsPoint* self, PyObject *args)
   p3 = PYGTS_POINT(p3_);
 
   return Py_BuildValue("i",gts_point_orientation_3d_sos(
-                             GTS_POINT(PYGTS_OBJECT(p1)->gtsobj),
-			     GTS_POINT(PYGTS_OBJECT(p2)->gtsobj),
-			     GTS_POINT(PYGTS_OBJECT(p3)->gtsobj),
-			     GTS_POINT(PYGTS_OBJECT(self)->gtsobj)));
+                             PYGTS_POINT_AS_GTS_POINT(p1),
+			     PYGTS_POINT_AS_GTS_POINT(p2),
+			     PYGTS_POINT_AS_GTS_POINT(p3),
+			     PYGTS_POINT_AS_GTS_POINT(self)));
 }
 
 
@@ -373,42 +342,36 @@ is_in_circle(PygtsPoint* self, PyObject *args)
   PygtsTriangle *t=NULL;
   gdouble result;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O|OO", &o1_, &o2_, &o3_) ) {
     return NULL;
   }
   if( (o2_==NULL && o3_!=NULL) || (o2_!=NULL && o3_==NULL) ) {
-    PyErr_SetString(PyExc_TypeError,"Expected 3 Points or 1 Triangle");
+    PyErr_SetString(PyExc_TypeError,"expected three Points or one Triangle");
     return NULL;
   }
 
   /* Convert to PygtsObjects */
   if(o2_==NULL && o3_==NULL) {
     if(!pygts_triangle_check(o1_)) {
-      PyErr_SetString(PyExc_TypeError,"t is not a Triangle");
+      PyErr_SetString(PyExc_TypeError,"expected three Points or one Triangle");
       return NULL;
     }
     t = PYGTS_TRIANGLE(o1_);
   } 
   else {
     if(!pygts_point_check(o1_)) {
-      PyErr_SetString(PyExc_TypeError,"p1 is not a Point");
+      PyErr_SetString(PyExc_TypeError,"expected three Points or one Triangle");
       return NULL;
     }
     if(!pygts_point_check(o2_)) {
-      PyErr_SetString(PyExc_TypeError,"p2 is not a Point");
+      PyErr_SetString(PyExc_TypeError,"expected three Points or one Triangle");
       return NULL;
     }
     if(!pygts_point_check(o3_)) {
-      PyErr_SetString(PyExc_TypeError,"p3 is not a Point");
+      PyErr_SetString(PyExc_TypeError,"expected three Points or one Triangle");
       return NULL;
     }
     p1 = PYGTS_POINT(o1_);
@@ -418,14 +381,14 @@ is_in_circle(PygtsPoint* self, PyObject *args)
 
 
   if(t!=NULL){
-    result=gts_point_in_triangle_circle(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-					GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj));
+    result=gts_point_in_triangle_circle(PYGTS_POINT_AS_GTS_POINT(self),
+					PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t));
   }
   else {
-    result = gts_point_in_circle(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-				 GTS_POINT(PYGTS_OBJECT(p1)->gtsobj), 
-				 GTS_POINT(PYGTS_OBJECT(p2)->gtsobj), 
-				 GTS_POINT(PYGTS_OBJECT(p3)->gtsobj));
+    result = gts_point_in_circle(PYGTS_POINT_AS_GTS_POINT(self),
+				 PYGTS_POINT_AS_GTS_POINT(p1), 
+				 PYGTS_POINT_AS_GTS_POINT(p2), 
+				 PYGTS_POINT_AS_GTS_POINT(p3));
   }
   if(result>0) return Py_BuildValue("i",1);
   if(result==0) return Py_BuildValue("i",0);
@@ -439,13 +402,7 @@ is_in(PygtsPoint* self, PyObject *args)
   PyObject *t_;
   PygtsTriangle *t;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &t_) ) {
@@ -454,14 +411,14 @@ is_in(PygtsPoint* self, PyObject *args)
 
   /* Convert to PygtsObjects */
   if(!pygts_triangle_check(t_)) {
-    PyErr_SetString(PyExc_TypeError,"t is not a Triangle");
+    PyErr_SetString(PyExc_TypeError,"expected a Triangle");
     return NULL;
   }
   t = PYGTS_TRIANGLE(t_);
 
   return Py_BuildValue("i",
-      gts_point_is_in_triangle(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-			       GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj)));
+      gts_point_is_in_triangle(PYGTS_POINT_AS_GTS_POINT(self),
+			       PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t)));
 }
 
 
@@ -473,13 +430,7 @@ is_inside(PygtsPoint* self, PyObject *args)
   GNode *tree;
   gboolean is_open=FALSE, ret;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &s_) ) {
@@ -488,13 +439,13 @@ is_inside(PygtsPoint* self, PyObject *args)
 
   /* Convert to PygtsObjects */
   if(!pygts_surface_check(s_)) {
-    PyErr_SetString(PyExc_TypeError,"s is not a Surface");
+    PyErr_SetString(PyExc_TypeError,"expected a Surface");
     return NULL;
   }
   s = PYGTS_SURFACE(s_);
 
   /* Error check */
-  if(!gts_surface_is_closed(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))) {
+  if(!gts_surface_is_closed(PYGTS_SURFACE_AS_GTS_SURFACE(s))) {
     PyErr_SetString(PyExc_RuntimeError,"Surface is not closed");
     return NULL;
   }
@@ -502,19 +453,18 @@ is_inside(PygtsPoint* self, PyObject *args)
   /* Determing is_open parameter; note the meaning is different from the 
    * error check above.
    */
-  if( gts_surface_volume(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))<0. ) {
+  if( gts_surface_volume(PYGTS_SURFACE_AS_GTS_SURFACE(s))<0. ) {
     is_open = TRUE;
   }
 
   /* Construct the tree */
-  if((tree=gts_bb_tree_surface(GTS_SURFACE(PYGTS_OBJECT(s)->gtsobj))) == NULL) {
-    PyErr_SetString(PyExc_RuntimeError,"could not create GTree");
+  if((tree=gts_bb_tree_surface(PYGTS_SURFACE_AS_GTS_SURFACE(s))) == NULL) {
+    PyErr_SetString(PyExc_MemoryError,"could not create GTree");
     return NULL;
   }
   
   /* Make the call */
-  ret = gts_point_is_inside_surface(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),
-				    tree,
+  ret = gts_point_is_inside_surface(PYGTS_POINT_AS_GTS_POINT(self), tree,
 				    is_open);
 
   g_node_destroy(tree);
@@ -538,13 +488,7 @@ closest(PygtsPoint* self, PyObject *args)
   PygtsSegment *s=NULL;
   PygtsTriangle *t=NULL;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "OO", &o1_, &o2_) ) {
@@ -561,7 +505,7 @@ closest(PygtsPoint* self, PyObject *args)
     }
     else {
       PyErr_SetString(PyExc_TypeError,
-		      "expected a Segment or Triangle as first arg");
+		      "expected a Segment or Triangle, and a Point");
       return NULL;
     }
   }
@@ -569,19 +513,20 @@ closest(PygtsPoint* self, PyObject *args)
     p = PYGTS_POINT(o2_);
   }
   else {
-	PyErr_SetString(PyExc_TypeError,"expected a Point as second arg");
+	PyErr_SetString(PyExc_TypeError,
+			"expected a Segment or Triangle, and a Point");
 	return NULL;
   }
 
   if(s!=NULL) {
-    gts_point_segment_closest(GTS_POINT(PYGTS_OBJECT(p)->gtsobj),
-			      GTS_SEGMENT(PYGTS_OBJECT(s)->gtsobj),
-			      GTS_POINT(PYGTS_OBJECT(self)->gtsobj));
+    gts_point_segment_closest(PYGTS_POINT_AS_GTS_POINT(p),
+			      PYGTS_SEGMENT_AS_GTS_SEGMENT(s),
+			      PYGTS_POINT_AS_GTS_POINT(self));
   }
   else {
-    gts_point_triangle_closest(GTS_POINT(PYGTS_OBJECT(p)->gtsobj),
-			       GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj),
-			       GTS_POINT(PYGTS_OBJECT(self)->gtsobj));
+    gts_point_triangle_closest(PYGTS_POINT_AS_GTS_POINT(p),
+			       PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t),
+			       PYGTS_POINT_AS_GTS_POINT(self));
   }
 
   Py_INCREF(self);
@@ -598,7 +543,7 @@ pygts_point_rotate(GtsPoint* p, gdouble dx, gdouble dy, gdouble dz, gdouble a)
 
   v[0] = dx; v[1] = dy; v[2] = dz;
   if( (m = gts_matrix_rotate(NULL,v,a)) == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError,"GTS could not create matrix");
+    PyErr_SetString(PyExc_MemoryError,"could not create matrix");
     return -1;
   }
   gts_point_transform(p,m);
@@ -614,13 +559,7 @@ rotate(PygtsPoint* self, PyObject *args, PyObject *keywds)
   static char *kwlist[] = {"dx", "dy", "dz", "a", NULL};
   gdouble dx=0,dy=0,dz=0,a=0;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTupleAndKeywords(args, keywds,"|dddd", kwlist,
@@ -628,7 +567,7 @@ rotate(PygtsPoint* self, PyObject *args, PyObject *keywds)
     return NULL;
   }
 
-  if(pygts_point_rotate(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),dx,dy,dz,a)==-1)
+  if(pygts_point_rotate(PYGTS_POINT_AS_GTS_POINT(self),dx,dy,dz,a)==-1)
     return NULL;
 
   Py_INCREF(Py_None);
@@ -645,7 +584,7 @@ pygts_point_scale(GtsPoint* p, gdouble dx, gdouble dy, gdouble dz)
 
   v[0] = dx; v[1] = dy; v[2] = dz;
   if( (m = gts_matrix_scale(NULL,v)) == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError,"GTS could not create matrix");
+    PyErr_SetString(PyExc_MemoryError,"could not create matrix");
     return -1;
   }
   gts_point_transform(p,m);
@@ -661,13 +600,7 @@ scale(PygtsPoint* self, PyObject *args, PyObject *keywds)
   static char *kwlist[] = {"dx", "dy", "dz", NULL};
   gdouble dx=1,dy=1,dz=1;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTupleAndKeywords(args, keywds,"|ddd", kwlist,
@@ -675,7 +608,7 @@ scale(PygtsPoint* self, PyObject *args, PyObject *keywds)
     return NULL;
   }
 
-  if(pygts_point_scale(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),dx,dy,dz)==-1)
+  if(pygts_point_scale(PYGTS_POINT_AS_GTS_POINT(self),dx,dy,dz)==-1)
     return NULL;
 
   Py_INCREF(Py_None);
@@ -692,7 +625,7 @@ pygts_point_translate(GtsPoint* p, gdouble dx, gdouble dy, gdouble dz)
 
   v[0] = dx; v[1] = dy; v[2] = dz;
   if( (m = gts_matrix_translate(NULL,v)) == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError,"GTS could not create matrix");
+    PyErr_SetString(PyExc_MemoryError,"could not create matrix");
     return -1;
   }  
   gts_point_transform(p,m);
@@ -708,13 +641,7 @@ translate(PygtsPoint* self, PyObject *args, PyObject *keywds)
   static char *kwlist[] = {"dx", "dy", "dz", NULL};
   gdouble dx=0,dy=0,dz=0;
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTupleAndKeywords(args, keywds,"|ddd", kwlist,
@@ -722,7 +649,7 @@ translate(PygtsPoint* self, PyObject *args, PyObject *keywds)
     return NULL;
   }
 
-  if(pygts_point_translate(GTS_POINT(PYGTS_OBJECT(self)->gtsobj),dx,dy,dz)==-1)
+  if(pygts_point_translate(PYGTS_POINT_AS_GTS_POINT(self),dx,dy,dz)==-1)
     return NULL;
 
   Py_INCREF(Py_None);
@@ -887,34 +814,20 @@ static PyMethodDef methods[] = {
 static PyObject *
 getx(PygtsPoint *self, void *closure)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  return Py_BuildValue("d",GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->x);
+  return Py_BuildValue("d",PYGTS_POINT_AS_GTS_POINT(self)->x);
 }
 
 
 static int
 setx(PygtsPoint *self, PyObject *value, void *closure)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return -1;
-  }
-#endif
-
   if(PyFloat_Check(value)) {
-    GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->x = PyFloat_AsDouble(value);
+    PYGTS_POINT_AS_GTS_POINT(self)->x = PyFloat_AsDouble(value);
   }
   else if(PyInt_Check(value)) {
-    GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->x = (gdouble)PyInt_AsLong(value);
+    PYGTS_POINT_AS_GTS_POINT(self)->x = (gdouble)PyInt_AsLong(value);
   }
   else {
     PyErr_SetString(PyExc_TypeError,"expected a float");
@@ -927,34 +840,20 @@ setx(PygtsPoint *self, PyObject *value, void *closure)
 static PyObject *
 gety(PygtsPoint *self, void *closure)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  return Py_BuildValue("d",GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->y);
+  return Py_BuildValue("d",PYGTS_POINT_AS_GTS_POINT(self)->y);
 }
 
 
 static int
 sety(PygtsPoint *self, PyObject *value, void *closure)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return -1;
-  }
-#endif
-
   if(PyFloat_Check(value)) {
-    GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->y = PyFloat_AsDouble(value);
+    PYGTS_POINT_AS_GTS_POINT(self)->y = PyFloat_AsDouble(value);
   }
   else if(PyInt_Check(value)) {
-    GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->y = (gdouble)PyInt_AsLong(value);
+    PYGTS_POINT_AS_GTS_POINT(self)->y = (gdouble)PyInt_AsLong(value);
   }
   else {
     PyErr_SetString(PyExc_TypeError,"expected a float");
@@ -967,34 +866,20 @@ sety(PygtsPoint *self, PyObject *value, void *closure)
 static PyObject *
 getz(PygtsPoint *self, void *closure)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  return Py_BuildValue("d",GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->z);
+  return Py_BuildValue("d",PYGTS_POINT_AS_GTS_POINT(self)->z);
 }
 
 
 static int
 setz(PygtsPoint *self, PyObject *value, void *closure)
 {
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return -1;
-  }
-#endif
-
   if(PyFloat_Check(value)) {
-    GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->z = PyFloat_AsDouble(value);
+    PYGTS_POINT_AS_GTS_POINT(self)->z = PyFloat_AsDouble(value);
   }
   else if(PyInt_Check(value)) {
-    GTS_POINT(PYGTS_OBJECT(self)->gtsobj)->z = (gdouble)PyInt_AsLong(value);
+    PYGTS_POINT_AS_GTS_POINT(self)->z = (gdouble)PyInt_AsLong(value);
   }
   else {
     PyErr_SetString(PyExc_TypeError,"expected a float");
@@ -1019,29 +904,40 @@ static PyGetSetDef getset[] = {
 static PyObject *
 new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
+  PyObject *o;
   PygtsObject *obj;
   gdouble x=0,y=0,z=0;
   guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"x", "y", "z", "alloc_gtsobj", NULL};
+  static char *kwlist[] = {"x", "y", "z", NULL};
 
   /* Parse the args */
+  if(kwds) {
+    o = PyDict_GetItemString(kwds,"alloc_gtsobj");
+    if(o==Py_False) {
+      alloc_gtsobj = FALSE;
+    }
+    if(o!=NULL) {
+      PyDict_DelItemString(kwds, "alloc_gtsobj");
+    }
+  }
   if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "|dddi", kwlist, &x,&y,&z,
-				     &alloc_gtsobj)) {
+    if(! PyArg_ParseTupleAndKeywords(args, kwds, "|ddd", kwlist, &x,&y,&z)) {
       return NULL;
     }
   }
+  if(kwds) {
+    Py_INCREF(Py_False);
+    PyDict_SetItemString(kwds,"alloc_gtsobj", Py_False);
+  }
 
   /* Chain up */
-  args = Py_BuildValue("dddi",x,y,z,FALSE);
-  obj = PYGTS_OBJECT(PygtsObjectType.tp_new(type,args,NULL));
-  Py_DECREF(args);
+  obj = PYGTS_OBJECT(PygtsObjectType.tp_new(type,args,kwds));
 
   /* Allocate the gtsobj (if needed) */
   if( alloc_gtsobj ) {
     obj->gtsobj = GTS_OBJECT(gts_point_new(gts_point_class(),0,0,0));
     if( obj->gtsobj == NULL )  {
-      PyErr_SetString(PyExc_RuntimeError, "GTS could not create Point");
+      PyErr_SetString(PyExc_MemoryError, "could not create Point");
       return NULL;
     }
 
@@ -1076,14 +972,6 @@ init(PygtsPoint *self, PyObject *args, PyObject *kwds)
     return ret;
   }
 
-#if PYGTS_DEBUG
-  if(!pygts_point_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return -1;
-  }
-#endif
-
   return 0;
 }
 
@@ -1098,8 +986,8 @@ compare(PygtsPoint *p1_, PygtsPoint *p2_)
   pygts_point_check((PyObject*)p2_);
 #endif
 
-  p1 = GTS_POINT(PYGTS_OBJECT(p1_)->gtsobj);
-  p2 = GTS_POINT(PYGTS_OBJECT(p2_)->gtsobj);
+  p1 = PYGTS_POINT_AS_GTS_POINT(p1_);
+  p2 = PYGTS_POINT_AS_GTS_POINT(p2_);
 
   return pygts_point_compare(p1,p2);
 }

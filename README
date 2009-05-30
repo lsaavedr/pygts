@@ -65,6 +65,7 @@ CONTENTS
 
   PyGTS is known to work with the following python versions and platforms:
  
+    python 2.3 - Mac OS X (10.4)
     python 2.5 - Debian Linux (Lenny), Mac OS X (10.4)
 
   To build PyGTS, you will need to be sure that Python.h is installed.  

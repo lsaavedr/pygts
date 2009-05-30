@@ -29,17 +29,20 @@
 #define __PYGTS_FACE_H__
 
 #ifndef gts_face_is_unattached
-#define       gts_face_is_unattached(f) ((f)->surfaces == NULL ? TRUE : FALSE)
+#define gts_face_is_unattached(f) ((f)->surfaces == NULL ? TRUE : FALSE)
 #endif
 
 typedef struct _PygtsObject PygtsFace;
 
 #define PYGTS_FACE(obj) ((PygtsFace*)obj)
 
+#define PYGTS_FACE_AS_GTS_FACE(o) (GTS_FACE(PYGTS_OBJECT(o)->gtsobj))
+
 extern PyTypeObject PygtsFaceType;
 
 gboolean pygts_face_check(PyObject* o);
 gboolean pygts_face_is_ok(PygtsFace *f);
-GtsSurface* pygts_face_parent(GtsFace *face);
+
+PygtsFace* pygts_face_new(GtsFace *f);
 
 #endif /* __PYGTS_FACE_H__ */
