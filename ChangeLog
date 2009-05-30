@@ -1,7 +1,15 @@
-2009-05-25  Thomas J. Duck  <tom.duck@dal.ca>
+2009-05-30  Thomas J. Duck  <tom.duck@dal.ca>
 
-	* Packaged pygts into a true python package, rather than
-	just a module.
+	* Version 0.3.0
+
+	* Reorganized PyGTS as a true python package, not just a module
+
+	* Added the gts.blender submodule
+	
+	* Refactored code to consolidate object creation and eliminate 
+	duplicated code
+
+	* Reworked error types and messages
 	
 	* Renamed Vertex.get() to Vertex.coords(),
 	get_mayavi_coords_and_triangles() to get_coords_and_face_indices()
