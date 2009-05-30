@@ -40,6 +40,7 @@ gboolean pygts_vertex_check(PyObject* o);
 gboolean pygts_vertex_is_ok(PygtsVertex *v);
 
 PygtsVertex* pygts_vertex_new(GtsVertex *f);
+PygtsVertex* pygts_vertex_from_tuple(PyObject *tuple);
 
 
 /*-------------------------------------------------------------------------*/

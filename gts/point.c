@@ -906,9 +906,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   PyObject *o;
   PygtsObject *obj;
-  gdouble x=0,y=0,z=0;
   guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"x", "y", "z", NULL};
 
   /* Parse the args */
   if(kwds) {
@@ -918,11 +916,6 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     }
     if(o!=NULL) {
       PyDict_DelItemString(kwds, "alloc_gtsobj");
-    }
-  }
-  if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "|ddd", kwlist, &x,&y,&z)) {
-      return NULL;
     }
   }
   if(kwds) {

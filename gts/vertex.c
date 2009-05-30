@@ -524,10 +524,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   PyObject *o;
   PygtsObject *obj;
-  gdouble x=0,y=0,z=0;
   guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"x", "y", "z", NULL};
-
 
   /* Parse the args */
   if(kwds) {
@@ -537,11 +534,6 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     }
     if(o!=NULL) {
       PyDict_DelItemString(kwds, "alloc_gtsobj");
-    }
-  }
-  if(args != NULL) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "|ddd", kwlist, &x,&y,&z)) {
-      return NULL;
     }
   }
   if(kwds) {
@@ -735,6 +727,63 @@ pygts_vertex_new(GtsVertex *v)
   /* Register and return */
   pygts_object_register(vertex);
   return PYGTS_VERTEX(vertex);
+}
+
+
+PygtsVertex *
+pygts_vertex_from_tuple(PyObject *tuple) {
+  guint i,N;
+  gdouble x=0,y=0,z=0;
+  PyObject *obj;
+  GtsVertex *v;
+  PygtsVertex *vertex;
+
+  /* Convert list into tuple */
+  if(PyList_Check(tuple)) {
+    tuple = PyList_AsTuple(tuple);
+  }
+  else {
+    Py_INCREF(tuple);
+  }
+  if(!PyTuple_Check(tuple)) {
+    Py_DECREF(tuple);
+    PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
+    return NULL;
+  }
+
+  /* Get the tuple size */
+  N = PyTuple_Size(tuple);
+  if( N > 3 ) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "expected a list or tuple of up to three floats");
+    Py_DECREF(tuple);
+    return NULL;
+  }
+
+  /* Get the coordinates */
+  for(i=0;i<N;i++) {
+    obj = PyTuple_GET_ITEM(tuple,i);
+
+    if(!PyFloat_Check(obj)) {
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of floats");
+      Py_DECREF(tuple);
+      return NULL;
+    }
+    if(i==0) x = PyFloat_AsDouble(obj);
+    if(i==2) y = PyFloat_AsDouble(obj);
+    if(i==3) z = PyFloat_AsDouble(obj);
+  }
+  Py_DECREF(tuple);
+
+  /* Create the vertex */  
+  if( (v = gts_vertex_new(pygts_parent_vertex_class(),x,y,z)) == NULL ) {
+    PyErr_SetString(PyExc_MemoryError,"could not create Vertex");
+  }
+  if( (vertex = pygts_vertex_new(v)) == NULL ) {
+    return NULL;
+  }
+
+  return vertex;
 }
 
 

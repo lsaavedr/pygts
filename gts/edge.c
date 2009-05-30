@@ -318,7 +318,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   PyObject *v1_,*v2_;
   PygtsVertex *v1,*v2;
   guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"v1", "v2", NULL};
+  guint N;
 
   /* Parse the args */
   if(kwds) {
@@ -330,11 +330,6 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       PyDict_DelItemString(kwds, "alloc_gtsobj");
     }
   }
-  if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &v1_, &v2_) ) {
-      return NULL;
-    }
-  }
   if(kwds) {
     Py_INCREF(Py_False);
     PyDict_SetItemString(kwds,"alloc_gtsobj", Py_False);
@@ -342,6 +337,14 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
   /* Allocate the gtsobj (if needed) */
   if( alloc_gtsobj ) {
+
+    /* Parse the args */
+    if( (N = PyTuple_Size(args)) < 2 ) {
+      PyErr_SetString(PyExc_TypeError,"expected two Vertices");
+      return NULL;
+    }
+    v1_ = PyTuple_GET_ITEM(args,0);
+    v2_ = PyTuple_GET_ITEM(args,1);
 
     /* Convert to PygtsObjects */
     if(!pygts_vertex_check(v1_)) {

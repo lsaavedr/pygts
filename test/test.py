@@ -81,6 +81,24 @@ class TestPointMethods(unittest.TestCase):
         self.assert_(p.x==1 and p.y==2 and p.z==3)
 
 
+    def test_subclass(self):
+
+        Super = self.Point
+
+        class Point(Super):
+
+            def __init__(self,x,y,z,msg):
+                self.msg = msg
+                Super.__init__(self,x,y,z)
+
+            def foo(self):
+                return self.msg
+
+        p = Point(1,2,3,'bar')
+        self.assert_(p == self.Point(1,2,3))
+        self.assert_(p.foo()=='bar')
+
+
     def test_compare(self):
 
         p1,p2,p3 = self.Point(0), self.Point(1), self.Point(1)
@@ -801,6 +819,31 @@ class TestSegmentMethods(unittest.TestCase):
         self.assert_(v2.is_ok())
 
 
+    def test_subclass(self):
+
+        Super = self.Segment
+
+        class Segment(Super):
+
+            def __init__(self,v1,v2,msg):
+                self.msg = msg
+                Super.__init__(self,v1,v2)
+
+            def foo(self):
+                return self.msg
+
+        v1 = gts.Vertex(0)
+        v2 = gts.Vertex(1)
+        s = Segment(v1,v2,'bar')
+        self.assert_(v1 in [s.v1,s.v2])
+        self.assert_(v2 in [s.v1,s.v2])
+        self.assert_(s.foo()=='bar')
+
+        self.assert_(v1.is_ok())
+        self.assert_(v2.is_ok())
+        self.assert_(s.is_ok())
+
+
     def test_is_ok(self):
 
         if TEST_IS_OK:
@@ -1293,6 +1336,44 @@ class TestTriangleMethods(unittest.TestCase):
             pass
         else:
             raise Error,'Did not identify mixed-type arguments'
+
+
+    def test_subclass(self):
+
+        Super = self.Triangle
+
+        class Triangle(Super):
+
+            def __init__(self,o1,o2,o3,msg):
+                self.msg = msg
+                Super.__init__(self,o1,o2,o3)
+
+            def foo(self):
+                return self.msg
+
+        v1 = gts.Vertex(0,0)
+        v2 = gts.Vertex(0,1)
+        v3 = gts.Vertex(1,0)
+        t = Triangle(v1,v2,v3,'bar')
+        self.assert_(v1 in t.vertices())
+        self.assert_(v2 in t.vertices())
+        self.assert_(v3 in t.vertices())
+        self.assert_(t.foo()=='bar')
+
+        e1 = gts.Edge(v1,v2)
+        e2 = gts.Edge(v2,v3)
+        e3 = gts.Edge(v3,v1)
+        t = Triangle(e1,e2,e3,'bar')
+        self.assert_(v1 in t.vertices())
+        self.assert_(v2 in t.vertices())
+        self.assert_(v3 in t.vertices())
+
+        self.assert_(v1.is_ok())
+        self.assert_(v2.is_ok())
+        self.assert_(v2.is_ok())
+        self.assert_(t.is_ok())
+
+        
 
 
     def test_is_ok(self):
@@ -1822,6 +1903,26 @@ class TestSurfaceMethods(unittest.TestCase):
     def test_new(self):
         self.assert_(isinstance(self.open_surface,gts.Surface))
         self.assert_(isinstance(self.closed_surface,gts.Surface))
+
+
+    def test_subclass(self):
+
+        class Surface(gts.Surface):
+
+            def __init__(self,msg):
+                self.msg = msg
+                gts.Surface.__init__(self)
+
+            def foo(self):
+                return self.msg
+
+        tetrahedron = gts.tetrahedron()
+        s = Surface('bar')
+        for face in tetrahedron:
+            s.add(face)
+        del tetrahedron
+        self.assert_(s.is_ok)
+        self.assert_(s.foo()=='bar')
 
 
     def test_add(self):
@@ -2853,25 +2954,6 @@ class TestSurfaceMethods(unittest.TestCase):
 
         self.assert_(s.is_ok())
 
-
-    def test_subclass(self):
-
-        class Surface(gts.Surface):
-
-            def __init__(self,msg):
-                self.msg = msg
-                gts.Surface.__init__(self)
-
-            def foo(self):
-                return self.msg
-
-        tetrahedron = gts.tetrahedron()
-        s = Surface('bar')
-        for face in tetrahedron:
-            s.add(face)
-        del tetrahedron
-        self.assert_(s.is_ok)
-        self.assert_(s.foo()=='bar')
 
 
 class TestFunctions(unittest.TestCase):
