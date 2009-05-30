@@ -62,7 +62,7 @@ merge(PyObject *self, PyObject *args)
       PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
       return NULL;
     }
-    vertices = g_list_prepend(vertices,GTS_VERTEX(PYGTS_OBJECT(obj)->gtsobj));
+    vertices = g_list_prepend(vertices,PYGTS_VERTEX_AS_GTS_VERTEX(obj));
   }
   Py_DECREF(tuple);
 
@@ -72,7 +72,7 @@ merge(PyObject *self, PyObject *args)
   /* Assemble the return tuple */
   N = g_list_length(vertices);
   if( (tuple=PyTuple_New(N)) == NULL) {
-    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    PyErr_SetString(PyExc_MemoryError,"could not create tuple");
     return NULL;
   }
   v = vertices;
@@ -80,14 +80,14 @@ merge(PyObject *self, PyObject *args)
     if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,
 						   GTS_OBJECT(v->data))
 			       )) ==NULL ) {
-      PyErr_SetString(PyExc_TypeError,
+      PyErr_SetString(PyExc_RuntimeError,
 		      "could not get object from table (internal error)");
       g_list_free(vertices);
       return NULL;
     }
     Py_INCREF(vertex);
     PyTuple_SET_ITEM(tuple,i,(PyObject*)vertex);
-    v = v->next;
+    v = g_list_next(v);
   }
 
   g_list_free(vertices);
@@ -103,7 +103,6 @@ vertices(PyObject *self, PyObject *args)
   guint i,N;
   GSList *segments=NULL,*vertices=NULL,*v;
   PygtsVertex *vertex;
-  GtsSegment *parent;
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &tuple) ) {
@@ -117,7 +116,7 @@ vertices(PyObject *self, PyObject *args)
   }
   if(!PyTuple_Check(tuple)) {
     Py_DECREF(tuple);
-    PyErr_SetString(PyExc_TypeError,"expected a list or tuple of segments");
+    PyErr_SetString(PyExc_TypeError,"expected a list or tuple of Segments");
     return NULL;
   }
 
@@ -128,10 +127,10 @@ vertices(PyObject *self, PyObject *args)
     if(!pygts_segment_check(obj)) {
       Py_DECREF(tuple);
       g_slist_free(segments);
-      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of segments");
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of Segments");
       return NULL;
     }
-    segments = g_slist_prepend(segments,GTS_SEGMENT(PYGTS_OBJECT(obj)->gtsobj));
+    segments = g_slist_prepend(segments,PYGTS_SEGMENT_AS_GTS_SEGMENT(obj));
   }
   Py_DECREF(tuple);
 
@@ -142,45 +141,18 @@ vertices(PyObject *self, PyObject *args)
   /* Assemble the return tuple */
   N = g_slist_length(vertices);
   if( (tuple=PyTuple_New(N)) == NULL) {
-    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    PyErr_SetString(PyExc_MemoryError,"could not create tuple");
     return NULL;
   }
   v = vertices;
   for(i=0;i<N;i++) {
-    if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,
-						   GTS_OBJECT(v->data))
-			       )) !=NULL ) {
-      Py_INCREF(vertex);
-    }
-    else {
-        /* Chain up object allocation */
-      args = Py_BuildValue("dddi",0,0,0,FALSE);
-      vertex = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType, 
-						   args, NULL));
-      Py_DECREF(args);
-      if( vertex == NULL ) {
-	PyErr_SetString(PyExc_TypeError,"Could not create Vertex");
+    if( (vertex = pygts_vertex_new(GTS_VERTEX(v->data))) == NULL ) {
 	Py_DECREF(tuple);
 	g_slist_free(vertices);
 	return NULL;
-      }
-
-      PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(v->data);
-
-      /* Create the parent GtsSegment */
-      if( (parent=GTS_SEGMENT(pygts_vertex_parent(
-		      GTS_VERTEX(PYGTS_OBJECT(vertex)->gtsobj)))) == NULL ) {
-	Py_DECREF(vertex);
-	Py_DECREF(tuple);
-	g_slist_free(vertices);
-	return NULL;
-      }
-      PYGTS_OBJECT(vertex)->gtsobj_parent = GTS_OBJECT(parent);
-
-      pygts_object_register(vertex);
     }
     PyTuple_SET_ITEM(tuple,i,(PyObject*)vertex);
-    v = v->next;
+    v = g_slist_next(v);
   }
 
   g_slist_free(vertices);
@@ -196,7 +168,6 @@ segments(PyObject *self, PyObject *args)
   guint i,n,N;
   GSList *segments=NULL,*vertices=NULL,*s;
   PygtsSegment *segment;
-  GtsTriangle *parent;
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &tuple) ) {
@@ -224,13 +195,13 @@ segments(PyObject *self, PyObject *args)
       PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
       return NULL;
     }
-    vertices = g_slist_prepend(vertices,GTS_VERTEX(PYGTS_OBJECT(obj)->gtsobj));
+    vertices = g_slist_prepend(vertices,PYGTS_VERTEX_AS_GTS_VERTEX(obj));
   }
   Py_DECREF(tuple);
 
   /* Make the call */
   if( (segments = gts_segments_from_vertices(vertices)) == NULL ) {
-    PyErr_SetString(PyExc_TypeError,"could not retrieve segments");
+    PyErr_SetString(PyExc_RuntimeError,"could not retrieve segments");
     return NULL;
   }
   g_slist_free(vertices);
@@ -238,64 +209,35 @@ segments(PyObject *self, PyObject *args)
   /* Assemble the return tuple */
   N = g_slist_length(segments);
   if( (tuple=PyTuple_New(N)) == NULL) {
-    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    PyErr_SetString(PyExc_MemoryError,"could not create tuple");
     return NULL;
   }
 
   s = segments;
   n=0;
   while(s!=NULL) {
-    if( (segment = PYGTS_SEGMENT(g_hash_table_lookup(obj_table,
-						     GTS_OBJECT(s->data))
-				 )) !=NULL ) {
-      Py_INCREF(segment);
+
+    /* Skip any parent segments */
+    if(PYGTS_IS_PARENT_SEGMENT(s->data) || PYGTS_IS_PARENT_EDGE(s->data)) {
+      s = g_slist_next(s);
+      segment = NULL;
+      continue;
+    }
+
+    /* Fill in the tuple */
+    if(GTS_IS_EDGE(s->data)) {
+      segment = PYGTS_SEGMENT(pygts_edge_new(GTS_EDGE(s->data)));
     }
     else {
-
-      /* Skip any parent segments */
-      if(PYGTS_IS_PARENT_SEGMENT(s->data) || PYGTS_IS_PARENT_EDGE(s->data)) {
-	s = s->next;
-	segment = NULL;
-	continue;
-      }
-
-      /* Chain up object allocation for segments or edges */
-      if(GTS_IS_EDGE(s->data)) {
-	args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-	segment = PYGTS_SEGMENT(PygtsEdgeType.tp_new(&PygtsEdgeType, 
-						     args, NULL));
-      }
-      else {
-	args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-	segment = PYGTS_SEGMENT(PygtsSegmentType.tp_new(&PygtsSegmentType, 
-							args, NULL));
-      }
-      Py_DECREF(args);
-      if( segment == NULL ) {
-	PyErr_SetString(PyExc_TypeError,"Could not create Segment");
-	Py_DECREF(tuple);
-	g_slist_free(segments);
-	return NULL;
-      }
-
-      PYGTS_OBJECT(segment)->gtsobj = GTS_OBJECT(s->data);
-
-      /* Create the parent GtsTriangle */
-      if(GTS_IS_EDGE(s->data)) {
-	if( (parent=GTS_TRIANGLE(pygts_edge_parent(
-		      GTS_EDGE(PYGTS_OBJECT(segment)->gtsobj)))) == NULL ) {
-	  Py_DECREF(segment);
-	  Py_DECREF(tuple);
-	  g_slist_free(segments);
-	  return NULL;
-	}
-	PYGTS_OBJECT(segment)->gtsobj_parent = GTS_OBJECT(parent);
-      }
-
-      pygts_object_register(segment);
+      segment = pygts_segment_new(GTS_SEGMENT(s->data));
+    }
+    if( segment == NULL ) {
+      Py_DECREF(tuple);
+      g_slist_free(segments);
+      return NULL;
     }
     PyTuple_SET_ITEM(tuple,n,(PyObject*)segment);
-    s = s->next;
+    s = g_slist_next(s);
     n += 1;
   }
 
@@ -317,7 +259,6 @@ triangles(PyObject *self, PyObject *args)
   guint i,n,N;
   GSList *edges=NULL,*triangles=NULL,*t;
   PygtsTriangle *triangle;
-  GtsSurface *parent;
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &tuple) ) {
@@ -345,13 +286,13 @@ triangles(PyObject *self, PyObject *args)
       PyErr_SetString(PyExc_TypeError,"expected a list or tuple of edges");
       return NULL;
     }
-    edges = g_slist_prepend(edges,GTS_EDGE(PYGTS_OBJECT(obj)->gtsobj));
+    edges = g_slist_prepend(edges,PYGTS_EDGE_AS_GTS_EDGE(obj));
   }
   Py_DECREF(tuple);
 
   /* Make the call */
   if( (triangles = gts_triangles_from_edges(edges)) == NULL ) {
-    PyErr_SetString(PyExc_TypeError,"could not retrieve triangles");
+    PyErr_SetString(PyExc_RuntimeError,"could not retrieve triangles");
     return NULL;
   }
   g_slist_free(edges);
@@ -359,64 +300,35 @@ triangles(PyObject *self, PyObject *args)
   /* Assemble the return tuple */
   N = g_slist_length(triangles);
   if( (tuple=PyTuple_New(N)) == NULL) {
-    PyErr_SetString(PyExc_TypeError,"could not create tuple");
+    PyErr_SetString(PyExc_MemoryError,"could not create tuple");
     return NULL;
   }
 
   t = triangles;
   n=0;
   while(t!=NULL) {
-    if( (triangle = PYGTS_TRIANGLE(g_hash_table_lookup(obj_table,
-						       GTS_OBJECT(t->data))
-				   )) !=NULL ) {
-      Py_INCREF(triangle);
+
+    /* Skip any parent triangles */
+    if(PYGTS_IS_PARENT_TRIANGLE(t->data)) {
+      t = g_slist_next(t);
+      triangle = NULL;
+      continue;
+    }
+
+    /* Fill in the tuple */
+    if(GTS_IS_FACE(t->data)) {
+      triangle = PYGTS_TRIANGLE(pygts_face_new(GTS_FACE(t->data)));
     }
     else {
-
-      /* Skip any parent triangles */
-      if(PYGTS_IS_PARENT_TRIANGLE(t->data)) {
-	t = t->next;
-	triangle = NULL;
-	continue;
-      }
-
-      /* Chain up object allocation for triangles or faces */
-      if(GTS_IS_FACE(t->data)) {
-	args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
-	triangle = PYGTS_TRIANGLE(PygtsFaceType.tp_new(&PygtsFaceType, 
-						       args, NULL));
-      }
-      else {
-	args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
-	triangle = PYGTS_TRIANGLE(PygtsTriangleType.tp_new(&PygtsTriangleType, 
-							   args, NULL));
-      }
-      Py_DECREF(args);
-      if( triangle == NULL ) {
-	PyErr_SetString(PyExc_TypeError,"Could not create Triangle");
-	Py_DECREF(tuple);
-	g_slist_free(triangles);
-	return NULL;
-      }
-
-      PYGTS_OBJECT(triangle)->gtsobj = GTS_OBJECT(t->data);
-
-      /* Create the parent GtsSurface */
-      if(GTS_IS_FACE(t->data)) {
-	if( (parent=GTS_SURFACE(pygts_face_parent(
-		      GTS_FACE(PYGTS_OBJECT(triangle)->gtsobj)))) == NULL ) {
-	  Py_DECREF(triangle);
-	  Py_DECREF(tuple);
-	  g_slist_free(triangles);
-	  return NULL;
-	}
-	PYGTS_OBJECT(triangle)->gtsobj_parent = GTS_OBJECT(parent);
-      }
-
-      pygts_object_register(triangle);
+      triangle = pygts_triangle_new(GTS_TRIANGLE(t->data));
+    }
+    if( triangle == NULL ) {
+      Py_DECREF(tuple);
+      g_slist_free(triangles);
+      return NULL;
     }
     PyTuple_SET_ITEM(tuple,n,(PyObject*)triangle);
-    t = t->next;
+    t = g_slist_next(t);
     n += 1;
   }
 
@@ -466,7 +378,7 @@ triangle_enclosing(PyObject *self, PyObject *args)
       PyErr_SetString(PyExc_TypeError,"expected a list or tuple of points");
       return NULL;
     }
-    points = g_slist_prepend(points,GTS_POINT(PYGTS_OBJECT(obj)->gtsobj));
+    points = g_slist_prepend(points,PYGTS_POINT_AS_GTS_POINT(obj));
   }
   Py_DECREF(tuple);
 
@@ -479,19 +391,9 @@ triangle_enclosing(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  /* Prepare the return Triangle */
-  args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
-  triangle = PYGTS_TRIANGLE(PygtsTriangleType.tp_new(&PygtsTriangleType, 
-						     args, NULL));
-  Py_DECREF(args);
-  if( triangle == NULL ) {
-    PyErr_SetString(PyExc_TypeError,"Could not create Triangle");
+  if( (triangle = pygts_triangle_new(t)) == NULL ) {
     return NULL;
   }
-
-  PYGTS_OBJECT(triangle)->gtsobj = GTS_OBJECT(t);
-
-  pygts_object_register(triangle);
 
   return (PyObject*)triangle;
 }
@@ -500,6 +402,7 @@ triangle_enclosing(PyObject *self, PyObject *args)
 static PyObject*
 sphere(PyObject *self, PyObject *args)
 {
+  PyObject *kwds;
   PygtsSurface *surface;
   guint geodesation_order;
 
@@ -508,16 +411,18 @@ sphere(PyObject *self, PyObject *args)
     return NULL;
 
   /* Chain up object allocation */
-  args = Py_BuildValue("(i)",TRUE);
+  args = Py_BuildValue("()");
+  kwds = Py_BuildValue("{s:O}","alloc_gtsobj",Py_True);
   surface = PYGTS_SURFACE(PygtsSurfaceType.tp_new(&PygtsSurfaceType, 
-						  args, NULL));
+						  args, kwds));
   Py_DECREF(args);
+  Py_DECREF(kwds);
   if( surface == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError, "Could not create Surface");
+    PyErr_SetString(PyExc_MemoryError, "could not create Surface");
     return NULL;
   }
 
-  gts_surface_generate_sphere(GTS_SURFACE(PYGTS_OBJECT(surface)->gtsobj),
+  gts_surface_generate_sphere(PYGTS_SURFACE_AS_GTS_SURFACE(surface),
 			      geodesation_order);
 
   pygts_object_register(PYGTS_OBJECT(surface));

@@ -32,11 +32,18 @@ typedef struct _PygtsObject PygtsTriangle;
 
 #define PYGTS_TRIANGLE(obj) ((PygtsTriangle*)obj)
 
+#define PYGTS_TRIANGLE_AS_GTS_TRIANGLE(o) \
+  (GTS_TRIANGLE(PYGTS_OBJECT(o)->gtsobj))
+
 extern PyTypeObject PygtsTriangleType;
 
 gboolean pygts_triangle_check(PyObject* o);
 gboolean pygts_triangle_is_ok(PygtsTriangle *t);
+
+PygtsTriangle* pygts_triangle_new(GtsTriangle *t);
+
 int pygts_triangle_compare(GtsTriangle* t1,GtsTriangle* t2);
+
 
 
 /* Replacement for gts_triangle_is_ok().  The problem is that sometimes the 

@@ -28,11 +28,22 @@
 #include "pygts.h"
 
 
+#if PYGTS_DEBUG
+  #define SELF_CHECK if(!pygts_segment_check((PyObject*)self)) {      \
+                       PyErr_SetString(PyExc_RuntimeError,            \
+                       "problem with self object (internal error)");  \
+		       return NULL;                                   \
+                     }
+#else
+  #define SELF_CHECK
+#endif
+
+
 /*-------------------------------------------------------------------------*/
 /* Methods exported to python */
 
 static PyObject*
-is_ok(PygtsSegment *self, PyObject *args, PyObject *kwds)
+is_ok(PygtsSegment *self, PyObject *args)
 {
   if(pygts_segment_is_ok(self)) {
     Py_INCREF(Py_True);
@@ -46,18 +57,12 @@ is_ok(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-intersects(PygtsSegment *self, PyObject *args, PyObject *kwds)
+intersects(PygtsSegment *self, PyObject *args)
 {
   PyObject *s_;
   GtsSegment *s;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &s_) ) {
@@ -66,29 +71,23 @@ intersects(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
   /* Convert to PygtsObjects */
   if(!pygts_segment_check(s_)) {
-    PyErr_SetString(PyExc_TypeError,"s is not a Segment");
+    PyErr_SetString(PyExc_TypeError,"expected a Segment");
     return NULL;
   }
-  s = GTS_SEGMENT(PYGTS_OBJECT(s_)->gtsobj);
+  s = PYGTS_SEGMENT_AS_GTS_SEGMENT(s_);
 
   return Py_BuildValue("i",
-      gts_segments_are_intersecting(GTS_SEGMENT(PYGTS_OBJECT(self)->gtsobj),s));
+      gts_segments_are_intersecting(PYGTS_SEGMENT_AS_GTS_SEGMENT(self),s));
 }
 
 
 static PyObject*
-connects(PygtsSegment *self, PyObject *args, PyObject *kwds)
+connects(PygtsSegment *self, PyObject *args)
 {
   PyObject *v1_,*v2_;
   GtsVertex *v1,*v2;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "OO", &v1_, &v2_) ) {
@@ -97,18 +96,18 @@ connects(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
   /* Convert to PygtsObjects */
   if(!pygts_vertex_check(v1_)) {
-    PyErr_SetString(PyExc_TypeError,"v1 is not a Vertex");
+    PyErr_SetString(PyExc_TypeError,"expected a Vertex");
     return NULL;
   }
-  v1 = GTS_VERTEX(PYGTS_OBJECT(v1_)->gtsobj);
+  v1 = PYGTS_VERTEX_AS_GTS_VERTEX(v1_);
 
   if(!pygts_vertex_check(v2_)) {
-    PyErr_SetString(PyExc_TypeError,"v2 is not a Vertex");
+    PyErr_SetString(PyExc_TypeError,"expected a Vertex");
     return NULL;
   }
-  v2 = GTS_VERTEX(PYGTS_OBJECT(v2_)->gtsobj);
+  v2 = PYGTS_VERTEX_AS_GTS_VERTEX(v2_);
 
-  if(gts_segment_connect(GTS_SEGMENT(PYGTS_OBJECT(self)->gtsobj),v1,v2)) {
+  if(gts_segment_connect(PYGTS_SEGMENT_AS_GTS_SEGMENT(self),v1,v2)) {
     Py_INCREF(Py_True);
     return Py_True;
   }
@@ -120,18 +119,12 @@ connects(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-touches(PygtsSegment *self, PyObject *args, PyObject *kwds)
+touches(PygtsSegment *self, PyObject *args)
 {
   PyObject *s_;
   GtsSegment *s;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &s_) ) {
@@ -140,12 +133,12 @@ touches(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
   /* Convert to PygtsObjects */
   if(!pygts_segment_check(s_)) {
-    PyErr_SetString(PyExc_TypeError,"s is not a Segment");
+    PyErr_SetString(PyExc_TypeError,"expected a Segment");
     return NULL;
   }
-  s = GTS_SEGMENT(PYGTS_OBJECT(s_)->gtsobj);
+  s = PYGTS_SEGMENT_AS_GTS_SEGMENT(s_);
 
-  if(gts_segments_touch(GTS_SEGMENT(PYGTS_OBJECT(self)->gtsobj),s)) {
+  if(gts_segments_touch(PYGTS_SEGMENT_AS_GTS_SEGMENT(self),s)) {
     Py_INCREF(Py_True);
     return Py_True;
   }
@@ -157,66 +150,34 @@ touches(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject*
-midvertex(PygtsSegment *self, PyObject *args, PyObject *kwds)
+midvertex(PygtsSegment *self, PyObject *args)
 {
   PygtsVertex *vertex;
-  GtsSegment *parent;
   GtsVertex *v;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  v = gts_segment_midvertex(GTS_SEGMENT(PYGTS_OBJECT(self)->gtsobj),
+  v = gts_segment_midvertex(PYGTS_SEGMENT_AS_GTS_SEGMENT(self),
 			    gts_vertex_class());
 
-  /* Chain up object allocation */
-  args = Py_BuildValue("dddi",0,0,0,FALSE);
-  vertex = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType, 
-					       args, NULL));
-  Py_DECREF(args);
-  if( vertex == NULL ) {
-    PyErr_SetString(PyExc_TypeError,"Could not create Vertex");
+  if( (vertex = pygts_vertex_new(v)) == NULL ) {
     return NULL;
   }
-
-  PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(v);
-
-  /* Create the parent GtsSegment */
-  if( (parent=GTS_SEGMENT(pygts_vertex_parent(
-	          GTS_VERTEX(PYGTS_OBJECT(vertex)->gtsobj)))) == NULL ) {
-    Py_DECREF(vertex);
-    return NULL;
-  }
-  PYGTS_OBJECT(vertex)->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(vertex);
 
   return (PyObject*)vertex;
 }
 
 
 static PyObject*
-intersection(PygtsSegment *self, PyObject *args, PyObject *kwds)
+intersection(PygtsSegment *self, PyObject *args)
 {
   PyObject *t_,*boundary_=NULL;
   PygtsTriangle *t;
   gboolean boundary=TRUE;
   GtsVertex *v;
-  PygtsObject *ret;
-  GtsSegment *parent;
+  PygtsObject *vertex;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O|O", &t_, &boundary_) ) {
@@ -225,14 +186,14 @@ intersection(PygtsSegment *self, PyObject *args, PyObject *kwds)
 
   /* Convert to PygtsObjects */
   if(!pygts_triangle_check(t_)) {
-    PyErr_SetString(PyExc_TypeError,"t is not a Triangle");
+    PyErr_SetString(PyExc_TypeError,"expected a Triangle and boolean");
     return NULL;
   }
   t = PYGTS_TRIANGLE(t_);
 
   if( boundary_ != NULL ) {
     if(PyBool_Check(boundary_)==FALSE) {
-      PyErr_SetString(PyExc_TypeError,"boundary is not a Boolean");
+      PyErr_SetString(PyExc_TypeError,"expected a Triangle and boolean");
       return NULL;
     }
     if( boundary_ == Py_False ){  /* Default TRUE */
@@ -241,8 +202,8 @@ intersection(PygtsSegment *self, PyObject *args, PyObject *kwds)
   }
 
   v = GTS_VERTEX( gts_segment_triangle_intersection(
-		      GTS_SEGMENT(PYGTS_OBJECT(self)->gtsobj),
-		      GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj),
+		      PYGTS_SEGMENT_AS_GTS_SEGMENT(self),
+		      PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t),
 		      boundary,
 		      GTS_POINT_CLASS(gts_vertex_class())) );
 
@@ -251,29 +212,11 @@ intersection(PygtsSegment *self, PyObject *args, PyObject *kwds)
     return Py_None;
   }
 
-  /* Get object from table (if available) */
-  if( (ret = g_hash_table_lookup(obj_table,GTS_OBJECT(v))) != NULL ) {
-    Py_INCREF(ret);
-    return (PyObject*)ret;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("dddi",0,0,0,FALSE);
-  ret = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, args, NULL));
-  Py_DECREF(args);
-  if( ret == NULL ) return NULL;
-
-  /* Object initialization */
-  ret->gtsobj = GTS_OBJECT(v);
-  if( (parent = pygts_vertex_parent(v)) == NULL ) {
-    ret->gtsobj = NULL; /* Don't want to deallocate it */
-    Py_DECREF(ret);
+  if( (vertex = pygts_vertex_new(v)) == NULL ) {
     return NULL;
   }
-  ret->gtsobj_parent = GTS_OBJECT(parent);
 
-  pygts_object_register(ret);
-  return (PyObject *)ret;
+  return (PyObject *)vertex;
 }
 
 
@@ -350,40 +293,12 @@ static PyObject *
 get_v1(PygtsSegment *self, void *closure)
 {
   PygtsObject *v1;
-  GtsSegment *parent;
-  PyObject *args;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+  SELF_CHECK
+
+  if( (v1=pygts_vertex_new(PYGTS_SEGMENT_AS_GTS_SEGMENT(self)->v1)) == NULL ) {
     return NULL;
   }
-#endif
-
-  /* Get object from table (if available) */
-  if( (v1 = g_hash_table_lookup(obj_table,
-                GTS_OBJECT(GTS_SEGMENT(self->gtsobj)->v1))) != NULL ) {
-    Py_INCREF(v1);
-    return (PyObject*)v1;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("dddi",0,0,0,FALSE);
-  v1 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, args, NULL));
-  Py_DECREF(args);
-  if( v1 == NULL ) return NULL;
-
-  /* Object initialization */
-  v1->gtsobj = GTS_OBJECT(GTS_SEGMENT(self->gtsobj)->v1);
-  if( (parent = pygts_vertex_parent(GTS_VERTEX(v1->gtsobj))) == NULL ) {
-    v1->gtsobj = NULL; /* Don't want to deallocate it */
-    Py_DECREF(v1);
-    return NULL;
-  }
-  v1->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(v1);
 
   return (PyObject *)v1;
 }
@@ -393,40 +308,12 @@ static PyObject *
 get_v2(PygtsSegment *self, void *closure)
 {
   PygtsObject *v2;
-  GtsSegment *parent;
-  PyObject *args;
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+  SELF_CHECK
+
+  if( (v2=pygts_vertex_new(PYGTS_SEGMENT_AS_GTS_SEGMENT(self)->v2)) == NULL ) {
     return NULL;
   }
-#endif
-
-  /* Get object from table (if available) */
-  if( (v2 = g_hash_table_lookup(obj_table,
-                GTS_OBJECT(GTS_SEGMENT(self->gtsobj)->v2))) != NULL ) {
-    Py_INCREF(v2);
-    return (PyObject*)v2;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("dddi",0,0,0,FALSE);
-  v2 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, NULL, NULL));
-  Py_DECREF(args);
-  if( v2 == NULL ) return NULL;
-
-  /* Object initialization */
-  v2->gtsobj = GTS_OBJECT(GTS_SEGMENT(self->gtsobj)->v2);
-  if( (parent = pygts_vertex_parent(GTS_VERTEX(v2->gtsobj))) == NULL ) {
-    v2->gtsobj = NULL; /* Don't want to deallocate it */
-    Py_DECREF(v2);
-    return NULL;
-  }
-  v2->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(v2);
 
   return (PyObject *)v2;
 }
@@ -446,20 +333,33 @@ static PyGetSetDef getset[] = {
 static PyObject *
 new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
+  PyObject *o;
   PygtsObject *obj;
   GtsSegment *tmp;
   GtsObject *segment=NULL;
   PyObject *v1_,*v2_;
   PygtsVertex *v1,*v2;
   guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"v1", "v2", "alloc_gtsobj", NULL};
+  static char *kwlist[] = {"v1", "v2", NULL};
 
   /* Parse the args */
+  if(kwds) {
+    o = PyDict_GetItemString(kwds,"alloc_gtsobj");
+    if(o==Py_False) {
+      alloc_gtsobj = FALSE;
+    }
+    if(o!=NULL) {
+      PyDict_DelItemString(kwds, "alloc_gtsobj");
+    }
+  }
   if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OO|i", kwlist, &v1_, &v2_,
-				     &alloc_gtsobj) ) {
+    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &v1_, &v2_) ) {
       return NULL;
     }
+  }
+  if(kwds) {
+    Py_INCREF(Py_False);
+    PyDict_SetItemString(kwds,"alloc_gtsobj", Py_False);
   }
 
   /* Allocate the gtsobj (if needed) */
@@ -467,11 +367,11 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* Convert to PygtsObjects */
     if(!pygts_vertex_check(v1_)) {
-      PyErr_SetString(PyExc_TypeError,"v1 is not a gts.Vertex");
+      PyErr_SetString(PyExc_TypeError,"expected two Vertices");
       return NULL;
     }
     if(!pygts_vertex_check(v2_)) {
-      PyErr_SetString(PyExc_TypeError,"v2 is not a gts.Vertex");
+      PyErr_SetString(PyExc_TypeError,"expected two Vertices");
       return NULL;
     }
     v1 = PYGTS_VERTEX(v1_);
@@ -479,7 +379,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* Error check */
     if(PYGTS_OBJECT(v1)->gtsobj == PYGTS_OBJECT(v2)->gtsobj) {
-      PyErr_SetString(PyExc_ValueError,"v1 and v2 are the same");
+      PyErr_SetString(PyExc_ValueError,"Vertices are identical");
       return NULL;
     }
 
@@ -488,7 +388,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 					 GTS_VERTEX(v1->gtsobj),
 					 GTS_VERTEX(v2->gtsobj)));
     if( segment == NULL )  {
-      PyErr_SetString(PyExc_RuntimeError, "GTS could not create Segment");
+      PyErr_SetString(PyExc_MemoryError, "could not create Segment");
       return NULL;
     }
 
@@ -507,9 +407,7 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
   }  
 
   /* Chain up */
-  args = Py_BuildValue("OOi",v1_,v2_,FALSE);
-  obj = PYGTS_OBJECT(PygtsObjectType.tp_new(type,args,NULL));
-  Py_DECREF(args);
+  obj = PYGTS_OBJECT(PygtsObjectType.tp_new(type,args,kwds));
 
   if( alloc_gtsobj ) {
     obj->gtsobj = segment;
@@ -530,14 +428,6 @@ init(PygtsSegment *self, PyObject *args, PyObject *kwds)
     return ret;
   }
 
-#if PYGTS_DEBUG
-  if(!pygts_segment_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return -1;
-  }
-#endif
-
   return 0;
 }
 
@@ -552,8 +442,8 @@ compare(PygtsSegment *s1_, PygtsSegment *s2_)
   pygts_segment_check((PyObject*)s2_);
 #endif
 
-  s1 = GTS_SEGMENT(PYGTS_SEGMENT(s1_)->gtsobj);
-  s2 = GTS_SEGMENT(PYGTS_SEGMENT(s2_)->gtsobj);
+  s1 = PYGTS_SEGMENT_AS_GTS_SEGMENT(s1_);
+  s2 = PYGTS_SEGMENT_AS_GTS_SEGMENT(s2_);
   
   return pygts_segment_compare(s1,s2);
   
@@ -628,7 +518,39 @@ gboolean
 pygts_segment_is_ok(PygtsSegment *s)
 {
   if(!pygts_object_is_ok(PYGTS_OBJECT(s))) return FALSE;
-  return gts_segment_is_ok(GTS_SEGMENT(PYGTS_OBJECT(s)->gtsobj));
+  return gts_segment_is_ok(PYGTS_SEGMENT_AS_GTS_SEGMENT(s));
+}
+
+
+PygtsSegment * 
+pygts_segment_new(GtsSegment *s)
+{
+  PyObject *args, *kwds;
+  PygtsObject *segment;
+
+  /* Check for Segment in the object table */
+  if( (segment=PYGTS_OBJECT(g_hash_table_lookup(obj_table,GTS_OBJECT(s))))
+      != NULL ) {
+    Py_INCREF(segment);
+    return PYGTS_FACE(segment);
+  }
+
+  /* Build a new Segment */
+  args = Py_BuildValue("OO",Py_None,Py_None);
+  kwds = Py_BuildValue("{s:O}","alloc_gtsobj",Py_False);
+  segment = PYGTS_SEGMENT(PygtsSegmentType.tp_new(&PygtsSegmentType, 
+						  args, kwds));
+  Py_DECREF(args);
+  Py_DECREF(kwds);
+  if( segment == NULL ) {
+    PyErr_SetString(PyExc_MemoryError,"could not create Segment");
+    return NULL;
+  }
+  segment->gtsobj = GTS_OBJECT(s);
+
+  /* Register and return */
+  pygts_object_register(segment);
+  return PYGTS_SEGMENT(segment);
 }
 
 

@@ -32,10 +32,14 @@ typedef struct _PygtsObject PygtsEdge;
 
 #define PYGTS_EDGE(obj) ((PygtsEdge*)obj)
 
+#define PYGTS_EDGE_AS_GTS_EDGE(o) (GTS_EDGE(PYGTS_OBJECT(o)->gtsobj))
+
 extern PyTypeObject PygtsEdgeType;
 
 gboolean pygts_edge_check(PyObject* o);
 gboolean pygts_edge_is_ok(PygtsEdge *e);
+
+PygtsEdge* pygts_edge_new(GtsEdge *e);
 
 
 /*-------------------------------------------------------------------------*/
@@ -70,7 +74,5 @@ typedef struct _GtsEdge PygtsParentEdge;
                                              pygts_parent_edge_class()))
 
 GtsEdgeClass* pygts_parent_edge_class(void);
-
-GtsTriangle* pygts_edge_parent(GtsEdge *e1);
 
 #endif /* __PYGTS_EDGE_H__ */

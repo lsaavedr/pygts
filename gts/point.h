@@ -32,10 +32,13 @@ typedef struct _PygtsObject PygtsPoint;
 
 #define PYGTS_POINT(obj) ((PygtsPoint*)obj)
 
+#define PYGTS_POINT_AS_GTS_POINT(o) (GTS_POINT(PYGTS_OBJECT(o)->gtsobj))
+
 extern PyTypeObject PygtsPointType;
 
 gboolean pygts_point_check(PyObject* o);
 gboolean pygts_point_is_ok(PygtsPoint *o);
+
 int pygts_point_compare(GtsPoint* p1,GtsPoint* p2);
 
 gint pygts_point_rotate(GtsPoint* p,gdouble dx,gdouble dy,gdouble dz,gdouble a);

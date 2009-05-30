@@ -28,6 +28,17 @@
 #include "pygts.h"
 
 
+#if PYGTS_DEBUG
+  #define SELF_CHECK if(!pygts_triangle_check((PyObject*)self)) {         \
+                       PyErr_SetString(PyExc_RuntimeError,            \
+                       "problem with self object (internal error)");  \
+		       return NULL;                                   \
+                     }
+#else
+  #define SELF_CHECK
+#endif
+
+
 /*-------------------------------------------------------------------------*/
 /* Methods exported to python */
 
@@ -48,48 +59,30 @@ is_ok(PygtsTriangle *self, PyObject *args)
 static PyObject*
 area(PygtsTriangle *self, PyObject *args)
 {
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   return Py_BuildValue("d",
-      gts_triangle_area(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj)));
+      gts_triangle_area(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)));
 }
 
 
 static PyObject*
 perimeter(PygtsTriangle *self, PyObject *args)
 {
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   return Py_BuildValue("d",
-      gts_triangle_perimeter(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj)));
+      gts_triangle_perimeter(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)));
 }
 
 
 static PyObject*
 quality(PygtsTriangle *self, PyObject *args)
 {
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   return Py_BuildValue("d",
-      gts_triangle_quality(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj)));
+      gts_triangle_quality(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)));
 }
 
 
@@ -98,15 +91,9 @@ normal(PygtsTriangle *self, PyObject *args)
 {
   gdouble x,y,z;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  gts_triangle_normal(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),&x,&y,&z);
+  gts_triangle_normal(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),&x,&y,&z);
   return Py_BuildValue("ddd",x,y,z);
 }
 
@@ -114,15 +101,9 @@ normal(PygtsTriangle *self, PyObject *args)
 static PyObject*
 revert(PygtsTriangle *self, PyObject *args)
 {
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
-  gts_triangle_revert(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj));
+  gts_triangle_revert(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self));
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -131,16 +112,10 @@ revert(PygtsTriangle *self, PyObject *args)
 static PyObject*
 orientation(PygtsTriangle *self, PyObject *args)
 {
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   return Py_BuildValue("d",
-      gts_triangle_orientation(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj)));
+      gts_triangle_orientation(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)));
 }
 
 
@@ -150,13 +125,7 @@ angle(PygtsTriangle* self, PyObject *args)
   PyObject *t_;
   PygtsTriangle *t;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */
   if(! PyArg_ParseTuple(args, "O", &t_) ) {
@@ -165,14 +134,14 @@ angle(PygtsTriangle* self, PyObject *args)
 
   /* Convert to PygtsObjects */
   if(!pygts_triangle_check(t_)) {
-    PyErr_SetString(PyExc_TypeError,"t is not a Triangle");
+    PyErr_SetString(PyExc_TypeError,"expected a Triangle");
     return NULL;
   }
   t = PYGTS_TRIANGLE(t_);
 
   return Py_BuildValue("d",
-      gts_triangles_angle(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
-			  GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj)));
+      gts_triangles_angle(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
+			  PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t)));
 }
 
 
@@ -183,13 +152,7 @@ is_compatible(PygtsTriangle *self, PyObject *args)
   PygtsTriangle *t2;
   GtsEdge *e;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &t2_) ) {
@@ -204,16 +167,15 @@ is_compatible(PygtsTriangle *self, PyObject *args)
   t2 = PYGTS_TRIANGLE(t2_);
 
   /* Get the common edge */
-  if( (e = gts_triangles_common_edge(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
-				     GTS_TRIANGLE(PYGTS_OBJECT(t2)->gtsobj))) 
+  if( (e = gts_triangles_common_edge(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
+				     PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t2)))
       == NULL ) {
-    PyErr_SetString(PyExc_TypeError,"Triangles do not share common edge");
+    PyErr_SetString(PyExc_RuntimeError,"Triangles do not share common edge");
     return NULL;
   }
 
-  if(gts_triangles_are_compatible(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
-				  GTS_TRIANGLE(PYGTS_OBJECT(t2)->gtsobj),e)
-				  ==TRUE) {
+  if( gts_triangles_are_compatible(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
+				   PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t2),e) ) {
     Py_INCREF(Py_True);
     return Py_True;
   }
@@ -230,16 +192,9 @@ common_edge(PygtsTriangle *self, PyObject *args)
   PyObject *t2_;
   PygtsTriangle *t2;
   GtsEdge *e;
-  GtsTriangle *parent;
   PygtsEdge *edge;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &t2_) ) {
@@ -254,37 +209,17 @@ common_edge(PygtsTriangle *self, PyObject *args)
   t2 = PYGTS_TRIANGLE(t2_);
 
   /* Get the common edge */
-  if( (e = gts_triangles_common_edge(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
-				     GTS_TRIANGLE(PYGTS_OBJECT(t2)->gtsobj))) 
+  if( (e = gts_triangles_common_edge(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
+				     PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t2))) 
       == NULL ) {
     Py_INCREF(Py_None);
     return Py_None;
   }
 
-  /* If corresponding PyObject found in object table, we are done */
-  if( (edge = PYGTS_EDGE(g_hash_table_lookup(obj_table,e))) != NULL ) {
-    Py_INCREF(edge);
-    return (PyObject*)edge;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-  edge = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
-  Py_DECREF(args);
-  if( edge == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
+  if( (edge = pygts_edge_new(GTS_EDGE(e))) == NULL ) {
     return NULL;
   }
-  PYGTS_OBJECT(edge)->gtsobj = GTS_OBJECT(e);
 
-  /* Attach parent */
-  if( (parent = pygts_edge_parent(e)) == NULL ) {
-    Py_DECREF(edge);
-    return NULL;
-  }
-  PYGTS_OBJECT(edge)->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(PYGTS_OBJECT(edge));
   return (PyObject*)edge;
 }
 
@@ -298,15 +233,8 @@ opposite(PygtsTriangle *self, PyObject *args)
   GtsVertex *vertex=NULL,*v1,*v2,*v3;
   GtsEdge *edge=NULL;
   GtsTriangle *triangle;
-  GtsObject *parent;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &o_) ) {
@@ -328,16 +256,16 @@ opposite(PygtsTriangle *self, PyObject *args)
   }
 
   /* Error check */
-  triangle = GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj);
+  triangle = PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self);
   if( e!=NULL ) {
-    edge = GTS_EDGE(PYGTS_OBJECT(e)->gtsobj);
+    edge = PYGTS_EDGE_AS_GTS_EDGE(e);
     if(! ((triangle->e1==edge)||(triangle->e2==edge)||(triangle->e3==edge)) ) {
       PyErr_SetString(PyExc_RuntimeError,"Edge not in Triangle");
       return NULL;
     }
   }
   else {
-    vertex = GTS_VERTEX(PYGTS_OBJECT(v)->gtsobj);
+    vertex = PYGTS_VERTEX_AS_GTS_VERTEX(v);
     gts_triangle_vertices(triangle,&v1,&v2,&v3);
     if(! ((vertex==v1)||(vertex==v2)||(vertex==v3)) ) {
       PyErr_SetString(PyExc_RuntimeError,"Vertex not in Triangle");
@@ -345,62 +273,19 @@ opposite(PygtsTriangle *self, PyObject *args)
     }
   }
 
+  /* Get the opposite and return */
   if( e!=NULL) {
     vertex = gts_triangle_vertex_opposite(triangle, edge);
-
-    /* If corresponding PyObject found in object table, we are done */
-    if( (v = PYGTS_VERTEX(g_hash_table_lookup(obj_table,vertex))) != NULL ) {
-      Py_INCREF(v);
-      return (PyObject*)v;
-    }
-
-    /* Chain up object allocation */
-    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
-    v = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType, args, NULL));
-    Py_DECREF(args);
-    if( v == NULL ) {
-      PyErr_SetString(PyExc_RuntimeError, "Could not create Vertex");
+    if( (v = pygts_vertex_new(vertex)) == NULL ) {
       return NULL;
     }
-    PYGTS_OBJECT(v)->gtsobj = GTS_OBJECT(vertex);
-
-    /* Attach parent */
-    if( (parent = GTS_OBJECT(pygts_vertex_parent(vertex))) == NULL ) {
-      Py_DECREF(v);
-      return NULL;
-    }
-    PYGTS_OBJECT(v)->gtsobj_parent = parent;
-
-    pygts_object_register(PYGTS_OBJECT(v));
     return (PyObject*)v;
   }
   else{
     edge = gts_triangle_edge_opposite(triangle, vertex);
-
-    /* If corresponding PyObject found in object table, we are done */
-    if( (e = PYGTS_EDGE(g_hash_table_lookup(obj_table,edge))) != NULL ) {
-      Py_INCREF(e);
-      return (PyObject*)e;
-    }
-
-    /* Chain up object allocation */
-    args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-    e = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
-    Py_DECREF(args);
-    if( e == NULL ) {
-      PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
+    if( (e = pygts_edge_new(edge)) == NULL ) {
       return NULL;
     }
-    PYGTS_OBJECT(e)->gtsobj = GTS_OBJECT(edge);
-
-    /* Attach parent */
-    if( (parent = GTS_OBJECT(pygts_edge_parent(edge))) == NULL ) {
-      Py_DECREF(e);
-      return NULL;
-    }
-    PYGTS_OBJECT(e)->gtsobj_parent = parent;
-
-    pygts_object_register(PYGTS_OBJECT(e));
     return (PyObject*)e;
   }
 }
@@ -411,105 +296,27 @@ vertices(PygtsTriangle *self,PyObject *args)
 {
   GtsVertex *v1_,*v2_,*v3_;
   PygtsObject *v1,*v2,*v3;
-  GtsSegment *parent;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Get the vertices */
-  gts_triangle_vertices(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
+  gts_triangle_vertices(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
 			&v1_, &v2_, &v3_);
 
-  /* Get object from table (if available); otherwise chain-up allocation
-   * and attach parent.
-   */
-  args = Py_BuildValue("dddi",0,0,0,FALSE);
-  if( (v1 = g_hash_table_lookup(obj_table,GTS_OBJECT(v1_))) != NULL ) {
-    Py_INCREF(v1);
-  }
-  else {
-    if( (v1 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, 
-						  args, NULL))) == NULL ) {
-      Py_DECREF(args);
-      return NULL;
-    }
-    v1->gtsobj = GTS_OBJECT(v1_);
-    if( (parent = pygts_vertex_parent(GTS_VERTEX(v1->gtsobj))) == NULL ) {
-      Py_DECREF(args);
-      Py_DECREF(v1);
-      return NULL;
-    }
-    v1->gtsobj_parent = GTS_OBJECT(parent);
-    pygts_object_register(v1);
-  }
-
-  if( (v2 = g_hash_table_lookup(obj_table,GTS_OBJECT(v2_))) != NULL ) {
-    Py_INCREF(v2);
-  }
-  else {
-    if( (v2 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, 
-						  args, NULL))) == NULL ) {
-      Py_DECREF(args);
-      Py_DECREF(v1);
-      return NULL;
-    }
-    v2->gtsobj = GTS_OBJECT(v2_);
-    if( (parent = pygts_vertex_parent(GTS_VERTEX(v2->gtsobj))) == NULL ) {
-      Py_DECREF(args);
-      Py_DECREF(v1);
-      Py_DECREF(v2);
-      return NULL;
-    }
-    v2->gtsobj_parent = GTS_OBJECT(parent);
-    pygts_object_register(v2);
-  }
-
-  if( (v3 = g_hash_table_lookup(obj_table,GTS_OBJECT(v3_))) != NULL ) {
-    Py_INCREF(v3);
-  }
-  else {
-    if( (v3 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, 
-						  args, NULL))) == NULL ) {
-      Py_DECREF(args);
-      Py_DECREF(v1);
-      Py_DECREF(v2);
-      return NULL;
-    }
-    v3->gtsobj = GTS_OBJECT(v3_);
-    if( (parent = pygts_vertex_parent(GTS_VERTEX(v3->gtsobj))) == NULL ) {
-      Py_DECREF(args);
-      Py_DECREF(v1);
-      Py_DECREF(v2);
-      Py_DECREF(v3);
-      return NULL;
-    }
-    v3->gtsobj_parent = GTS_OBJECT(parent);
-    pygts_object_register(v3);
-  }
-  Py_DECREF(args);
-
-#if PYGTS_DEBUG
-  if(!pygts_vertex_check((PyObject*)v1)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+  if( (v1 = pygts_vertex_new(v1_)) == NULL ) {
     return NULL;
   }
-  if(!pygts_vertex_check((PyObject*)v2)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+
+  if( (v2 = pygts_vertex_new(v2_)) == NULL ) {
+    Py_DECREF(v1);
     return NULL;
   }
-  if(!pygts_vertex_check((PyObject*)v3)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+
+  if( (v3 = pygts_vertex_new(v3_)) == NULL ) {
+    Py_DECREF(v1);
+    Py_DECREF(v2);
     return NULL;
   }
-#endif
 
   return Py_BuildValue("OOO",v1,v2,v3);
 }
@@ -520,40 +327,14 @@ vertex(PygtsTriangle *self,PyObject *args)
 {
   GtsVertex *v1_;
   PygtsObject *v1;
-  GtsSegment *parent;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Get the vertices */
-  v1_ = gts_triangle_vertex(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj));
+  v1_ = gts_triangle_vertex(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self));
 
-  /* Get object from table (if available); otherwise chain-up allocation
-   * and attach parent.
-   */
-  args = Py_BuildValue("dddi",0,0,0,FALSE);
-  if( (v1 = g_hash_table_lookup(obj_table,GTS_OBJECT(v1_))) != NULL ) {
-    Py_INCREF(v1);
-  }
-  else {
-    if( (v1 = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, 
-						  args, NULL))) == NULL ) {
-      Py_DECREF(args);
-      return NULL;
-    }
-    v1->gtsobj = GTS_OBJECT(v1_);
-    if( (parent = pygts_vertex_parent(GTS_VERTEX(v1->gtsobj))) == NULL ) {
-      Py_DECREF(args);
-      Py_DECREF(v1);
-      return NULL;
-    }
-    v1->gtsobj_parent = GTS_OBJECT(parent);
-    pygts_object_register(v1);
+  if( (v1 = pygts_vertex_new(v1_)) == NULL ) {
+    return NULL;
   }
 
   return (PyObject*)v1;
@@ -565,20 +346,13 @@ circumcenter(PygtsTriangle *self,PyObject *args)
 {
   PygtsVertex *v;
   GtsVertex *vertex;
-  GtsSegment *parent;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Get the Vertex */
   vertex = GTS_VERTEX(
 	       gts_triangle_circumcircle_center(
-	           GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
+	           PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
 		   GTS_POINT_CLASS(gts_vertex_class())));
 
   if( vertex == NULL ) {
@@ -586,27 +360,8 @@ circumcenter(PygtsTriangle *self,PyObject *args)
     return Py_None;
   }
 
-  /* Get object from table (if available); otherwise chain-up allocation
-   * and attach parent.
-   */
-  if( (v = g_hash_table_lookup(obj_table,GTS_OBJECT(vertex))) != NULL ) {
-    Py_INCREF(v);
-  }
-  else {
-    args = Py_BuildValue("dddi",0,0,0,FALSE);
-    if( (v = PYGTS_OBJECT(PygtsVertexType.tp_new(&PygtsVertexType, 
-						 args, NULL))) == NULL ) {
-      Py_DECREF(args);
-      return NULL;
-    }
-    Py_DECREF(args);
-    PYGTS_OBJECT(v)->gtsobj = GTS_OBJECT(vertex);
-    if( (parent = pygts_vertex_parent(vertex)) == NULL ) {
-      Py_DECREF(args);
-      return NULL;
-    }
-    PYGTS_OBJECT(v)->gtsobj_parent = GTS_OBJECT(parent);
-    pygts_object_register(v);
+  if( (v = pygts_vertex_new(vertex)) == NULL ) {
+    return NULL;
   }
 
   return (PyObject*)v;
@@ -621,16 +376,8 @@ is_stabbed(PygtsTriangle *self,PyObject *args)
   GtsObject *obj;
   PygtsVertex *vertex;
   PygtsEdge *edge;
-  GtsSegment *parent1;
-  GtsTriangle *parent2;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &p_) ) {
@@ -644,7 +391,7 @@ is_stabbed(PygtsTriangle *self,PyObject *args)
   }
   p = PYGTS_POINT(p_);
 
-  obj = gts_triangle_is_stabbed(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
+  obj = gts_triangle_is_stabbed(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
 				GTS_POINT(PYGTS_OBJECT(p)->gtsobj),
 				NULL);
 
@@ -654,60 +401,16 @@ is_stabbed(PygtsTriangle *self,PyObject *args)
   }
 
   if(GTS_IS_VERTEX(obj)) {
-
-    /* If corresponding PyObject found in object table, we are done */
-    if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,obj))) != NULL ) {
-      Py_INCREF(vertex);
-      return (PyObject*)vertex;
-    }
-
-    /* Chain up object allocation */
-    args = Py_BuildValue("OOOi",Py_None,Py_None,Py_None,FALSE);
-    vertex = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType,args,NULL));
-    Py_DECREF(args);
-    if( vertex == NULL ) {
-      PyErr_SetString(PyExc_RuntimeError, "Could not create Vertex");
+    if( (vertex = pygts_vertex_new(GTS_VERTEX(obj))) == NULL ) {
       return NULL;
     }
-    PYGTS_OBJECT(vertex)->gtsobj = GTS_OBJECT(obj);
-
-    /* Attach parent */
-    if( (parent1=pygts_vertex_parent(GTS_VERTEX(obj))) == NULL ) {
-      Py_DECREF(vertex);
-      return NULL;
-    }
-    PYGTS_OBJECT(vertex)->gtsobj_parent = GTS_OBJECT(parent1);
-
-    pygts_object_register(PYGTS_OBJECT(vertex));
     return (PyObject*)vertex;
   }
 
   if(GTS_IS_EDGE(obj)) {
-
-    /* If corresponding PyObject found in object table, we are done */
-    if( (edge = PYGTS_EDGE(g_hash_table_lookup(obj_table,obj))) != NULL ) {
-      Py_INCREF(edge);
-      return (PyObject*)edge;
-    }
-
-    /* Chain up object allocation */
-    args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-    edge = PYGTS_EDGE(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
-    Py_DECREF(args);
-    if( edge == NULL ) {
-      PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
+    if( (edge = pygts_edge_new(GTS_EDGE(obj))) == NULL ) {
       return NULL;
     }
-    PYGTS_OBJECT(edge)->gtsobj = GTS_OBJECT(obj);
-
-    /* Attach parent */
-    if( (parent2 = pygts_edge_parent(GTS_EDGE(obj))) == NULL ) {
-      Py_DECREF(edge);
-      return NULL;
-    }
-    PYGTS_OBJECT(edge)->gtsobj_parent = GTS_OBJECT(parent2);
-    
-    pygts_object_register(PYGTS_OBJECT(edge));
     return (PyObject*)edge;
   }
 
@@ -723,13 +426,7 @@ interpolate_height(PygtsTriangle *self,PyObject *args)
   PygtsPoint *p;
   GtsPoint point;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
-    return NULL;
-  }
-#endif
+  SELF_CHECK
 
   /* Parse the args */  
   if(! PyArg_ParseTuple(args, "O", &p_) ) {
@@ -743,10 +440,10 @@ interpolate_height(PygtsTriangle *self,PyObject *args)
   }
   p = PYGTS_POINT(p_);
 
-  point.x = GTS_POINT(PYGTS_OBJECT(p)->gtsobj)->x;
-  point.y = GTS_POINT(PYGTS_OBJECT(p)->gtsobj)->y;
+  point.x = PYGTS_POINT_AS_GTS_POINT(p)->x;
+  point.y = PYGTS_POINT_AS_GTS_POINT(p)->y;
 
-  gts_triangle_interpolate_height(GTS_TRIANGLE(PYGTS_OBJECT(self)->gtsobj),
+  gts_triangle_interpolate_height(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self),
 				  &point);
 
   return Py_BuildValue("d",point.z);
@@ -906,43 +603,12 @@ static PyObject *
 get_e1(PygtsTriangle *self, void *closure)
 {
   PygtsEdge *e1;
-  GtsTriangle *parent;
-  PyObject *args;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+  SELF_CHECK
+
+  if( (e1=pygts_edge_new(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)->e1)) == NULL ) {
     return NULL;
   }
-#endif
-
-  /* Get object from table (if available) */
-  if( (e1 = g_hash_table_lookup(obj_table,
-                GTS_OBJECT(GTS_TRIANGLE(self->gtsobj)->e1))) != NULL ) {
-    Py_INCREF(e1);
-    return (PyObject*)e1;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-  e1 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
-  Py_DECREF(args);
-  if( e1 == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
-    return NULL;
-  }
-
-  /* Object initialization */
-  e1->gtsobj = GTS_OBJECT(GTS_TRIANGLE(self->gtsobj)->e1);
-  if( (parent = pygts_edge_parent(GTS_EDGE(e1->gtsobj))) == NULL ) {
-    e1->gtsobj = NULL; /* Don't want to deallocate it */
-    Py_DECREF(e1);
-    return NULL;
-  }
-  PYGTS_OBJECT(e1)->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(e1);
 
   return (PyObject *)e1;
 }
@@ -952,43 +618,12 @@ static PyObject *
 get_e2(PygtsTriangle *self, void *closure)
 {
   PygtsEdge *e2;
-  GtsTriangle *parent;
-  PyObject *args;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+  SELF_CHECK
+
+  if( (e2=pygts_edge_new(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)->e2)) == NULL ) {
     return NULL;
   }
-#endif
-
-  /* Get object from table (if available) */
-  if( (e2 = g_hash_table_lookup(obj_table,
-                GTS_OBJECT(GTS_TRIANGLE(self->gtsobj)->e2))) != NULL ) {
-    Py_INCREF(e2);
-    return (PyObject*)e2;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-  e2 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
-  Py_DECREF(args);
-  if( e2 == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
-    return NULL;
-  }
-
-  /* Object initialization */
-  e2->gtsobj = GTS_OBJECT(GTS_TRIANGLE(self->gtsobj)->e2);
-  if( (parent = pygts_edge_parent(GTS_EDGE(e2->gtsobj))) == NULL ) {
-    e2->gtsobj = NULL; /* Don't want to deallocate it */
-    Py_DECREF(e2);
-    return NULL;
-  }
-  PYGTS_OBJECT(e2)->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(e2);
 
   return (PyObject *)e2;
 }
@@ -998,43 +633,12 @@ static PyObject *
 get_e3(PygtsTriangle *self, void *closure)
 {
   PygtsEdge *e3;
-  GtsTriangle *parent;
-  PyObject *args;
 
-#if PYGTS_DEBUG
-  if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
-		    "problem with self object (internal error)");
+  SELF_CHECK
+
+  if( (e3=pygts_edge_new(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(self)->e3)) == NULL ) {
     return NULL;
   }
-#endif
-
-  /* Get object from table (if available) */
-  if( (e3 = g_hash_table_lookup(obj_table,
-                GTS_OBJECT(GTS_TRIANGLE(self->gtsobj)->e3))) != NULL ) {
-    Py_INCREF(e3);
-    return (PyObject*)e3;
-  }
-
-  /* Chain up object allocation */
-  args = Py_BuildValue("OOi",Py_None,Py_None,FALSE);
-  e3 = PYGTS_OBJECT(PygtsEdgeType.tp_new(&PygtsEdgeType, args, NULL));
-  Py_DECREF(args);
-  if( e3 == NULL ) {
-    PyErr_SetString(PyExc_RuntimeError, "Could not create Edge");
-    return NULL;
-  }
-
-  /* Object initialization */
-  e3->gtsobj = GTS_OBJECT(GTS_TRIANGLE(self->gtsobj)->e3);
-  if( (parent = pygts_edge_parent(GTS_EDGE(e3->gtsobj))) == NULL ) {
-    e3->gtsobj = NULL; /* Don't want to deallocate it */
-    Py_DECREF(e3);
-    return NULL;
-  }
-  PYGTS_OBJECT(e3)->gtsobj_parent = GTS_OBJECT(parent);
-
-  pygts_object_register(e3);
 
   return (PyObject *)e3;
 }
@@ -1058,24 +662,37 @@ static PyGetSetDef getset[] = {
 static PyObject *
 new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
+  PyObject *o;
   PygtsObject *obj;
-  GtsTriangle *tmp;
-  GtsObject *triangle=NULL;
+  guint alloc_gtsobj = TRUE;
+  static char *kwlist[] = {"o1", "o2", "o3", NULL};
 
   PyObject *o1_,*o2_,*o3_;
-  PygtsVertex *v1=NULL, *v2=NULL, *v3=NULL;
-  PygtsEdge *e1=NULL,*e2=NULL,*e3=NULL;
+  GtsVertex *v1=NULL, *v2=NULL, *v3=NULL;
+  GtsEdge *e1=NULL,*e2=NULL,*e3=NULL,*e;
   GtsSegment *s1,*s2,*s3;
   gboolean flag=FALSE;  /* Flag when the args are gts.Point objects */
-  guint alloc_gtsobj = TRUE;
-  static char *kwlist[] = {"o1", "o2", "o3", "alloc_gtsobj", NULL};
+  GtsTriangle *t,*t_;
 
-  /* Parse the args */  
+  /* Parse the args */
+  if(kwds) {
+    o = PyDict_GetItemString(kwds,"alloc_gtsobj");
+    if(o==Py_False) {
+      alloc_gtsobj = FALSE;
+    }
+    if(o!=NULL) {
+      PyDict_DelItemString(kwds, "alloc_gtsobj");
+    }
+  }
   if( args != NULL ) {
-    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OOO|i", kwlist,&o1_,&o2_,&o3_,
-				     &alloc_gtsobj) ) {
+    if(! PyArg_ParseTupleAndKeywords(args, kwds, "OOO", kwlist,
+				     &o1_,&o2_,&o3_) ) {
       return NULL;
     }
+  }
+  if(kwds) {
+    Py_INCREF(Py_False);
+    PyDict_SetItemString(kwds,"alloc_gtsobj", Py_False);
   }
 
   /* Allocate the gtsobj (if needed) */
@@ -1083,31 +700,31 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* Convert to PygtsObjects */
     if( pygts_edge_check(o1_) ) {
-      e1 = PYGTS_EDGE(o1_);
+      e1 = PYGTS_EDGE_AS_GTS_EDGE(o1_);
     }
     else {
       if( pygts_vertex_check(o1_) ) {
-	v1 = PYGTS_VERTEX(o1_);
+	v1 = PYGTS_VERTEX_AS_GTS_VERTEX(o1_);
 	flag = TRUE;
       }
     }
 
     if( pygts_edge_check(o2_) ) {
-      e2 = PYGTS_EDGE(o2_);
+      e2 = PYGTS_EDGE_AS_GTS_EDGE(o2_);
     }
     else {
       if( pygts_vertex_check(o2_) ) {
-	v2 = PYGTS_VERTEX(o2_);
+	v2 = PYGTS_VERTEX_AS_GTS_VERTEX(o2_);
 	flag = TRUE;
       }
     }
 
     if( pygts_edge_check(o3_) ) {
-      e3 = PYGTS_EDGE(o3_);
+      e3 = PYGTS_EDGE_AS_GTS_EDGE(o3_);
     }
     else {
       if(pygts_vertex_check(o3_)) {
-	v3 = PYGTS_VERTEX(o3_);
+	v3 = PYGTS_VERTEX_AS_GTS_VERTEX(o3_);
 	flag = TRUE;
       }
     }
@@ -1116,44 +733,49 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if( !((e1!=NULL && e2!=NULL && e3!=NULL) ||
 	  (v1!=NULL && v2!=NULL && v3!=NULL)) ) {
       PyErr_SetString(PyExc_TypeError,
-		      "3 gts.Edge or gts.Vertex objects expected");
+		      "three Edge or three Vertex objects expected");
       return NULL;
     }
 
     /* Get gts edges */
     if(flag) {
-      if( (s1 = GTS_SEGMENT(gts_edge_new(gts_edge_class(),
-					 GTS_VERTEX(PYGTS_OBJECT(v1)->gtsobj),
-					 GTS_VERTEX(PYGTS_OBJECT(v2)->gtsobj)
-					 )))==NULL ) {
-	PyErr_SetString(PyExc_TypeError,"GTS could not create edge");
+
+      /* Create gts edges */
+      if( (e1 = gts_edge_new(gts_edge_class(),v1,v2)) == NULL ) {
+	PyErr_SetString(PyExc_MemoryError, "could not create Edge");
 	return NULL;
       }
-      if( (s2 = GTS_SEGMENT(gts_edge_new(gts_edge_class(),
-					 GTS_VERTEX(PYGTS_OBJECT(v2)->gtsobj),
-					 GTS_VERTEX(PYGTS_OBJECT(v3)->gtsobj)
-					 )))==NULL ) {
-	PyErr_SetString(PyExc_TypeError,"GTS could not create edge");
-	gts_object_destroy(GTS_OBJECT(s1));
+      if( (e2 = gts_edge_new(gts_edge_class(),v2,v3)) == NULL ) {
+	PyErr_SetString(PyExc_MemoryError, "could not create Edge");
+	gts_object_destroy(GTS_OBJECT(e1));
 	return NULL;
       }
-      if( (s3 = GTS_SEGMENT(gts_edge_new(gts_edge_class(),
-					 GTS_VERTEX(PYGTS_OBJECT(v3)->gtsobj),
-					 GTS_VERTEX(PYGTS_OBJECT(v1)->gtsobj)
-					 )))==NULL ) {
-	PyErr_SetString(PyExc_TypeError,"GTS could not create edge");
-	gts_object_destroy(GTS_OBJECT(s1));
-	gts_object_destroy(GTS_OBJECT(s2));
+      if( (e3 = gts_edge_new(gts_edge_class(),v3,v1)) == NULL ) {
+	PyErr_SetString(PyExc_MemoryError, "could not create Edge");
+	gts_object_destroy(GTS_OBJECT(e1));
+	gts_object_destroy(GTS_OBJECT(e2));
 	return NULL;
       }
-    }
-    else {
-      s1 = GTS_SEGMENT(PYGTS_OBJECT(e1)->gtsobj);
-      s2 = GTS_SEGMENT(PYGTS_OBJECT(e2)->gtsobj);
-      s3 = GTS_SEGMENT(PYGTS_OBJECT(e3)->gtsobj);
+
+      /* Check for duplicates */
+      if( (e = gts_edge_is_duplicate(e1)) != NULL ) {
+	gts_object_destroy(GTS_OBJECT(e1));
+	e1 = e;
+      }
+      if( (e = gts_edge_is_duplicate(e2)) != NULL ) {
+	gts_object_destroy(GTS_OBJECT(e2));
+	e2 = e;
+      }
+      if( (e = gts_edge_is_duplicate(e3)) != NULL ) {
+	gts_object_destroy(GTS_OBJECT(e3));
+	e3 = e;
+      }
     }
 
     /* Check that edges connect with common vertices */
+    s1 = GTS_SEGMENT(e1);
+    s2 = GTS_SEGMENT(e2);
+    s3 = GTS_SEGMENT(e3);
     if( !((s1->v1==s3->v2 && s1->v2==s2->v1 && s2->v2==s3->v1) ||
 	  (s1->v1==s3->v2 && s1->v2==s2->v2 && s2->v1==s3->v1) ||
 	  (s1->v1==s3->v1 && s1->v2==s2->v1 && s2->v2==s3->v2) ||
@@ -1162,52 +784,54 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	  (s1->v2==s3->v2 && s1->v1==s2->v2 && s2->v1==s3->v1) ||
 	  (s1->v2==s3->v1 && s1->v1==s2->v1 && s2->v2==s3->v2) ||
 	  (s1->v2==s3->v1 && s1->v1==s2->v2 && s2->v1==s3->v2)) ) {
-      PyErr_SetString(PyExc_TypeError,
-		      "Edges in triangle must have common vertices");
-      if(flag) {
-	gts_object_destroy(GTS_OBJECT(s1));
-	gts_object_destroy(GTS_OBJECT(s2));
-	gts_object_destroy(GTS_OBJECT(s3));
+      PyErr_SetString(PyExc_RuntimeError,
+		      "Edges in triangle must connect");
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e1));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e2));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e3));
       }
       return NULL;
     }
 
     /* Create the GtsTriangle */
-    triangle = GTS_OBJECT(gts_triangle_new(gts_triangle_class(),
-					   GTS_EDGE(s1),
-					   GTS_EDGE(s2),
-					   GTS_EDGE(s3)));
-    if( triangle == NULL )  {
-      PyErr_SetString(PyExc_RuntimeError, "GTS could not create Triangle");
-      if(flag) {
-	gts_object_destroy(GTS_OBJECT(s1));
-	gts_object_destroy(GTS_OBJECT(s2));
-	gts_object_destroy(GTS_OBJECT(s3));
+    if( (t = gts_triangle_new(gts_triangle_class(),e1,e2,e3)) == NULL )  {
+      PyErr_SetString(PyExc_MemoryError, "could not create Face");
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e1));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e2));
+      }
+      if(!g_hash_table_lookup(obj_table,GTS_OBJECT(e1))) {
+	gts_object_destroy(GTS_OBJECT(e3));
       }
       return NULL;
     }
 
     /* Check for duplicate */
-    tmp = gts_triangle_is_duplicate(GTS_TRIANGLE(triangle));
-    if( tmp != NULL ) {
-      gts_object_destroy(triangle);
-      triangle = GTS_OBJECT(tmp);
+    t_ = gts_triangle_is_duplicate(GTS_TRIANGLE(t));
+    if( t_ != NULL ) {
+      gts_object_destroy(GTS_OBJECT(t));
+      t = t_;
     }
 
     /* If corresponding PyObject found in object table, we are done */
-    if( (obj=g_hash_table_lookup(obj_table,triangle)) != NULL ) {
+    if( (obj=g_hash_table_lookup(obj_table,GTS_OBJECT(t))) != NULL ) {
       Py_INCREF(obj);
       return (PyObject*)obj;
     }
   }
   
   /* Chain up */
-  args = Py_BuildValue("OOOi",&o1_,&o2_,&o3_,FALSE);
-  obj = PYGTS_OBJECT(PygtsObjectType.tp_new(type,args,NULL));
-  Py_DECREF(args);
+  obj = PYGTS_OBJECT(PygtsObjectType.tp_new(type,args,kwds));
 
   if( alloc_gtsobj ) {
-    obj->gtsobj = triangle;
+    obj->gtsobj = GTS_OBJECT(t);
     pygts_object_register(PYGTS_OBJECT(obj));
   }
 
@@ -1227,7 +851,7 @@ init(PygtsTriangle *self, PyObject *args, PyObject *kwds)
 
 #if PYGTS_DEBUG
   if(!pygts_triangle_check((PyObject*)self)) {
-    PyErr_SetString(PyExc_TypeError,
+    PyErr_SetString(PyExc_RuntimeError,
 		    "problem with self object (internal error)");
     return -1;
   }
@@ -1245,8 +869,8 @@ compare(PyObject *o1, PyObject *o2)
   if( !(pygts_triangle_check(o1) && pygts_triangle_check(o2)) ) {
     return -1;
   }
-  t1 = GTS_TRIANGLE(PYGTS_TRIANGLE(o1)->gtsobj);
-  t2 = GTS_TRIANGLE(PYGTS_TRIANGLE(o2)->gtsobj);
+  t1 = PYGTS_TRIANGLE_AS_GTS_TRIANGLE(o1);
+  t2 = PYGTS_TRIANGLE_AS_GTS_TRIANGLE(o2);
   
   return pygts_triangle_compare(t1,t2);  
 }
@@ -1320,7 +944,39 @@ gboolean
 pygts_triangle_is_ok(PygtsTriangle *t)
 {
   if(!pygts_object_is_ok(PYGTS_OBJECT(t))) return FALSE;
-  return pygts_gts_triangle_is_ok(GTS_TRIANGLE(PYGTS_OBJECT(t)->gtsobj));
+  return pygts_gts_triangle_is_ok(PYGTS_TRIANGLE_AS_GTS_TRIANGLE(t));
+}
+
+
+PygtsTriangle *
+pygts_triangle_new(GtsTriangle *t)
+{
+  PyObject *args, *kwds;
+  PygtsObject *triangle;
+
+  /* Check for Triangle in the object table */
+  if( (triangle = PYGTS_OBJECT(g_hash_table_lookup(obj_table,GTS_OBJECT(t)))) 
+      !=NULL ) {
+    Py_INCREF(triangle);
+    return PYGTS_TRIANGLE(triangle);
+  }
+
+  /* Build a new Triangle */
+  args = Py_BuildValue("OOO",Py_None,Py_None,Py_None);
+  kwds = Py_BuildValue("{s:O}","alloc_gtsobj",Py_False);
+  triangle = PYGTS_OBJECT(PygtsTriangleType.tp_new(&PygtsTriangleType,
+						   args, kwds));
+  Py_DECREF(args);
+  Py_DECREF(kwds);
+  if( triangle == NULL ) {
+    PyErr_SetString(PyExc_MemoryError,"could not create Triangle");
+    return NULL;
+  }
+  triangle->gtsobj = GTS_OBJECT(t);
+
+  /* Register and return */
+  pygts_object_register(triangle);
+  return PYGTS_TRIANGLE(triangle);
 }
 
 

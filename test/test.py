@@ -737,13 +737,21 @@ class TestVertexMethods(TestPointMethods):
 
         v = self.Point()
 
+        self.assert_(v.is_ok())
+
         self.assert_(len(v.triangles())==0)
         
         t = gts.Triangle(v,gts.Vertex(0,1),gts.Vertex(1,0))
+        
+        self.assert_(t.is_ok())
+
         self.assert_(len(v.triangles())==1)
         self.assert_(t in v.triangles())
 
         f = gts.Face(v,gts.Vertex(0,1),gts.Vertex(1,0))
+
+        self.assert_(f.is_ok())
+
         self.assert_(len(v.triangles())==2)
         self.assert_(t in v.triangles())
         self.assert_(f in v.triangles())
@@ -1237,6 +1245,17 @@ class TestTriangleMethods(unittest.TestCase):
         self.assert_(isinstance(t,gts.Triangle))
         t = self.Triangle(e3b,e1,e2)
         self.assert_(t.is_ok())
+        self.assert_(t.e1.is_ok())
+        self.assert_(t.e2.is_ok())
+        self.assert_(t.e3.is_ok())
+        self.assert_(isinstance(t,gts.Triangle))
+
+        # Check creation with vertices
+        t = self.Triangle(gts.Vertex(1,0,0),gts.Vertex(0,1,0),gts.Vertex(0,0,1))
+        self.assert_(t.is_ok())
+        self.assert_(t.e1.is_ok())
+        self.assert_(t.e2.is_ok())
+        self.assert_(t.e3.is_ok())
         self.assert_(isinstance(t,gts.Triangle))
 
         # Try re-using some vertices and edges after deleting the triangle
@@ -1245,11 +1264,6 @@ class TestTriangleMethods(unittest.TestCase):
         e2 = gts.Edge(v2,v4)
         e3 = gts.Edge(v1,v4)
         t = self.Triangle(e1,e2,e3)
-        self.assert_(t.is_ok())
-        self.assert_(isinstance(t,gts.Triangle))
-
-        # Check creation with vertices
-        t = self.Triangle(gts.Vertex(1,0,0),gts.Vertex(0,1,0),gts.Vertex(0,0,1))
         self.assert_(t.is_ok())
         self.assert_(isinstance(t,gts.Triangle))
 
@@ -2656,7 +2670,6 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(not f1.common_edge(f2))
 
         s.cleanup(1.e-6)
-        self.assert_(f1.common_edge(f2))
 
         self.assert_(v1.is_ok())
         self.assert_(v2a.is_ok())
@@ -2667,7 +2680,17 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(f1.is_ok())
         self.assert_(f2.is_ok())
 
+        self.assert_(f1.e1.is_ok())
+        self.assert_(f1.e2.is_ok())
+        self.assert_(f1.e3.is_ok())
+
+        self.assert_(f2.e1.is_ok())
+        self.assert_(f2.e2.is_ok())
+        self.assert_(f2.e3.is_ok())
+
         self.assert_(s.is_ok())
+
+        self.assert_(f1.common_edge(f2))
 
 
     def test_parent(self):
@@ -2831,6 +2854,26 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(s.is_ok())
 
 
+    def test_subclass(self):
+
+        class Surface(gts.Surface):
+
+            def __init__(self,msg):
+                self.msg = msg
+                gts.Surface.__init__(self)
+
+            def foo(self):
+                return self.msg
+
+        tetrahedron = gts.tetrahedron()
+        s = Surface('bar')
+        for face in tetrahedron:
+            s.add(face)
+        del tetrahedron
+        self.assert_(s.is_ok)
+        self.assert_(s.foo()=='bar')
+
+
 class TestFunctions(unittest.TestCase):
 
     def test_merge(self):
@@ -2874,6 +2917,13 @@ class TestFunctions(unittest.TestCase):
                      gts.Edge(v1,v3) ]
 
         vertices = gts.vertices(segments)
+
+        self.assert_(v1.is_ok())
+        self.assert_(v2.is_ok())
+        self.assert_(v3.is_ok())
+        for segment in segments:
+            self.assert_(segment.is_ok())
+
         self.assert_(len(vertices)==3)
         self.assert_(v1 in vertices)
         self.assert_(v2 in vertices)

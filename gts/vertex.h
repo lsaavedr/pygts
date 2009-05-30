@@ -32,10 +32,14 @@ typedef struct _PygtsObject PygtsVertex;
 
 #define PYGTS_VERTEX(obj) ((PygtsVertex*)obj)
 
+#define PYGTS_VERTEX_AS_GTS_VERTEX(o) (GTS_VERTEX(PYGTS_OBJECT(o)->gtsobj))
+
 extern PyTypeObject PygtsVertexType;
 
 gboolean pygts_vertex_check(PyObject* o);
 gboolean pygts_vertex_is_ok(PygtsVertex *v);
+
+PygtsVertex* pygts_vertex_new(GtsVertex *f);
 
 
 /*-------------------------------------------------------------------------*/
@@ -68,9 +72,6 @@ typedef struct _GtsVertex PygtsParentVertex;
 
 #define PYGTS_IS_PARENT_VERTEX(obj)(gts_object_is_from_class(obj,\
                                              pygts_parent_vertex_class()))
-
-
-GtsSegment* pygts_vertex_parent(GtsVertex *v1);
 
 GtsVertexClass *pygts_parent_vertex_class(void);
 
