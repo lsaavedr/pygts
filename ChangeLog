@@ -6,12 +6,15 @@
 
 	* Added the gts.blender submodule
 	
-	* Refactored code to consolidate object creation and eliminate 
-	duplicated code
+	* Refactored code to consolidate object creation, eliminate 
+	duplicate code, and allow extension types to be subclassed
+
+	* Allow sequences to be used in place of Points or Vertices in
+	method calls
 
 	* Reworked error types and messages
 	
-	* Renamed Vertex.get() to Vertex.coords(),
+	* Renamed Vertex.get() to Vertex.coords(), and
 	get_mayavi_coords_and_triangles() to get_coords_and_face_indices()
 
 	* Changed interface of get_coords_and_face_indices() for use with

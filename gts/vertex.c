@@ -369,7 +369,7 @@ encroaches(PygtsVertex *self, PyObject *args)
     PyErr_SetString(PyExc_TypeError,"expected an Edge");
     return NULL;
   }
-  e = PYGTS_VERTEX(e_);
+  e = PYGTS_EDGE(e_);
 
   if(gts_vertex_encroaches_edge(PYGTS_VERTEX_AS_GTS_VERTEX(self),
 				PYGTS_EDGE_AS_GTS_EDGE(e))) {
@@ -631,16 +631,47 @@ PyTypeObject PygtsVertexType = {
 gboolean 
 pygts_vertex_check(PyObject* o)
 {
-  if(! PyObject_TypeCheck(o, &PygtsVertexType)) {
+  gboolean check = FALSE;
+  guint i,N;
+  PyObject *obj;
+
+  /* Check for a Vertex */
+  if( PyObject_TypeCheck(o, &PygtsVertexType) ) {
+    check = TRUE;
+  }
+
+  /* Convert list into tuple */
+  if(PyList_Check(o)) {
+    o = PyList_AsTuple(o);
+  }
+  else {
+    Py_INCREF(o);
+  }
+
+  /* Check for a tuple of floats */
+  if( PyTuple_Check(o) ) {
+    if( (N = PyTuple_Size(o)) <= 3 ) {
+      check = TRUE;
+      for(i=0;i<N;i++) {
+	obj = PyTuple_GET_ITEM(o,i);
+	if(!PyFloat_Check(obj) && !PyInt_Check(obj)) {
+	  check = FALSE;
+	}
+      }
+    }
+  }
+  Py_DECREF(o);
+
+  if( !check ) {
     return FALSE;
   }
   else {
-
 #if PYGTS_DEBUG
-    return pygts_vertex_is_ok(PYGTS_VERTEX(o));
-#else
-    return TRUE;
+    if( PyObject_TypeCheck(o, &PygtsVertexType) ) {
+      return pygts_vertex_is_ok(PYGTS_VERTEX(o));
+    }
 #endif
+    return TRUE;
   }
 }
 
@@ -708,8 +739,7 @@ pygts_vertex_new(GtsVertex *v)
   /* Build a new Vertex */
   args = Py_BuildValue("ddd",0,0,0);
   kwds = Py_BuildValue("{s:O}","alloc_gtsobj",Py_False);
-  vertex = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType, 
-					       args, kwds));
+  vertex = PYGTS_VERTEX(PygtsVertexType.tp_new(&PygtsVertexType, args, kwds));
   Py_DECREF(args);
   Py_DECREF(kwds);
   if( vertex == NULL ) {
@@ -731,7 +761,7 @@ pygts_vertex_new(GtsVertex *v)
 
 
 PygtsVertex *
-pygts_vertex_from_tuple(PyObject *tuple) {
+pygts_vertex_from_sequence(PyObject *tuple) {
   guint i,N;
   gdouble x=0,y=0,z=0;
   PyObject *obj;
@@ -752,8 +782,7 @@ pygts_vertex_from_tuple(PyObject *tuple) {
   }
 
   /* Get the tuple size */
-  N = PyTuple_Size(tuple);
-  if( N > 3 ) {
+  if( (N = PyTuple_Size(tuple)) > 3 ) {
     PyErr_SetString(PyExc_RuntimeError,
 		    "expected a list or tuple of up to three floats");
     Py_DECREF(tuple);
@@ -764,22 +793,32 @@ pygts_vertex_from_tuple(PyObject *tuple) {
   for(i=0;i<N;i++) {
     obj = PyTuple_GET_ITEM(tuple,i);
 
-    if(!PyFloat_Check(obj)) {
+    if(!PyFloat_Check(obj) && !PyInt_Check(obj)) {
       PyErr_SetString(PyExc_TypeError,"expected a list or tuple of floats");
       Py_DECREF(tuple);
       return NULL;
     }
-    if(i==0) x = PyFloat_AsDouble(obj);
-    if(i==2) y = PyFloat_AsDouble(obj);
-    if(i==3) z = PyFloat_AsDouble(obj);
+    if(i==0) {
+      if(PyFloat_Check(obj)) x = PyFloat_AsDouble(obj);
+      else  x = (double)PyInt_AsLong(obj);
+    }
+    if(i==1) {
+      if(PyFloat_Check(obj)) y = PyFloat_AsDouble(obj);
+      else  y = (double)PyInt_AsLong(obj);
+    }
+    if(i==2) {
+      if(PyFloat_Check(obj)) z = PyFloat_AsDouble(obj);
+      else  z = (double)PyInt_AsLong(obj);
+    }
   }
   Py_DECREF(tuple);
 
   /* Create the vertex */  
-  if( (v = gts_vertex_new(pygts_parent_vertex_class(),x,y,z)) == NULL ) {
+  if( (v = gts_vertex_new(gts_vertex_class(),x,y,z)) == NULL ) {
     PyErr_SetString(PyExc_MemoryError,"could not create Vertex");
   }
   if( (vertex = pygts_vertex_new(v)) == NULL ) {
+    gts_object_destroy(GTS_OBJECT(v));
     return NULL;
   }
 
