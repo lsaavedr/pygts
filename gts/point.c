@@ -102,45 +102,45 @@ is_in_rectangle(PygtsPoint* self, PyObject *args)
   }
 
   /* Convert to PygtsObjects */
-  if(pygts_point_check(o1_) && pygts_point_check(o2_)) {
-    p1 = PYGTS_POINT(o1_);
-    p2 = PYGTS_POINT(o2_);
-
-    /* Test if point *may* be on rectangle perimeter */
-    x = PYGTS_POINT_AS_GTS_POINT(self)->x;
-    y = PYGTS_POINT_AS_GTS_POINT(self)->y;
-    if( PYGTS_POINT_AS_GTS_POINT(p1)->x == x ||
-	PYGTS_POINT_AS_GTS_POINT(p1)->y == y ||
-	PYGTS_POINT_AS_GTS_POINT(p2)->x == x ||
-	PYGTS_POINT_AS_GTS_POINT(p2)->y == y ) {
-      flag = TRUE;
-    }
-
-    if( gts_point_is_in_rectangle(PYGTS_POINT_AS_GTS_POINT(self), 
-				  PYGTS_POINT_AS_GTS_POINT(p1), 
-				  PYGTS_POINT_AS_GTS_POINT(p2)) ) {
-      if(flag) {
-	return Py_BuildValue("i",0);
-      }
-      else {
-	return Py_BuildValue("i",1);
-      }
-    }
-    else {
-      if( flag && 
-	  gts_point_is_in_rectangle(PYGTS_POINT_AS_GTS_POINT(self), 
-				    PYGTS_POINT_AS_GTS_POINT(p2), 
-				    PYGTS_POINT_AS_GTS_POINT(p1))) {
-	return Py_BuildValue("i",0);
-      }
-      else {
-	return Py_BuildValue("i",-1);
-      }
-    }
+  if(!(pygts_point_check(o1_) && pygts_point_check(o2_))) {
+    PyErr_SetString(PyExc_TypeError,"expected two Points");
+    return NULL;
   }
 
-  PyErr_SetString(PyExc_TypeError,"expected two Points");
-  return NULL;
+  p1 = PYGTS_POINT(o1_);
+  p2 = PYGTS_POINT(o2_);
+
+  /* Test if point *may* be on rectangle perimeter */
+  x = PYGTS_POINT_AS_GTS_POINT(self)->x;
+  y = PYGTS_POINT_AS_GTS_POINT(self)->y;
+  if( PYGTS_POINT_AS_GTS_POINT(p1)->x == x ||
+      PYGTS_POINT_AS_GTS_POINT(p1)->y == y ||
+      PYGTS_POINT_AS_GTS_POINT(p2)->x == x ||
+      PYGTS_POINT_AS_GTS_POINT(p2)->y == y ) {
+    flag = TRUE;
+  }
+
+  if( gts_point_is_in_rectangle(PYGTS_POINT_AS_GTS_POINT(self), 
+				PYGTS_POINT_AS_GTS_POINT(p1), 
+				PYGTS_POINT_AS_GTS_POINT(p2)) ) {
+    if(flag) {
+      return Py_BuildValue("i",0);
+    }
+    else {
+      return Py_BuildValue("i",1);
+    }
+  }
+  else {
+    if( flag && 
+	gts_point_is_in_rectangle(PYGTS_POINT_AS_GTS_POINT(self), 
+				  PYGTS_POINT_AS_GTS_POINT(p2), 
+				  PYGTS_POINT_AS_GTS_POINT(p1))) {
+      return Py_BuildValue("i",0);
+    }
+    else {
+      return Py_BuildValue("i",-1);
+    }
+  }
 }
 
 
@@ -1037,15 +1037,47 @@ PyTypeObject PygtsPointType = {
 gboolean 
 pygts_point_check(PyObject* o)
 {
-  if(! PyObject_TypeCheck(o, &PygtsPointType)) {
+  gboolean check = FALSE;
+  guint i,N;
+  PyObject *obj;
+
+  /* Check for a Point */
+  if( PyObject_TypeCheck(o, &PygtsPointType) ) {
+    check = TRUE;
+  }
+
+  /* Convert list into tuple */
+  if(PyList_Check(o)) {
+    o = PyList_AsTuple(o);
+  }
+  else {
+    Py_INCREF(o);
+  }
+
+  /* Check for a tuple of floats */
+  if( PyTuple_Check(o) ) {
+    if( (N = PyTuple_Size(o)) <= 3 ) {
+      check = TRUE;
+      for(i=0;i<N;i++) {
+	obj = PyTuple_GET_ITEM(o,i);
+	if(!PyFloat_Check(obj) && !PyInt_Check(obj)) {
+	  check = FALSE;
+	}
+      }
+    }
+  }
+  Py_DECREF(o);
+
+  if( !check ) {
     return FALSE;
   }
   else {
 #if PYGTS_DEBUG
-    return pygts_point_is_ok(PYGTS_POINT(o));
-#else
-    return TRUE;
+    if( PyObject_TypeCheck(o, &PygtsPointType) ) {
+      return pygts_point_is_ok(PYGTS_POINT(o));
+    }
 #endif
+    return TRUE;
   }
 }
 
@@ -1054,6 +1086,103 @@ gboolean
 pygts_point_is_ok(PygtsPoint *p)
 {
   return pygts_object_is_ok(PYGTS_OBJECT(p));
+}
+
+
+PygtsPoint *
+pygts_point_new(GtsPoint *p)
+{
+  PyObject *args, *kwds;
+  PygtsObject *point;
+
+  /* Check for Point in the object table */
+  if( (point = PYGTS_OBJECT(g_hash_table_lookup(obj_table,GTS_OBJECT(p)))) 
+      !=NULL ) {
+    Py_INCREF(point);
+    return PYGTS_POINT(point);
+  }
+
+  /* Build a new Point */
+  args = Py_BuildValue("ddd",0,0,0);
+  kwds = Py_BuildValue("{s:O}","alloc_gtsobj",Py_False);
+  point = PYGTS_POINT(PygtsPointType.tp_new(&PygtsPointType, args, kwds));
+  Py_DECREF(args);
+  Py_DECREF(kwds);
+  if( point == NULL ) {
+    PyErr_SetString(PyExc_MemoryError,"could not create Point");
+    return NULL;
+  }
+  point->gtsobj = GTS_OBJECT(p);
+
+  /* Register and return */
+  pygts_object_register(point);
+  return PYGTS_POINT(point);
+}
+
+
+PygtsPoint *
+pygts_point_from_sequence(PyObject *tuple) {
+  guint i,N;
+  gdouble x=0,y=0,z=0;
+  PyObject *obj;
+  GtsPoint *p;
+  PygtsPoint *point;
+
+  /* Convert list into tuple */
+  if(PyList_Check(tuple)) {
+    tuple = PyList_AsTuple(tuple);
+  }
+  else {
+    Py_INCREF(tuple);
+  }
+  if(!PyTuple_Check(tuple)) {
+    Py_DECREF(tuple);
+    PyErr_SetString(PyExc_TypeError,"expected a list or tuple of vertices");
+    return NULL;
+  }
+
+  /* Get the tuple size */
+  if( (N = PyTuple_Size(tuple)) > 3 ) {
+    PyErr_SetString(PyExc_RuntimeError,
+		    "expected a list or tuple of up to three floats");
+    Py_DECREF(tuple);
+    return NULL;
+  }
+
+  /* Get the coordinates */
+  for(i=0;i<N;i++) {
+    obj = PyTuple_GET_ITEM(tuple,i);
+
+    if(!PyFloat_Check(obj) && !PyInt_Check(obj)) {
+      PyErr_SetString(PyExc_TypeError,"expected a list or tuple of floats");
+      Py_DECREF(tuple);
+      return NULL;
+    }
+    if(i==0) {
+      if(PyFloat_Check(obj)) x = PyFloat_AsDouble(obj);
+      else  x = (double)PyInt_AsLong(obj);
+    }
+    if(i==1) {
+      if(PyFloat_Check(obj)) y = PyFloat_AsDouble(obj);
+      else  y = (double)PyInt_AsLong(obj);
+    }
+    if(i==2) {
+      if(PyFloat_Check(obj)) z = PyFloat_AsDouble(obj);
+      else  z = (double)PyInt_AsLong(obj);
+    }
+  }
+  Py_DECREF(tuple);
+
+  /* Create the vertex */  
+  if( (p = gts_point_new(gts_point_class(),x,y,z)) == NULL ) {
+    PyErr_SetString(PyExc_MemoryError,"could not create Point");
+  }
+  if( (point = pygts_point_new(p)) == NULL ) {
+    gts_object_destroy(GTS_OBJECT(p));
+    return NULL;
+  }
+
+  return point;
 }
 
 

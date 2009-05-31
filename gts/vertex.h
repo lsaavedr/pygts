@@ -30,7 +30,10 @@
 
 typedef struct _PygtsObject PygtsVertex;
 
-#define PYGTS_VERTEX(obj) ((PygtsVertex*)obj)
+
+#define PYGTS_VERTEX(o) ( PyObject_TypeCheck((PyObject*)o, &PygtsVertexType) ? \
+			  (PygtsVertex*)o :				\
+			  pygts_vertex_from_sequence((PyObject*)o) )
 
 #define PYGTS_VERTEX_AS_GTS_VERTEX(o) (GTS_VERTEX(PYGTS_OBJECT(o)->gtsobj))
 
@@ -40,7 +43,7 @@ gboolean pygts_vertex_check(PyObject* o);
 gboolean pygts_vertex_is_ok(PygtsVertex *v);
 
 PygtsVertex* pygts_vertex_new(GtsVertex *f);
-PygtsVertex* pygts_vertex_from_tuple(PyObject *tuple);
+PygtsVertex* pygts_vertex_from_sequence(PyObject *tuple);
 
 
 /*-------------------------------------------------------------------------*/

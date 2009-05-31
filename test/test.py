@@ -146,6 +146,13 @@ class TestPointMethods(unittest.TestCase):
         self.assert_( p1.is_in_rectangle(p2,p3) == -1)
         self.assert_( p2.is_in_rectangle(p1,p3) == -1)
 
+        self.assert_( p1.is_in_rectangle((0,0,0),(1,1,1)) == 0 )
+        self.assert_( p1.is_in_rectangle((1,1,1),(0,0,0)) == 0 )
+        self.assert_( p3.is_in_rectangle((0,0,0),(1,1,1)) == 1 )
+        self.assert_( p3.is_in_rectangle((1,1,1),(0,0,0)) == -1 )
+        self.assert_( p1.is_in_rectangle((1,1,1),p3) == -1)
+        self.assert_( p2.is_in_rectangle((0,0,0),p3) == -1)
+
         self.assert_(p1.is_ok())
         self.assert_(p2.is_ok())
         self.assert_(p3.is_ok())
@@ -158,6 +165,11 @@ class TestPointMethods(unittest.TestCase):
         self.assert_(p1.distance(p2)==5.)
         self.assert_(p1.is_ok())
         self.assert_(p2.is_ok())
+
+        # Distance from tuple Point
+        self.assert_(p1.distance([3,4])==5.)
+        self.assert_(p1.is_ok())
+
 
         # Distance from Segment
         s = gts.Segment(gts.Vertex(-1,0,-2),gts.Vertex(1,0,-2))
@@ -179,6 +191,7 @@ class TestPointMethods(unittest.TestCase):
         # Distance squared from Point
         p1,p2 = self.Point(0,0), self.Point(3,4)
         self.assert_(p1.distance2(p2)==25.)
+        self.assert_(p1.distance2((3,4))==25.)
         self.assert_(p1.is_ok())
         self.assert_(p2.is_ok())
 
@@ -208,6 +221,7 @@ class TestPointMethods(unittest.TestCase):
         self.assert_(self.Point(0,0,0).orientation_3d(p1,p3,p2)==0)
         self.assert_(self.Point(0,0,1).orientation_3d(p1,p3,p2)>0)
         self.assert_(self.Point(0,0,-1).orientation_3d(p1,p3,p2)<0)
+        self.assert_(self.Point(0,0,-1).orientation_3d((0,0),p3,[1,0])<0)
 
         self.assert_(p1.is_ok())
         self.assert_(p2.is_ok())
@@ -451,6 +465,10 @@ class TestVertexMethods(TestPointMethods):
         s.v1.replace(v4)
         self.assert_(s.v1.id == v4.id)
         self.assert_(v3.id != v4.id)
+
+        # Replace a vertex using a sequence
+        s.v1.replace([2,4,6])
+        self.assert_(s.v1==gts.Point(2,4,6) or s.v2==gts.Point(2,4,6))
 
         # Final checkout
         self.assert_(s.is_ok())
