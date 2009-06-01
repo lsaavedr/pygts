@@ -4,8 +4,6 @@
 
 	* Reorganized PyGTS as a true python package, not just a module
 
-	* Added the gts.blender submodule
-	
 	* Refactored code to consolidate object creation, eliminate 
 	duplicate code, and allow extension types to be subclassed
 
@@ -13,6 +11,8 @@
 	method calls
 
 	* Reworked error types and messages
+
+	* Added Surface.iso()
 	
 	* Renamed Vertex.get() to Vertex.coords(), and
 	get_mayavi_coords_and_triangles() to get_coords_and_face_indices()

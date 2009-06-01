@@ -39,6 +39,9 @@
 #include <Python.h>
 #include <structmember.h>
 
+/* Defined for arrayobject.h which is only included where needed */
+#define PY_ARRAY_UNIQUE_SYMBOL PYGTS
+
 #include <glib.h>
 #include <gts.h>
 
