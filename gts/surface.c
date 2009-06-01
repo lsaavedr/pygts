@@ -29,7 +29,9 @@
 
 #define NO_IMPORT_ARRAY
 
-#include "numpy/arrayobject.h"
+#if PYGTS_HAS_NUMPY
+  #include "numpy/arrayobject.h"
+#endif
 
 
 #if PYGTS_DEBUG
@@ -1704,6 +1706,8 @@ coarsen(PygtsSurface *self, PyObject *args)
 }
 
 
+#if PYGTS_HAS_NUMPY
+
 /* Helper for pygts_iso to fill f with a layer of data from scalar */
 static void isofunc(gdouble **f, GtsCartesianGrid g, guint k, gpointer data)
 {
@@ -1831,6 +1835,8 @@ iso(PygtsSurface *self, PyObject *args, PyObject *kwds)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+#endif /* PYGTS_HAS_NUMPY */
 
 
 /* Methods table */
@@ -2163,6 +2169,7 @@ static PyMethodDef methods[] = {
    "amin is the smallest angle between Faces.\n"
   },
 
+#if PYGTS_HAS_NUMPY
   {"iso",  (PyCFunction)iso, 
    METH_VARARGS|METH_KEYWORDS,
    "Adds to surface new faces defining the isosurface data[x,y,z] = c\n"
@@ -2191,6 +2198,7 @@ static PyMethodDef methods[] = {
    "By convention, the normals to the surface are pointing towards\n"
    "positive values of data[x,y,z] - c.\n"
   },
+#endif
 
   {NULL}  /* Sentinel */
 };
