@@ -1,8 +1,10 @@
-2009-05-30  Thomas J. Duck  <tom.duck@dal.ca>
+2009-05-31  Thomas J. Duck  <tom.duck@dal.ca>
 
 	* Version 0.3.0
 
 	* Reorganized PyGTS as a true python package, not just a module
+
+	* Added numpy (http://numpy.scipy.org/) as a dependency
 
 	* Refactored code to consolidate object creation, eliminate 
 	duplicate code, and allow extension types to be subclassed

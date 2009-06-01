@@ -31,11 +31,18 @@ import unittest
 import sys
 import tempfile
 import os.path
-import numpy
 
 from math import sqrt, fabs, pi, radians, atan
 
 import gts
+
+try:
+    import numpy
+    getattr(gts.Surface,'iso')  # Should be there if numpy was compiled in
+except:
+    HAS_NUMPY = False
+else:
+    HAS_NUMPY = True
 
 
 # GTS throws up error messages for the is_ok() tests
@@ -2975,35 +2982,41 @@ class TestSurfaceMethods(unittest.TestCase):
 
 
     def test_iso(self):
-        # Check parameters of a sphere generated from an isosurface
-        N = 50                          # Size of data cube
-        r = 4                           # Radius of sphere
-        tol = 1e-2                      # Needs changing with N
-        Nj = N*(0+1j)
-        x, y, z = numpy.ogrid[-5:5:Nj, -5:5:Nj, -5:5:Nj]
-        
-        scalars = x*x + y*y + z*z
-        extents= numpy.asarray([-5.0, 5.0, -5.0, 5.0, -5.0, 5.0])
-        S = gts.Surface()
-        r = 4.0
 
-        def iso_test_method(method='c'):
-            S.iso(scalars, r**2, extents=extents, method=method)
+        if HAS_NUMPY:
 
-            self.assert_(S.is_closed())
-            #print 'Area', S.area() / (4*numpy.pi*r**2)
-            #print 'Volume', S.volume() / (4*numpy.pi*r**3/3)
-            self.assert_(fabs(S.area() / (4*numpy.pi*r**2) - 1) < tol)
-            self.assert_(fabs(S.volume() / (4*numpy.pi*r**3/3) - 1) < tol)
-            xyz = numpy.asarray([v.coords() for v in S.vertices()])
-            dd = (xyz*xyz).sum(1)
-            self.assert_(fabs(dd.max()/(r*r) - 1) < tol)
-            self.assert_(fabs(dd.min()/(r*r) - 1) < tol)
+            # Check parameters of a sphere generated from an isosurface
+            N = 50                          # Size of data cube
+            r = 4                           # Radius of sphere
+            tol = 1e-2                      # Needs changing with N
+            Nj = N*(0+1j)
+            x, y, z = numpy.ogrid[-5:5:Nj, -5:5:Nj, -5:5:Nj]
 
-        iso_test_method('c')
-#        iso_test_method('t')  # Fails
-#        iso_test_method('b')  # Fails
-#        iso_test_method('d')  # Fails
+            scalars = x*x + y*y + z*z
+            extents= numpy.asarray([-5.0, 5.0, -5.0, 5.0, -5.0, 5.0])
+            S = gts.Surface()
+            r = 4.0
+
+            def iso_test_method(method='c'):
+                S.iso(scalars, r**2, extents=extents, method=method)
+
+                self.assert_(S.is_closed())
+                #print 'Area', S.area() / (4*numpy.pi*r**2)
+                #print 'Volume', S.volume() / (4*numpy.pi*r**3/3)
+                self.assert_(fabs(S.area() / (4*numpy.pi*r**2) - 1) < tol)
+                self.assert_(fabs(S.volume() / (4*numpy.pi*r**3/3) - 1) < tol)
+                xyz = numpy.asarray([v.coords() for v in S.vertices()])
+                dd = (xyz*xyz).sum(1)
+                self.assert_(fabs(dd.max()/(r*r) - 1) < tol)
+                self.assert_(fabs(dd.min()/(r*r) - 1) < tol)
+
+            iso_test_method('c')
+#            iso_test_method('t')  # Fails
+#            iso_test_method('b')  # Fails
+#            iso_test_method('d')  # Fails
+
+        else:
+            sys.stderr.write('*** skipping *** ...')
 
 
 class TestFunctions(unittest.TestCase):

@@ -35,11 +35,12 @@ from distutils import sysconfig
 import commands
 import os, sys
 import numpy, numpy.distutils
-
+import warnings
 
 VERSION = '0.3.0'
 
-PYGTS_DEBUG = '1'  # '1' for on, '0' for off
+PYGTS_DEBUG = '1'      # '1' for on, '0' for off
+PYGTS_HAS_NUMPY = '0'  # Numpy detected below
 
 # Hand-code these lists if the auto-detection below doesn't work
 INCLUDE_DIRS = []
@@ -65,12 +66,12 @@ if not INCLUDE_DIRS:
     flag = False
     for path in numpy_include_dirs:
         if os.path.exists(os.path.join(path,'numpy/arrayobject.h')):
-            flag = True
+            PYGTS_HAS_NUMPY = '1'
             break
-    if not flag:
-        raise RuntimeError, "Cannot find numpy/arrayobject.h"
-    INCLUDE_DIRS.extend(numpy_include_dirs)
-
+    if PYGTS_HAS_NUMPY == '1':
+        INCLUDE_DIRS.extend(numpy_include_dirs)
+    else:
+        warnings.warn('Cannot find numpy.  Some methods will be disabled.')
 
 if not LIB_DIRS:
     command = "pkg-config --libs-only-L gts"
@@ -140,9 +141,36 @@ Surface (GTS) Library.""",
                                           "gts/surface.c",
                                           "gts/cleanup.c"
                                           ],
-                             define_macros=[('PYGTS_DEBUG',PYGTS_DEBUG)],
+                             define_macros=[
+                ('PYGTS_DEBUG', PYGTS_DEBUG),
+                ('PYGTS_HAS_NUMPY', PYGTS_HAS_NUMPY)
+                ],
                              include_dirs = INCLUDE_DIRS,
                              library_dirs = LIB_DIRS,
                              libraries=LIBS)
                    ]
       )
+
+
+try:
+    from enthought.mayavi import mlab
+except:
+    PYGTS_HAS_MAYAVI = False
+else:
+    PYGTS_HAS_MAYAVI = True
+    
+print '\n\nSetup summary'
+
+print '\tPyGTS core: Yes'
+
+if PYGTS_HAS_NUMPY == '1':
+    print '\tnumpy support: Yes'
+else:
+    print '\tnumpy support: No'
+
+if PYGTS_HAS_MAYAVI:
+    print '\tmayavi found: Yes (version unknown; must be >= 3.2.0)'
+else:
+    print '\tmayavi found: No'
+
+print '\n\n'

@@ -82,7 +82,14 @@ CONTENTS
     gts - http://gts.sourceforge.net/
     glib-2.0 - http://library.gnome.org/devel/glib/index.html
 
-  PyGTS has been verified to work with GTS 0.7.6.
+  PyGTS has been verified to work with GTS 0.7.6 and numpy 1.1.1.
+
+  The following libraries are optional:
+
+    numpy - http://numpy.scipy.org/
+
+  Some advanced features may be disabled if the optional libraries are
+  not found.
 
   The following python package (and all of its dependencies) is required
   for the display of the examples:
