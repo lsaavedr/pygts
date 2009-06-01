@@ -27,22 +27,27 @@ NOTICE
   Boston, MA 02111-1307, USA.
 """
 
+# Please report any installation difficulties on the mailing list at
+# pygts-users@lists.sourceforge.net
+
 from distutils.core import setup, Extension
 from distutils import sysconfig
 import commands
 import os, sys
+import numpy, numpy.distutils
+
 
 VERSION = '0.3.0'
 
 PYGTS_DEBUG = '1'  # '1' for on, '0' for off
 
-# Hand-code these lists to avoid pkg-config
+# Hand-code these lists if the auto-detection below doesn't work
 INCLUDE_DIRS = []
 LIB_DIRS = []
 LIBS = []
 
 
-# Get the build parameters using pkg-config
+# Get the build parameters using pkg-config and numpy's distutils
 
 if not INCLUDE_DIRS:
     command = "pkg-config --cflags-only-I gts"
@@ -54,6 +59,18 @@ if not INCLUDE_DIRS:
         INCLUDE_DIRS = result[1:]
         for i,d in enumerate(INCLUDE_DIRS):
             INCLUDE_DIRS[i] = d.strip()
+
+    # numpy stuff
+    numpy_include_dirs = numpy.distutils.misc_util.get_numpy_include_dirs()
+    flag = False
+    for path in numpy_include_dirs:
+        if os.path.exists(os.path.join(path,'numpy/arrayobject.h')):
+            flag = True
+            break
+    if not flag:
+        raise RuntimeError, "Cannot find numpy/arrayobject.h"
+    INCLUDE_DIRS.extend(numpy_include_dirs)
+
 
 if not LIB_DIRS:
     command = "pkg-config --libs-only-L gts"

@@ -27,6 +27,9 @@
 
 #include "pygts.h"
 
+#include "numpy/arrayobject.h"
+
+
 static PyObject*
 merge(PyObject *self, PyObject *args)
 {
@@ -517,6 +520,8 @@ init_gts(void)
   m = Py_InitModule3("_gts", gts_methods,"Gnu Triangulated Surface Library");
   if (m == NULL) return;
 
+  /* Make sure Surface.iso can work with numpy arrays */
+  import_array()
 
   /* Add new types to python */
   Py_INCREF(&PygtsObjectType);

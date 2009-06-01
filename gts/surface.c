@@ -27,6 +27,10 @@
 
 #include "pygts.h"
 
+#define NO_IMPORT_ARRAY
+
+#include "numpy/arrayobject.h"
+
 
 #if PYGTS_DEBUG
   #define SELF_CHECK if(!pygts_surface_check((PyObject*)self)) {      \
@@ -1700,6 +1704,135 @@ coarsen(PygtsSurface *self, PyObject *args)
 }
 
 
+/* Helper for pygts_iso to fill f with a layer of data from scalar */
+static void isofunc(gdouble **f, GtsCartesianGrid g, guint k, gpointer data)
+{
+  PyArrayObject *scalars = (PyArrayObject *)data;
+  int i, j;
+
+  for (i = 0; i < scalars->dimensions[0]; i++) {
+    for (j = 0; j < scalars->dimensions[1]; j++) {
+      f[i][j] = *(gdouble *)(scalars->data + i*scalars->strides[0] + \
+			     j*scalars->strides[1] + k*scalars->strides[2]);
+    }
+  }
+}
+
+
+#define ISO_CLEANUP \
+  if (scalars) { Py_DECREF(scalars); } \
+  if (extents) { Py_DECREF(extents); }
+
+
+static PyObject *
+iso(PygtsSurface *self, PyObject *args, PyObject *kwds)
+{  
+  double isoval[1];
+  PyObject *Oscalars = NULL, *Oextents = NULL;
+  PyArrayObject *scalars = NULL, *extents = NULL;
+  GtsCartesianGrid g;
+  GtsSurface *m;
+  char *method = "cubes";
+  
+  static char *kwlist[] = {"scalars", "isoval", "method", "extents", NULL};
+
+  SELF_CHECK
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Od|sO", kwlist, 
+                                   &Oscalars, isoval, &method, &Oextents))
+    return NULL;
+  
+  if (!(scalars = (PyArrayObject *) 
+        PyArray_ContiguousFromObject(Oscalars, PyArray_DOUBLE, 3, 3))) {
+    ISO_CLEANUP;
+    return NULL;
+  }
+
+  if (Oextents && 
+      (!(extents =  (PyArrayObject *)
+         PyArray_ContiguousFromObject(Oextents, PyArray_DOUBLE, 1, 1)))) {
+    ISO_CLEANUP;
+    return NULL;
+  }
+
+  if (extents && extents->dimensions[0] < 6) {
+    PyErr_SetString(PyExc_ValueError, "extents must have at least 6 elements");
+    ISO_CLEANUP;
+    return NULL;
+  }
+
+  
+  if (extents) {
+    int s = extents->strides[0];
+    g.x = *(gdouble*)(extents->data + 0*s);
+    g.nx = scalars->dimensions[0];
+    g.dx = (*(gdouble*)(extents->data + 1*s) - \
+	    *(gdouble*)(extents->data + 0* s))/(g.nx-1);
+
+    g.y = *(gdouble*)(extents->data + 2*s);
+    g.ny = scalars->dimensions[1];
+    g.dy = (*(gdouble*)(extents->data + 3*s) - \
+	    *(gdouble*)(extents->data + 2*s))/(g.ny-1);
+
+    g.z = *(gdouble*)(extents->data + 4*s);
+    g.nz = scalars->dimensions[2];
+    g.dz = (*(gdouble*)(extents->data + 5*s) - \
+	    *(gdouble*)(extents->data + 4*s))/(g.nz-1);
+  }
+  else {
+    g.x = -1.0;
+    g.nx = scalars->dimensions[0];
+    g.dx = 2.0/(scalars->dimensions[0]-1);
+    g.y = -1.0;
+    g.ny = scalars->dimensions[1];
+    g.dy = 2.0/(scalars->dimensions[1]-1);
+    g.z = -1.0;
+    g.nz = scalars->dimensions[2];
+    g.dz = 2.0/(scalars->dimensions[2]-1);
+  }
+
+  /* Create a temporary surface to read into */
+  if((m = gts_surface_new (gts_surface_class(),
+                           gts_face_class(),
+                           gts_edge_class(),
+                           PYGTS_SURFACE_AS_GTS_SURFACE(self)->vertex_class)) 
+     == NULL ) {
+    PyErr_SetString(PyExc_MemoryError,"could not create Surface");
+    return NULL;
+  }
+
+  switch (method[0]) {
+  case 'c': /* cubes */
+    gts_isosurface_cartesian(m, g, isofunc, scalars, isoval[0]);
+    break;
+  case 't': /* tetra */
+    gts_isosurface_tetra(m, g, isofunc, scalars, isoval[0]);
+    break;
+  case 'b': /* tetra bounded */
+    gts_isosurface_tetra_bounded(m, g, isofunc, scalars, isoval[0]);
+    break;
+  case 'd': /* tetra bcl*/
+    gts_isosurface_tetra_bcl(m, g, isofunc, scalars, isoval[0]);
+    break;
+  default:
+    PyErr_SetString(PyExc_ValueError, "unknown method");
+    ISO_CLEANUP;
+    return NULL;
+  }    
+
+  /* Clean up the surface */
+  gts_surface_merge(PYGTS_SURFACE_AS_GTS_SURFACE(self),m);
+  gts_object_destroy(GTS_OBJECT(m));
+  pygts_edge_cleanup(PYGTS_SURFACE_AS_GTS_SURFACE(self));
+  pygts_face_cleanup(PYGTS_SURFACE_AS_GTS_SURFACE(self));
+
+  ISO_CLEANUP;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
 /* Methods table */
 static PyMethodDef methods[] = {
   {"is_ok", (PyCFunction)is_ok,
@@ -2028,6 +2161,35 @@ static PyMethodDef methods[] = {
    "\n"
    "n is the smallest number of desired edges (but you may get fewer).\n"
    "amin is the smallest angle between Faces.\n"
+  },
+
+  {"iso",  (PyCFunction)iso, 
+   METH_VARARGS|METH_KEYWORDS,
+   "Adds to surface new faces defining the isosurface data[x,y,z] = c\n"
+   "\n"
+   "Signature: s.iso(data, c, ...)\n"
+   "\n"
+   "data is a 3D numpy array.\n"
+   "c    is the isovalue defining the surface\n"
+   "\n"
+   "Keyword arguments:\n"
+   "extents= [xmin, xmax, ymin, ymax, zmin, zmax]\n"
+   "         A numpy array defining the extent of the data cube.\n" 
+   "         Default is the cube with corners at (-1,-1,-1) and (1,1,1)\n"
+   "         Data is assumed to be regularly sampled in the cube.\n"
+   "method=  ['cube'|'tetra'|'dual'|'bounded']\n"
+   "         String (only the first character counts) specifying the\n"
+   "         method.\n"
+   "         cube    -- marching cubes (default)\n"
+   "         tetra   -- marching tetrahedra\n"
+   "         dual    -- maching tetrahedra producing dual 'body-centred'\n"
+   "                    faces relative to 'tetra'\n"
+   "         bounded -- marching tetrahedra ensuring the surface is\n"
+   "                    bounded by adding a border of large negative\n"
+   "                    values around the domain.\n"
+   "\n"
+   "By convention, the normals to the surface are pointing towards\n"
+   "positive values of data[x,y,z] - c.\n"
   },
 
   {NULL}  /* Sentinel */
