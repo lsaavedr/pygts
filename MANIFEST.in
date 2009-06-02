@@ -1,4 +1,4 @@
-include README.developers LICENSE ChangeLog MANIFEST.in
+include README.developers LICENSE AUTHORS ChangeLog MANIFEST.in
 recursive-include gts *.h *.py
 recursive-include examples *.py seashell.gts
 recursive-include doc *.html

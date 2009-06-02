@@ -38,7 +38,7 @@ import gts
 
 try:
     import numpy
-    getattr(gts.Surface,'iso')  # Should be there if numpy was compiled in
+    getattr(gts,'isosurface')  # Should be there if numpy was compiled in
 except:
     HAS_NUMPY = False
 else:
@@ -2981,44 +2981,6 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(s.is_ok())
 
 
-    def test_iso(self):
-
-        if HAS_NUMPY:
-
-            # Check parameters of a sphere generated from an isosurface
-            N = 50                          # Size of data cube
-            r = 4                           # Radius of sphere
-            tol = 1e-2                      # Needs changing with N
-            Nj = N*(0+1j)
-            x, y, z = numpy.ogrid[-5:5:Nj, -5:5:Nj, -5:5:Nj]
-
-            scalars = x*x + y*y + z*z
-            extents= numpy.asarray([-5.0, 5.0, -5.0, 5.0, -5.0, 5.0])
-            S = gts.Surface()
-            r = 4.0
-
-            def iso_test_method(method='c'):
-                S.iso(scalars, r**2, extents=extents, method=method)
-
-                self.assert_(S.is_closed())
-                #print 'Area', S.area() / (4*numpy.pi*r**2)
-                #print 'Volume', S.volume() / (4*numpy.pi*r**3/3)
-                self.assert_(fabs(S.area() / (4*numpy.pi*r**2) - 1) < tol)
-                self.assert_(fabs(S.volume() / (4*numpy.pi*r**3/3) - 1) < tol)
-                xyz = numpy.asarray([v.coords() for v in S.vertices()])
-                dd = (xyz*xyz).sum(1)
-                self.assert_(fabs(dd.max()/(r*r) - 1) < tol)
-                self.assert_(fabs(dd.min()/(r*r) - 1) < tol)
-
-            iso_test_method('c')
-#            iso_test_method('t')  # Fails
-#            iso_test_method('b')  # Fails
-#            iso_test_method('d')  # Fails
-
-        else:
-            sys.stderr.write('*** skipping *** ...')
-
-
 class TestFunctions(unittest.TestCase):
 
     def test_merge(self):
@@ -3135,6 +3097,68 @@ class TestFunctions(unittest.TestCase):
 
         for point in points:
             self.assert_(point.is_in(triangle))
+
+    def test_isosurface(self):
+
+        if HAS_NUMPY:
+
+            # Check parameters of a sphere generated from an isosurface
+            N = 50                          # Size of data cube
+
+            # Radius of sphere. If is too large (4.0 is too large) this will
+            # tickle a GTS bug with the dual method, which produces an extra
+            # surface in the z=-5 plane; see examples/iso.py.
+            r = 3.0
+
+            tol = 1e-2                      # Needs changing with N
+            Nj = N*(0+1j)
+            x, y, z = numpy.ogrid[-5:5:Nj, -5:5:Nj, -5:5:Nj]
+
+            scalars = x*x + y*y + z*z
+            extents= numpy.asarray([-5.0, 5.0, -5.0, 5.0, -5.0, 5.0])
+
+            # Doesn't work for method='bounded' because the sphere is completely
+            # contained within the bounding cube: for a visualisation see
+            # examples/iso.py --function=ellipsoid -c20 --method=bounded
+            for method in ['cubes',  'tetra', 'dual' ]:
+                # print '\n--', method
+                S = gts.isosurface(scalars,r**2,extents=extents,method=method)  
+                self.assert_(S.is_manifold())
+                self.assert_(S.is_closed())
+                A = S.area()
+                V = S.volume()
+                # print 'Area', S.area() / (4*numpy.pi*r**2)
+                # print 'Volume', S.volume() / (4*numpy.pi*r**3/3)
+                self.assert_(fabs(A/(4*numpy.pi*r**2) - 1) < tol)
+                self.assert_(fabs(V/(4*numpy.pi*r**3/3) - 1) < tol)
+                xyz = numpy.asarray([v.coords() for v in S.vertices()])
+                dd = (xyz*xyz).sum(1)
+                self.assert_(fabs(dd.max()/(r*r) - 1) < tol)
+                self.assert_(fabs(dd.min()/(r*r) - 1) < tol)
+
+
+            """
+            def iso_test_method(method='c'):
+                s = gts.isosurface(scalars,r**2,extents=extents,method=method)
+                self.assert_(s.is_ok())
+                self.assert_(s.is_manifold())
+                self.assert_(s.is_closed())
+#                print '\n\n*** Area', s.area() / (4*numpy.pi*r**2)
+#                print '\n\n*** Volume', s.volume() / (4*numpy.pi*r**3/3)
+                self.assert_(fabs(s.area() / (4*numpy.pi*r**2) - 1) < tol)
+                self.assert_(fabs(s.volume() / (4*numpy.pi*r**3/3) - 1) < tol)
+                xyz = numpy.asarray([v.coords() for v in s.vertices()])
+                dd = (xyz*xyz).sum(1)
+                self.assert_(fabs(dd.max()/(r*r) - 1) < tol)
+                self.assert_(fabs(dd.min()/(r*r) - 1) < tol)
+
+            iso_test_method('c')
+            iso_test_method('t')
+#            iso_test_method('d')  # Fails
+#            iso_test_method('b')  # Fails
+"""
+        else:
+            sys.stderr.write('*** skipping *** ...')
 
 
 tests = [TestPointMethods,
