@@ -331,10 +331,10 @@ CONTENTS
       gts_iso_slice_fill():
       gts_iso_slice_fill_cartesian():
       gts_isosurface_slice():
-      gts_isosurface_cartesian():           Surface.iso()
-      gts_isosurface_tetra():               Surface.iso()
-      gts_isosurface_tetra_bounded():       Surface.iso()
-      gts_isosurface_tetra_bcl():           Surface.iso()
+      gts_isosurface_cartesian():           isosurface()
+      gts_isosurface_tetra():               isosurface()
+      gts_isosurface_tetra_bounded():       isosurface()
+      gts_isosurface_tetra_bcl():           isosurface()
 
 
     Delaunay and constrained Delaunay triangulations

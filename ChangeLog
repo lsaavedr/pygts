@@ -14,7 +14,7 @@
 
 	* Reworked error types and messages
 
-	* Added Surface.iso()
+	* Added function isosurface()
 	
 	* Renamed Vertex.get() to Vertex.coords(), and
 	get_mayavi_coords_and_triangles() to get_coords_and_face_indices()
