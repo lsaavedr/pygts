@@ -1,6 +1,7 @@
 
-Original Authors
-----------------
+
+PyGTS Author
+------------
 
 Thomas J. Duck <tom.duck@dal.ca>
 
@@ -10,3 +11,10 @@ Contributors
 
 Richard Everson <R.M.Everson@exeter.ac.uk> 
 	- isosurface binding, example and tests
+
+
+Acknowledgments
+---------------
+
+PyGTS is a binding for the GTS Library.  Many thanks to Stephane Popinet
+and the other GTS contributors.

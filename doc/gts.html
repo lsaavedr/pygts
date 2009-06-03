@@ -6,8 +6,81 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>gts</strong></big></big></font></td
 ></tr></table>
-    <p></p>
+    <p><tt>PyGTS&nbsp;is&nbsp;a&nbsp;python&nbsp;binding&nbsp;for&nbsp;the&nbsp;GNU&nbsp;Triangulated&nbsp;<a href="#Surface">Surface</a>&nbsp;(GTS)&nbsp;<br>
+Library,&nbsp;which&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;build,&nbsp;manipulate,&nbsp;and&nbsp;perform<br>
+computations&nbsp;on&nbsp;triangulated&nbsp;surfaces.<br>
+&nbsp;<br>
+The&nbsp;following&nbsp;geometric&nbsp;primitives&nbsp;are&nbsp;provided:<br>
+&nbsp;<br>
+&nbsp;&nbsp;<a href="#Point">Point</a>&nbsp;-&nbsp;a&nbsp;point&nbsp;in&nbsp;3D&nbsp;space<br>
+&nbsp;&nbsp;<a href="#Vertex">Vertex</a>&nbsp;-&nbsp;a&nbsp;<a href="#Point">Point</a>&nbsp;in&nbsp;3D&nbsp;space&nbsp;that&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;define&nbsp;a&nbsp;<a href="#Segment">Segment</a><br>
+&nbsp;&nbsp;<a href="#Segment">Segment</a>&nbsp;-&nbsp;a&nbsp;line&nbsp;defined&nbsp;by&nbsp;two&nbsp;<a href="#Vertex">Vertex</a>&nbsp;end-points<br>
+&nbsp;&nbsp;<a href="#Edge">Edge</a>&nbsp;-&nbsp;a&nbsp;<a href="#Segment">Segment</a>&nbsp;that&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;define&nbsp;the&nbsp;edge&nbsp;of&nbsp;a&nbsp;<a href="#Triangle">Triangle</a><br>
+&nbsp;&nbsp;<a href="#Triangle">Triangle</a>&nbsp;-&nbsp;a&nbsp;triangle&nbsp;defined&nbsp;by&nbsp;three&nbsp;Edges<br>
+&nbsp;&nbsp;<a href="#Face">Face</a>&nbsp;-&nbsp;a&nbsp;<a href="#Triangle">Triangle</a>&nbsp;that&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;define&nbsp;a&nbsp;face&nbsp;on&nbsp;a&nbsp;<a href="#Surface">Surface</a><br>
+&nbsp;&nbsp;<a href="#Surface">Surface</a>&nbsp;-&nbsp;a&nbsp;surface&nbsp;composed&nbsp;of&nbsp;Faces<br>
+&nbsp;<br>
+A&nbsp;tetrahedron&nbsp;is&nbsp;assembled&nbsp;from&nbsp;these&nbsp;primitives&nbsp;as&nbsp;follows.&nbsp;&nbsp;First,<br>
+create&nbsp;Vertices&nbsp;for&nbsp;each&nbsp;of&nbsp;the&nbsp;tetrahedron's&nbsp;points:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;import&nbsp;gts<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v1&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(1,1,1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v2&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(-1,-1,1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v3&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(-1,1,-1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;v4&nbsp;=&nbsp;gts.<a href="#Vertex">Vertex</a>(1,-1,-1)<br>
+&nbsp;<br>
+Next,&nbsp;connect&nbsp;the&nbsp;four&nbsp;vertices&nbsp;to&nbsp;create&nbsp;six&nbsp;unique&nbsp;Edges:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e1&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v1,v2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e2&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v2,v3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e3&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v3,v1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e4&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v1,v4)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e5&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v4,v2)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;e6&nbsp;=&nbsp;gts.<a href="#Edge">Edge</a>(v4,v3)<br>
+&nbsp;<br>
+The&nbsp;four&nbsp;triangular&nbsp;faces&nbsp;are&nbsp;composed&nbsp;using&nbsp;three&nbsp;edges&nbsp;each:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f1&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e1,e2,e3)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f2&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e1,e4,e5)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f3&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e2,e5,e6)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f4&nbsp;=&nbsp;gts.<a href="#Face">Face</a>(e3,e4,e6)<br>
+&nbsp;<br>
+Finally,&nbsp;the&nbsp;surface&nbsp;is&nbsp;assembled&nbsp;from&nbsp;the&nbsp;faces:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s&nbsp;=&nbsp;gts.<a href="#Surface">Surface</a>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;face&nbsp;in&nbsp;[f1,f2,f3,f4]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s.add(face)<br>
+&nbsp;<br>
+Some&nbsp;care&nbsp;must&nbsp;be&nbsp;taken&nbsp;in&nbsp;the&nbsp;orientation&nbsp;of&nbsp;the&nbsp;faces.&nbsp;&nbsp;In&nbsp;the&nbsp;above<br>
+example,&nbsp;the&nbsp;surface&nbsp;normals&nbsp;are&nbsp;pointing&nbsp;inward,&nbsp;and&nbsp;so&nbsp;the&nbsp;surface<br>
+technically&nbsp;defines&nbsp;a&nbsp;void,&nbsp;rather&nbsp;than&nbsp;a&nbsp;solid.&nbsp;&nbsp;To&nbsp;create&nbsp;a&nbsp;<br>
+tetrahedron&nbsp;with&nbsp;surface&nbsp;normals&nbsp;pointing&nbsp;outward,&nbsp;use&nbsp;the&nbsp;following<br>
+instead:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;f1.revert()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s&nbsp;=&nbsp;<a href="#Surface">Surface</a>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;face&nbsp;in&nbsp;[f1,f2,f3,f4]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;not&nbsp;face.is_compatible(s):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;face.revert()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s.add(face)<br>
+&nbsp;<br>
+Once&nbsp;the&nbsp;<a href="#Surface">Surface</a>&nbsp;is&nbsp;constructed,&nbsp;there&nbsp;are&nbsp;many&nbsp;different&nbsp;operations&nbsp;that<br>
+can&nbsp;be&nbsp;performed.&nbsp;&nbsp;For&nbsp;example,&nbsp;the&nbsp;volume&nbsp;can&nbsp;be&nbsp;calculated&nbsp;using:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s.volume()<br>
+&nbsp;<br>
+The&nbsp;difference&nbsp;between&nbsp;two&nbsp;Surfaces&nbsp;s1&nbsp;and&nbsp;s2&nbsp;is&nbsp;given&nbsp;by:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;s3&nbsp;=&nbsp;s2.difference(s1)<br>
+&nbsp;<br>
+Etc.<br>
+&nbsp;<br>
+It&nbsp;is&nbsp;also&nbsp;possible&nbsp;to&nbsp;read&nbsp;in&nbsp;GTS&nbsp;data&nbsp;files&nbsp;and&nbsp;plot&nbsp;surfaces&nbsp;to<br>
+the&nbsp;screen.&nbsp;&nbsp;See&nbsp;the&nbsp;example&nbsp;programs&nbsp;packaged&nbsp;with&nbsp;PyGTS&nbsp;for<br>
+more&nbsp;information.</tt></p>
 <p>
+</td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -94,7 +167,7 @@ Signature:&nbsp;e.<a href="#Edge-is_unattached">is_unattached</a>()</tt></dd></d
 
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x759740&gt;<dd><tt>T.<a href="#Edge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b780&gt;<dd><tt>T.<a href="#Edge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Segment">Segment</a>:<br>
@@ -197,7 +270,7 @@ Signature:&nbsp;f.<a href="#Face-neighbors">neighbors</a>(s).</tt></dd></dl>
 
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x759ac0&gt;<dd><tt>T.<a href="#Face-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75bb00&gt;<dd><tt>T.<a href="#Face-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Triangle">Triangle</a>:<br>
@@ -322,7 +395,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7590a0&gt;<dd><tt>T.<a href="#Object-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b0e0&gt;<dd><tt>T.<a href="#Object-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -455,7 +528,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7591c0&gt;<dd><tt>T.<a href="#Point-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b200&gt;<dd><tt>T.<a href="#Point-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -541,7 +614,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x7595c0&gt;<dd><tt>T.<a href="#Segment-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b600&gt;<dd><tt>T.<a href="#Segment-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -575,9 +648,9 @@ Methods defined here:<br>
 
 <dl><dt><a name="Surface-__iter__"><strong>__iter__</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-__iter__">__iter__</a>()&nbsp;&lt;==&gt;&nbsp;iter(x)</tt></dd></dl>
 
-<dl><dt><a name="Surface-add"><strong>add</strong></a>(...)</dt><dd><tt>Adds&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
+<dl><dt><a name="Surface-add"><strong>add</strong></a>(...)</dt><dd><tt>Adds&nbsp;a&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;or&nbsp;<a href="#Surface">Surface</a>&nbsp;s2&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s1.<br>
 &nbsp;<br>
-Signature:&nbsp;s.<a href="#Surface-add">add</a>(f)</tt></dd></dl>
+Signature:&nbsp;s1.<a href="#Surface-add">add</a>(f)&nbsp;or&nbsp;s2.<a href="#Surface-add">add</a>(f)</tt></dd></dl>
 
 <dl><dt><a name="Surface-area"><strong>area</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;area&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
 The&nbsp;area&nbsp;is&nbsp;taken&nbsp;as&nbsp;the&nbsp;sum&nbsp;of&nbsp;the&nbsp;signed&nbsp;areas&nbsp;of&nbsp;the&nbsp;Faces&nbsp;of&nbsp;s.<br>
@@ -692,10 +765,6 @@ if&nbsp;they&nbsp;exist,&nbsp;or&nbsp;None.<br>
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-manifold_faces">manifold_faces</a>(e)</tt></dd></dl>
 
-<dl><dt><a name="Surface-merge"><strong>merge</strong></a>(...)</dt><dd><tt>Adds&nbsp;faces&nbsp;of&nbsp;<a href="#Surface">Surface</a>&nbsp;s2&nbsp;which&nbsp;do&nbsp;not&nbsp;belong&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s1&nbsp;to&nbsp;s1.<br>
-&nbsp;<br>
-Signature:&nbsp;s1.<a href="#Surface-merge">merge</a>(s2)</tt></dd></dl>
-
 <dl><dt><a name="Surface-next"><strong>next</strong></a>(...)</dt><dd><tt>x.<a href="#Surface-next">next</a>()&nbsp;-&gt;&nbsp;the&nbsp;next&nbsp;value,&nbsp;or&nbsp;raise&nbsp;StopIteration</tt></dd></dl>
 
 <dl><dt><a name="Surface-parent"><strong>parent</strong></a>(...)</dt><dd><tt>Returns&nbsp;<a href="#Face">Face</a>&nbsp;on&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;that&nbsp;has&nbsp;<a href="#Edge">Edge</a>&nbsp;e,&nbsp;or&nbsp;None<br>
@@ -710,12 +779,6 @@ and&nbsp;edge_angle.&nbsp;&nbsp;Each&nbsp;of&nbsp;these&nbsp;names&nbsp;are&nbsp
 See&nbsp;<a href="#Triangle">Triangle</a>.quality()&nbsp;for&nbsp;an&nbsp;explanation&nbsp;of&nbsp;the&nbsp;face_quality.<br>
 &nbsp;<br>
 Signature:&nbsp;s.<a href="#Surface-quality_stats">quality_stats</a>()</tt></dd></dl>
-
-<dl><dt><a name="Surface-read"><strong>read</strong></a>(...)</dt><dd><tt>Adds&nbsp;to&nbsp;<a href="#Surface">Surface</a>&nbsp;s&nbsp;the&nbsp;data&nbsp;read&nbsp;from&nbsp;File&nbsp;f.<br>
-The&nbsp;File&nbsp;data&nbsp;must&nbsp;be&nbsp;stored&nbsp;in&nbsp;GTS&nbsp;format&nbsp;(e.g.,&nbsp;by&nbsp;using.<br>
-s.<a href="#Surface-write">write</a>())<br>
-&nbsp;<br>
-Signature:&nbsp;s.<a href="#Surface-read">read</a>(f)</tt></dd></dl>
 
 <dl><dt><a name="Surface-remove"><strong>remove</strong></a>(...)</dt><dd><tt>Removes&nbsp;<a href="#Face">Face</a>&nbsp;f&nbsp;from&nbsp;this&nbsp;<a href="#Surface">Surface</a>&nbsp;s.<br>
 &nbsp;<br>
@@ -798,7 +861,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x759c00&gt;<dd><tt>T.<a href="#Surface-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75bc40&gt;<dd><tt>T.<a href="#Surface-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -938,7 +1001,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x759880&gt;<dd><tt>T.<a href="#Triangle-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b8c0&gt;<dd><tt>T.<a href="#Triangle-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Object">Object</a>:<br>
@@ -1028,7 +1091,7 @@ Signature:&nbsp;v.<a href="#Vertex-triangles">triangles</a>()</tt></dd></dl>
 
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x759440&gt;<dd><tt>T.<a href="#Vertex-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of type object at 0x75b480&gt;<dd><tt>T.<a href="#Vertex-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
 
 <hr>
 Methods inherited from <a href="gts.html#Point">Point</a>:<br>
@@ -1150,10 +1213,40 @@ Data descriptors inherited from <a href="gts.html#Object">Object</a>:<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-merge"><strong>merge</strong></a>(...)</dt><dd><tt>Merges&nbsp;list&nbsp;of&nbsp;Vertices&nbsp;that&nbsp;are&nbsp;within&nbsp;a&nbsp;box&nbsp;of&nbsp;side-length<br>
+<td width="100%"><dl><dt><a name="-isosurface"><strong>isosurface</strong></a>(...)</dt><dd><tt>Adds&nbsp;to&nbsp;surface&nbsp;new&nbsp;faces&nbsp;defining&nbsp;the&nbsp;isosurface&nbsp;data[x,y,z]&nbsp;=&nbsp;c<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-isosurface">isosurface</a>(data,&nbsp;c,&nbsp;...)<br>
+&nbsp;<br>
+data&nbsp;is&nbsp;a&nbsp;3D&nbsp;numpy&nbsp;array.<br>
+c&nbsp;&nbsp;&nbsp;&nbsp;is&nbsp;the&nbsp;isovalue&nbsp;defining&nbsp;the&nbsp;surface<br>
+&nbsp;<br>
+Keyword&nbsp;arguments:<br>
+extents=&nbsp;[xmin,&nbsp;xmax,&nbsp;ymin,&nbsp;ymax,&nbsp;zmin,&nbsp;zmax]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;numpy&nbsp;array&nbsp;defining&nbsp;the&nbsp;extent&nbsp;of&nbsp;the&nbsp;data&nbsp;cube.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default&nbsp;is&nbsp;the&nbsp;cube&nbsp;with&nbsp;corners&nbsp;at&nbsp;(-1,-1,-1)&nbsp;and&nbsp;(1,1,1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Data&nbsp;is&nbsp;assumed&nbsp;to&nbsp;be&nbsp;regularly&nbsp;sampled&nbsp;in&nbsp;the&nbsp;cube.<br>
+method=&nbsp;&nbsp;['cube'|'tetra'|'dual'|'bounded']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;(only&nbsp;the&nbsp;first&nbsp;character&nbsp;counts)&nbsp;specifying&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cube&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;marching&nbsp;cubes&nbsp;(default)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tetra&nbsp;&nbsp;&nbsp;--&nbsp;marching&nbsp;tetrahedra<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dual&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;maching&nbsp;tetrahedra&nbsp;producing&nbsp;dual&nbsp;'body-centred'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;faces&nbsp;relative&nbsp;to&nbsp;'tetra'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bounded&nbsp;--&nbsp;marching&nbsp;tetrahedra&nbsp;ensuring&nbsp;the&nbsp;surface&nbsp;is<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bounded&nbsp;by&nbsp;adding&nbsp;a&nbsp;border&nbsp;of&nbsp;large&nbsp;negative<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;values&nbsp;around&nbsp;the&nbsp;domain.<br>
+&nbsp;<br>
+By&nbsp;convention,&nbsp;the&nbsp;normals&nbsp;to&nbsp;the&nbsp;surface&nbsp;are&nbsp;pointing&nbsp;towards<br>
+positive&nbsp;values&nbsp;of&nbsp;data[x,y,z]&nbsp;-&nbsp;c.</tt></dd></dl>
+ <dl><dt><a name="-merge"><strong>merge</strong></a>(...)</dt><dd><tt>Merges&nbsp;list&nbsp;of&nbsp;Vertices&nbsp;that&nbsp;are&nbsp;within&nbsp;a&nbsp;box&nbsp;of&nbsp;side-length<br>
 epsilon&nbsp;of&nbsp;each&nbsp;other.<br>
 &nbsp;<br>
 Signature:&nbsp;<a href="#-merge">merge</a>(list,epsilon)</tt></dd></dl>
+ <dl><dt><a name="-read"><strong>read</strong></a>(...)</dt><dd><tt>Returns&nbsp;the&nbsp;data&nbsp;read&nbsp;from&nbsp;File&nbsp;f&nbsp;as&nbsp;a&nbsp;<a href="#Surface">Surface</a>.<br>
+The&nbsp;File&nbsp;data&nbsp;must&nbsp;be&nbsp;in&nbsp;GTS&nbsp;format&nbsp;(e.g.,&nbsp;as&nbsp;written&nbsp;using<br>
+<a href="#Surface">Surface</a>.write())<br>
+&nbsp;<br>
+Signature:&nbsp;<a href="#-read">read</a>(f)</tt></dd></dl>
  <dl><dt><a name="-segments"><strong>segments</strong></a>(...)</dt><dd><tt>Returns&nbsp;tuple&nbsp;of&nbsp;Segments&nbsp;from&nbsp;a&nbsp;list&nbsp;or&nbsp;tuple&nbsp;of&nbsp;Vertices.<br>
 &nbsp;<br>
 Signature:&nbsp;<a href="#-segments">segments</a>(list)</tt></dd></dl>
