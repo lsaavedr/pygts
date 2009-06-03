@@ -1,10 +1,10 @@
-2009-05-31  Thomas J. Duck  <tom.duck@dal.ca>
+2009-06-02  Thomas J. Duck  <tom.duck@dal.ca>
 
 	* Version 0.3.0
 
 	* Reorganized PyGTS as a true python package, not just a module
 
-	* Added numpy (http://numpy.scipy.org/) as a dependency
+	* Added numpy (http://numpy.scipy.org/) as an optional dependency
 
 	* Refactored code to consolidate object creation, eliminate 
 	duplicate code, and allow extension types to be subclassed
@@ -14,10 +14,12 @@
 
 	* Reworked error types and messages
 
-	* Added function isosurface()
-	
-	* Renamed Vertex.get() to Vertex.coords(), and
+	* Added function isosurface() and example isosurface.py
+
+	* Renamed Vertex.get() to Vertex.coords(), Surface.read() to read(),
 	get_mayavi_coords_and_triangles() to get_coords_and_face_indices()
+
+	* Moved functionality of Surface.merge() into Surface.add()
 
 	* Changed interface of get_coords_and_face_indices() for use with
 	things other than mayavi.

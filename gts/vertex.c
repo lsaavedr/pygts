@@ -230,12 +230,10 @@ replace(PygtsVertex *self, PyObject *args)
 static PyObject*
 neighbors(PygtsVertex* self, PyObject *args)
 {
-  PyObject *kwds;
   PyObject *s_=NULL;
   GtsSurface *s=NULL;
   GSList *vertices,*v;
   PygtsVertex *vertex;
-  GtsSegment *parent;
   PyObject *tuple;
   guint n,N;
 
@@ -298,12 +296,10 @@ neighbors(PygtsVertex* self, PyObject *args)
 static PyObject*
 faces(PygtsVertex* self, PyObject *args)
 {
-  PyObject *kwds;
   PyObject *s_=NULL;
   GtsSurface *s=NULL;
   GSList *faces,*f;
   PygtsFace *face;
-  GtsSurface *parent;
   PyObject *tuple;
   guint n,N;
 
@@ -386,12 +382,10 @@ encroaches(PygtsVertex *self, PyObject *args)
 static PyObject*
 triangles(PygtsVertex *self, PyObject *args)
 {
-  PyObject *kwds;
   GSList *triangles, *t;
   PygtsTriangle *triangle;
   guint i,N;
   PyObject *tuple;
-  GtsSurface *parent;
 
   SELF_CHECK
 

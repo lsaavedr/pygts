@@ -24,7 +24,11 @@
 #   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #   Boston, MA 02111-1307, USA.
 
-"""blender.py - interface between PyGTS and Blender"""
+"""blender.py - interface between PyGTS and Blender
+
+*** DO NOT USE.  THIS IS EXPERIMENTAL AND HAS NOT BEEN TESTED. ***
+
+"""
 
 
 import gts
