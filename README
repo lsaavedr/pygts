@@ -1,5 +1,5 @@
 
-PyGTS - A python module for the manipulation of triangulated surfaces
+PyGTS - A python package for the manipulation of triangulated surfaces
 
   Copyright (C) 2009 Thomas J. Duck
   All rights reserved.
@@ -17,7 +17,6 @@ CONTENTS
   4. BUILD ENVIRONMENT
   5. INSTALLATION INSTRUCTIONS
   6. DOCUMENTATION
-  7. STATUS
 
 
 1. LICENSE
@@ -50,8 +49,9 @@ CONTENTS
   test/test.py - Unit tests for PyGTS
   doc/gts.html - Documentation for python module gts
 
-  examples/tetrahedron.py - plots a tetrahedron
-  examples/boolean.py - demonstrates boolean operations
+  examples/polyhedrons.py - plots standard shapes
+  examples/set_operations.py - union, difference, intersection
+  examples/isosurface.py - function isosurfaces
   examples/plotgts.py - plots a gts file
   examples/seashell.gts - a sample gts file to use with plotgts.py
 
@@ -68,9 +68,9 @@ CONTENTS
     python 2.3 - Mac OS X (10.4)
     python 2.5 - Debian Linux (Lenny), Mac OS X (10.4)
 
-  To build PyGTS, you will need to be sure that Python.h is installed.  
-  For linux distributions this often requires installing the python-dev 
-  or python2.5-dev (or other version, as appropriate) package.
+  To build PyGTS, you will need to be sure that Python.h is installed with
+  your python distribution.  For linux this often requires installing the 
+  python-dev or python2.5-dev (or other version, as appropriate) package.
 
   The setup.py script requires the following utility, which is used
   to locate C header files and libraries:
@@ -82,7 +82,7 @@ CONTENTS
     gts - http://gts.sourceforge.net/
     glib-2.0 - http://library.gnome.org/devel/glib/index.html
 
-  PyGTS has been verified to work with GTS 0.7.6 and numpy 1.1.1.
+  PyGTS has been verified to work with GTS 0.7.6 and numpy 1.1.1.  
 
   The following libraries are optional:
 
@@ -92,7 +92,7 @@ CONTENTS
   not found.
 
   The following python package (and all of its dependencies) is required
-  for the display of the examples:
+  for the examples:
 
     mayavi2 - http://pypi.python.org/pypi/Mayavi/3.2.0
 
@@ -136,8 +136,9 @@ CONTENTS
   You may also want to run the example programs as a further test:
 
     cd examples
-    python tetrahedron.py
-    python boolean.py
+    python polyhedrons.py
+    python set_operations.py
+    python isosurface.py
     python plotgts.py seashell.gts
 
 
