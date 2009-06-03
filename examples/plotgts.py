@@ -43,7 +43,7 @@ sys.stdout.flush()
 
 f = open(fname)
 s = gts.Surface()
-s.read(f)
+s = gts.read(f)
 f.close()
 
 print 'Done.'
@@ -57,12 +57,12 @@ surfaces = s.split()
 print 'Done.'
 sys.stdout.flush()
 
-for i,s in enumerate(surfaces):
-    print '\tSurface',i,'is',
-    if s.is_closed():
-        print 'closed.'
-    else:
-        print 'open.'
+#for i,s in enumerate(surfaces):
+#    print '\tSurface',i,'is',
+#    if s.is_closed():
+#        print 'closed.'
+#    else:
+#        print 'open.'
 
 print 'Retrieving mayavi data...',
 sys.stdout.flush()
