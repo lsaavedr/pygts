@@ -58,25 +58,35 @@ is_ok(PygtsSurface *self, PyObject *args)
 static PyObject*
 add(PygtsSurface *self, PyObject *args)
 {
-  PyObject *f_;
+  PyObject *o_;
   PygtsFace *f;
+  PygtsSurface *s;
 
   SELF_CHECK
 
   /* Parse the args */  
-  if(! PyArg_ParseTuple(args, "O", &f_) )
+  if(! PyArg_ParseTuple(args, "O", &o_) )
     return NULL;
 
   /* Convert to PygtsObjects */
-  if(!pygts_face_check(f_)) {
-    PyErr_SetString(PyExc_TypeError,"expected a Face");
+  if(pygts_face_check(o_)) {
+    f = PYGTS_FACE(o_);
+    gts_surface_add_face(PYGTS_SURFACE_AS_GTS_SURFACE(self),
+		       PYGTS_FACE_AS_GTS_FACE(f));
+
+  }
+  else if(pygts_surface_check(o_)) {
+    s = PYGTS_SURFACE(o_);
+
+    /* Make the call */
+    gts_surface_merge(PYGTS_SURFACE_AS_GTS_SURFACE(self),
+		      PYGTS_SURFACE_AS_GTS_SURFACE(s));
+
+  }
+  else {
+    PyErr_SetString(PyExc_TypeError,"expected a Face or a Surface");
     return NULL;
   }
-  f = PYGTS_FACE(f_);
-
-  /* Make the call */
-  gts_surface_add_face(PYGTS_SURFACE_AS_GTS_SURFACE(self),
-		       PYGTS_FACE_AS_GTS_FACE(f));
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -136,90 +146,6 @@ copy(PygtsSurface *self, PyObject *args)
 
   Py_INCREF((PyObject*)self);
   return (PyObject*)self;
-}
-
-
-static PyObject*
-merge(PygtsSurface *self, PyObject *args)
-{
-  PyObject *s_;
-  PygtsSurface *s;
-
-  SELF_CHECK
-
-  /* Parse the args */  
-  if(! PyArg_ParseTuple(args, "O", &s_) )
-    return NULL;
-
-  /* Convert to PygtsObjects */
-  if(!pygts_surface_check(s_)) {
-    PyErr_SetString(PyExc_TypeError,"expected a Surface");
-    return NULL;
-  }
-  s = PYGTS_SURFACE(s_);
-
-  /* Make the call */
-  gts_surface_merge(PYGTS_SURFACE_AS_GTS_SURFACE(self),
-		    PYGTS_SURFACE_AS_GTS_SURFACE(s));
-
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-
-static PyObject*
-pygts_read(PygtsSurface *self, PyObject *args)
-{
-  PyObject *f_;
-  FILE *f;
-  GtsFile *fp;
-  guint lineno;
-  GtsSurface *m;
-
-  SELF_CHECK
-
-  /* Parse the args */  
-  if(! PyArg_ParseTuple(args, "O", &f_) )
-    return NULL;
-
-  /* Convert to PygtsObjects */
-  if(!PyFile_Check(f_)) {
-    PyErr_SetString(PyExc_TypeError,"expected a File");
-    return NULL;
-  }
-  f = PyFile_AsFile(f_);
-
-  if(feof(f)) {
-    PyErr_SetString(PyExc_EOFError,"End of File");
-    return NULL;
-  }
-
-  /* Create a temporary surface to read into */
-  if( (m = gts_surface_new (gts_surface_class(),
-			    gts_face_class(),
-			    gts_edge_class(),
-	   PYGTS_SURFACE_AS_GTS_SURFACE(self)->vertex_class)) == NULL ) {
-    PyErr_SetString(PyExc_MemoryError,"could not create Surface");
-    return NULL;
-  }
-
-  /* Read from the file */
-  fp = gts_file_new(f);
-  if( (lineno = gts_surface_read(m,fp)) != 0 ) {
-    PyErr_SetString(PyExc_RuntimeError,fp->error);
-    gts_file_destroy(fp);
-    return NULL;
-  }
-  gts_file_destroy(fp);
-
-  /* Clean up the surface */
-  gts_surface_merge(PYGTS_SURFACE_AS_GTS_SURFACE(self),m);
-  gts_object_destroy(GTS_OBJECT(m));
-  pygts_edge_cleanup(PYGTS_SURFACE_AS_GTS_SURFACE(self));
-  pygts_face_cleanup(PYGTS_SURFACE_AS_GTS_SURFACE(self));
-
-  Py_INCREF(Py_None);
-  return Py_None;
 }
 
 
@@ -628,7 +554,6 @@ vertices(PygtsSurface *self, PyObject *args)
   PyObject *tuple;
   PygtsVertex *vertex;
   PygtsVertex **vertices,**v;
-  PygtsObject *obj;
   guint i,N=0;
 
   SELF_CHECK
@@ -1710,9 +1635,9 @@ static PyMethodDef methods[] = {
 
   {"add", (PyCFunction)add,
    METH_VARARGS,
-   "Adds Face f to Surface s.\n"
+   "Adds a Face f or Surface s2 to Surface s1.\n"
    "\n"
-   "Signature: s.add(f)\n"
+   "Signature: s1.add(f) or s2.add(f)\n"
   },
 
   {"remove", (PyCFunction)pygts_remove,
@@ -1729,22 +1654,6 @@ static PyMethodDef methods[] = {
    "Signature: s1.copy(s2)\n"
    "\n"
    "Returns s1.\n"
-  },
-
-  {"merge", (PyCFunction)merge,
-   METH_VARARGS,
-   "Adds faces of Surface s2 which do not belong to Surface s1 to s1.\n"
-   "\n"
-   "Signature: s1.merge(s2)\n"
-  },
-
-  {"read", (PyCFunction)pygts_read,
-   METH_VARARGS,
-   "Adds to Surface s the data read from File f.\n"
-   "The File data must be stored in GTS format (e.g., by using.\n"
-   "s.write())\n"
-   "\n"
-   "Signature: s.read(f)\n"
   },
 
   {"is_manifold", (PyCFunction)is_manifold,

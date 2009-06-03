@@ -258,7 +258,7 @@ CONTENTS
       gts_surface_add_face():               Surface.add()
       gts_surface_remove_face():            Surface.remove()
       gts_surface_copy():                   Surface.copy()
-      gts_surface_merge():                  Surface.merge()
+      gts_surface_merge():                  Surface.add()
       gts_surface_read():                   Surface.read()
       gts_surface_is_manifold():            Surface.is_manifold()
       gts_surface_is_orientable():          Surface.is_orientable()

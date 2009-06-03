@@ -107,7 +107,7 @@ data = func(opt.N)
             
 S = gts.Surface()
 for c in [string.atof(x) for x in opt.c.split(',')]:
-    S.merge(gts.isosurface(data, c, extents=extents, method=opt.method))
+    S.add(gts.isosurface(data, c, extents=extents, method=opt.method))
 print S.stats()['n_faces'], 'facets'
 x,y,z,t = gts.get_coords_and_face_indices(S,True)
 mlab.clf()

@@ -1,3 +1,4 @@
+AUTHORS
 ChangeLog
 LICENSE
 MANIFEST.in
@@ -6,6 +7,7 @@ README.developers
 setup.py
 doc/gts.html
 examples/cube.py
+examples/isosurface.py
 examples/plotgts.py
 examples/polyhedrons.py
 examples/seashell.gts

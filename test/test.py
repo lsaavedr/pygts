@@ -1953,13 +1953,26 @@ class TestSurfaceMethods(unittest.TestCase):
 
     def test_add(self):
         f1,f2 = list(self.closed_surface)[:2]
-        s = gts.Surface()
-        s.add(f1)
-        s.add(f2)
-        self.assert_(s.is_ok())
+        s1 = gts.Surface()
+        s1.add(f1)
+        s1.add(f2)
+        self.assert_(s1.is_ok())
+        self.assert_(s1.Nfaces == 2)
+
+        # Add surface
+        f3,f4 = list(self.closed_surface)[2:]
+        s2 = gts.Surface()
+        s2.add(f3)
+        s2.add(f4)
+        s1.add(s2)
+        self.assert_(s1.is_ok())
+        self.assert_(s1.Nfaces == 4)
+        for face in self.closed_surface:
+            self.assert_(face in s1)
 
 
-    def test_add(self):
+    def test_remove(self):
+
         f = list(self.closed_surface)[0]
         self.assert_(f in self.closed_surface)
         self.closed_surface.remove(f)
@@ -1980,19 +1993,6 @@ class TestSurfaceMethods(unittest.TestCase):
             f.revert()
         self.assert_(s.volume()==-self.closed_surface.volume())
 
-        self.assert_(s.is_ok())
-
-
-    def test_merge(self):
-        f3,f4 = list(self.closed_surface)[2:]
-        self.assert_(self.open_surface.Nfaces==3)
-        self.assert_(self.open_surface!=self.closed_surface)
-        s = gts.Surface()
-        s.add(f3)
-        s.add(f4)
-        self.open_surface.merge(s)
-        for f1,f2 in zip(self.open_surface,self.closed_surface):
-            self.assert_(f1==f2)
         self.assert_(s.is_ok())
 
 
@@ -2252,9 +2252,8 @@ class TestSurfaceMethods(unittest.TestCase):
         s1.write(f)
         f.close()
 
-        s2 = gts.Surface()
         f = open(path,'r')
-        s2.read(f)
+        s2 = gts.read(f)
         f.close()
 
         vertices1 = [f.vertices() for f in s1]
@@ -2368,7 +2367,7 @@ class TestSurfaceMethods(unittest.TestCase):
         f.close()
         s1 = gts.Surface()
         f = open(path,'r')
-        s1.read(f)
+        s1 = gts.read(f)
         f.close()
         # *** ATTENTION ***
 
