@@ -128,8 +128,7 @@ if sys.platform.startswith("darwin"):
 # Run the setup
 setup(name='pygts', 
       version=VERSION,
-      description=\
-'PyGTS creates, manipulates and analyzes triangulated surfaces',
+      description='Creates, manipulates and analyzes triangulated surfaces',
       long_description=\
 """PyGTS is a python package that can be used to construct, 
 manipulate, and perform computations on 3D triangulated surfaces.  
