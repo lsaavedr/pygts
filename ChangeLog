@@ -1,3 +1,13 @@
+2009-06-05  Thomas J. Duck  <tom.duck@dal.ca>
+
+	* Version 0.3.1
+	
+	* Corrected internal typecasting for vertices.  This fixes problems 
+	with using list of numbers as vertices.
+
+	* Improved cleanup code
+	
+	
 2009-06-02  Thomas J. Duck  <tom.duck@dal.ca>
 
 	* Version 0.3.0

@@ -68,6 +68,7 @@ pygts_vertices_merge(GList* vertices, gdouble epsilon,
   GtsBBox *bbox;
   GSList *selected, *j;
   GtsVertex *sv;
+  PygtsObject *obj;
   PygtsVertex *vertex=NULL;
   GSList *parents=NULL, *ii,*cur;
 
@@ -81,11 +82,11 @@ pygts_vertices_merge(GList* vertices, gdouble epsilon,
   }
   kdtree = gts_kdtree_new(array, NULL);
   g_ptr_array_free(array, TRUE);
-  
+
   i = vertices;
   while(i) {
     v = i->data;
-    if (!GTS_OBJECT (v)->reserved) { /* Do something only if v is active */
+    if (!GTS_OBJECT(v)->reserved) { /* Do something only if v is active */
 
       /* build bounding box */
       bbox = gts_bbox_new(gts_bbox_class(), v, 
@@ -102,10 +103,8 @@ pygts_vertices_merge(GList* vertices, gdouble epsilon,
         sv = j->data;
         if( sv!=v && !GTS_OBJECT(sv)->reserved && (!check||(*check)(sv, v)) ) {
           /* sv is not v and is active */
-
-	  if( (vertex = PYGTS_VERTEX(g_hash_table_lookup(obj_table,
-							 GTS_OBJECT(sv))
-			       )) !=NULL ) {
+	  if( (obj = g_hash_table_lookup(obj_table,GTS_OBJECT(sv))) !=NULL ) {
+	    vertex = PYGTS_VERTEX(obj);
 	    /* Detach and save any parent segments */
 	    ii = sv->segments;
 	    while(ii!=NULL) {
@@ -141,8 +140,8 @@ pygts_vertices_merge(GList* vertices, gdouble epsilon,
     }
     i = g_list_next(i);
   }
-
   gts_kdtree_destroy(kdtree);
+
 
   /* destroy inactive vertices and removes them from list */
 
@@ -154,7 +153,7 @@ pygts_vertices_merge(GList* vertices, gdouble epsilon,
     v = i->data;
     next = g_list_next(i);
     if(GTS_OBJECT(v)->reserved) { /* v is inactive */
-      if( PYGTS_VERTEX(g_hash_table_lookup(obj_table,GTS_OBJECT(v)))==NULL ) {
+      if( g_hash_table_lookup(obj_table,GTS_OBJECT(v))==NULL ) {
 	gts_object_destroy(GTS_OBJECT(v));
       }
       else {
@@ -294,15 +293,18 @@ pygts_face_cleanup(GtsSurface * s)
   /* build list of triangles */
   gts_surface_foreach_face(s, (GtsFunc) build_list, &triangles);
   
-  /* remove duplicate triangles */
+  /* remove duplicate and degenerate triangles */
   i = triangles;
   while(i) {
     GtsTriangle * t = i->data;
-    if (gts_triangle_is_duplicate(t)) {
+    if (!gts_triangle_is_ok(t)) {
+      /* destroy t, its edges (if not used by any other triangle)
+	 and its corners (if not used by any other edge) */
       if( g_hash_table_lookup(obj_table,GTS_OBJECT(t))==NULL ) {
-	/* destroy t, its edges (if not used by any other triangle)
-	   and its corners (if not used by any other edge) */
-	gts_object_destroy(GTS_OBJECT (t));
+	gts_object_destroy(GTS_OBJECT(t));
+      }
+      else {
+	gts_surface_remove_face(PYGTS_SURFACE_AS_GTS_SURFACE(s),GTS_FACE(t));
       }
     }
     i = g_slist_next(i);

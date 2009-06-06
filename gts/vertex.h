@@ -31,11 +31,15 @@
 typedef struct _PygtsObject PygtsVertex;
 
 
-#define PYGTS_VERTEX(o) ( PyObject_TypeCheck((PyObject*)o, &PygtsVertexType) ? \
-			  (PygtsVertex*)o :				\
-			  pygts_vertex_from_sequence((PyObject*)o) )
+#define PYGTS_VERTEX(o)							\
+  ( PyObject_TypeCheck((PyObject*)o, &PygtsVertexType) ?		\
+    (PygtsVertex*)o :							\
+    pygts_vertex_from_sequence((PyObject*)o) )
 
-#define PYGTS_VERTEX_AS_GTS_VERTEX(o) (GTS_VERTEX(PYGTS_OBJECT(o)->gtsobj))
+#define PYGTS_VERTEX_AS_GTS_VERTEX(o)					\
+  ( PyObject_TypeCheck((PyObject*)o, &PygtsVertexType) ?		\
+    GTS_VERTEX(PYGTS_OBJECT(o)->gtsobj) :				\
+    GTS_VERTEX(PYGTS_OBJECT(PYGTS_VERTEX(o))->gtsobj) )
 
 extern PyTypeObject PygtsVertexType;
 

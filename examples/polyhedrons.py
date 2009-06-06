@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""tetrahedron.py - plots a tetrahedron
+"""polyhedrons.py - plots some polyhedrons
 
   Copyright (C) 2009 Thomas J. Duck
   All rights reserved.

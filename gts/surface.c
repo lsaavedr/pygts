@@ -1294,7 +1294,6 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   }
   /* *** ATTENTION *** */
 
-
   /* Check for self-intersections in either surface */
   if( gts_surface_is_self_intersecting(PYGTS_SURFACE_AS_GTS_SURFACE(self))
       != NULL ) {
@@ -1382,7 +1381,7 @@ inter(PygtsSurface *self, PyObject *args, GtsBooleanOperation op1,
   /* Clean up the result */
   gts_surface_foreach_vertex(surface, (GtsFunc)get_largest_coord, &eps);
   eps *= pow(2.,-50);
-  pygts_vertex_cleanup(surface,eps);
+  pygts_vertex_cleanup(surface,1.e-9);
   pygts_edge_cleanup(surface);
   pygts_face_cleanup(surface);
 
