@@ -36,8 +36,10 @@ import commands
 import os, sys
 import numpy, numpy.distutils
 import warnings
+from distutils.sysconfig import get_config_var, get_config_vars
 
-VERSION = '0.3.0'
+
+VERSION = '0.3.1'
 
 PYGTS_DEBUG = '1'      # '1' for on, '0' for off
 PYGTS_HAS_NUMPY = '0'  # Numpy detected below
@@ -103,6 +105,27 @@ if not python_inc_dir or \
     raise RuntimeError, 'Python.h not found'
 
 
+# System-specific build setup
+
+if sys.platform.startswith("darwin"):
+    # gts, glib etc are often built for only one architecture, which breaks
+    # linking against both architectures for a universal library. Therefore
+    # delete the irrelevant flags.
+    if os.uname()[-1] == 'i386':
+        wanted = '-arch i386'
+        unwanted = '-arch ppc'
+    else:
+        unwanted = '-arch i386'
+        wanted = '-arch ppc'
+            
+    for flag in ['LDFLAGS', 'LDSHARED']:
+        if get_config_var(flag).find(wanted) != -1:
+            # Remove the unwanted flag
+            new_flags = get_config_var(flag).replace(unwanted, '')
+            get_config_vars()[flag] = new_flags
+
+
+# Run the setup
 setup(name='pygts', 
       version=VERSION,
       description=\
@@ -152,6 +175,8 @@ Surface (GTS) Library.""",
       )
 
 
+# Print summary
+
 try:
     from enthought.mayavi import mlab
 except:
@@ -173,4 +198,4 @@ if PYGTS_HAS_MAYAVI:
 else:
     print '\tmayavi found: No'
 
-print '\n\n'
+print '\nReport any setup problems to pygts-users@lists.sourceforge.net\n\n'

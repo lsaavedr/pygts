@@ -66,13 +66,6 @@ def clebsch(N=50):
     return c2 - c1*c1*c1
 
 
-# Function to convert data between gts to mayavi formats
-def get_mayavi_coords_and_triangles(s):
-    vertices = s.vertices()
-    coords = [v.get() for v in vertices]
-    triangles = s.face_indices(vertices)
-    x,y,z = zip(*coords)
-    return x,y,z,triangles
 
 functions = { "ellipsoid" : ellipsoid,
               "clebsch" : clebsch
