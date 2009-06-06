@@ -6,12 +6,13 @@ README
 README.developers
 setup.py
 doc/gts.html
-examples/cube.py
 examples/isosurface.py
 examples/plotgts.py
 examples/polyhedrons.py
 examples/seashell.gts
 examples/set_operations.py
+examples/test/cube.py
+examples/test/die.py
 gts/__init__.py
 gts/blender.py
 gts/cleanup.c
