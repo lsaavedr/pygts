@@ -499,14 +499,20 @@ CONTENTS
 
        https://frs.sourceforge.net/webupload
 
-  5) Create a new release on SourceForge at
+  5) Add a new release of PyGTS on SourceForge at
 
        https://sourceforge.net/project/admin/editpackages.php?group_id=262159
 
-     Use the version number as the release name.  Paste in the Changelog
-     entries since the last release, choosing "Preserve my pre-formatted
-     text".  Don't bother with the Notes -- that is what the News releases 
-     are for.
+     Use the version number as the release name.
+
+     Step 1: Paste in the Changelog entries since the last release, 
+             choosing "Preserve my pre-formatted text".  Don't bother with 
+	     the Notes -- that is what the News releases are for.
+
+     Step 2: Add the file you just uploaded to the release.
+
+     Step 3: Set "Processor" to "Platform-Independent" and "File Type"
+             to "Source .gz".  Press "Update/Refresh".
 
   6) Update the Web site and upload it using
 

@@ -734,8 +734,11 @@ new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     /* Check for three edges or three vertices */
     if( !((e1!=NULL && e2!=NULL && e3!=NULL) ||
 	  (v1!=NULL && v2!=NULL && v3!=NULL)) ) {
-      PyErr_SetString(PyExc_TypeError,
-		      "expected three Edges or three Vertices");
+      PyErr_SetString(PyExc_TypeError,"expected three Edges or three Vertices");
+      return NULL;
+    }
+    if( (v1==v2 || v2==v3 || v1==v3) && v1!=NULL ) {
+      PyErr_SetString(PyExc_ValueError,"three Vertices must be different");
       return NULL;
     }
 

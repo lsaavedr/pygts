@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""boolean.py - demonstrates boolean operations between surfaces
+"""set_operations.py - demonstrates set operations between surfaces
 
   Copyright (C) 2009 Thomas J. Duck
   All rights reserved.

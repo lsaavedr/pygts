@@ -1473,13 +1473,18 @@ class TestTriangleMethods(unittest.TestCase):
         self.assert_(t.is_ok())
         self.assert_(t.orientation()>0)
 
+        # Normal pointing upward using arrays
+        t = self.Triangle( [0,0], [3,0], [3,4] )
+        self.assert_(t.is_ok())
+        self.assert_(t.orientation()>0)
+
         # Normal pointing downward
         t.revert()
         self.assert_(t.is_ok())
         self.assert_(t.orientation()<0)
 
         # Colinear case
-        t = self.Triangle( gts.Vertex(0,0), gts.Vertex(3,0), gts.Vertex(2,0) )
+        t = self.Triangle([0,0], [3,0], [2,0] )
         self.assert_(t.is_ok())
         self.assert_(t.orientation()==0)
 
@@ -1930,6 +1935,12 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(isinstance(self.open_surface,gts.Surface))
         self.assert_(isinstance(self.closed_surface,gts.Surface))
 
+        # Co-linear points
+        f = gts.Face([0],[1],[2])
+        s = gts.Surface()
+        s.add(f)
+        self.assert_(s.is_ok())
+
 
     def test_subclass(self):
 
@@ -2006,6 +2017,12 @@ class TestSurfaceMethods(unittest.TestCase):
 
         self.assert_(self.open_surface.is_ok())
         self.assert_(self.closed_surface.is_ok())
+
+        # Co-linear points
+        f = gts.Face([0],[1],[2])
+        s = gts.Surface()
+        s.add(f)
+        self.assert_(s.is_manifold())
 
 
     def test_manifold_faces(self):
@@ -2120,6 +2137,12 @@ class TestSurfaceMethods(unittest.TestCase):
         self.assert_(self.open_surface.is_ok())
         self.assert_(self.closed_surface.is_ok())
 
+        # Co-linear points
+        f = gts.Face([0],[1],[2])
+        s = gts.Surface()
+        s.add(f)
+        self.assert_(s.is_orientable())
+
 
     def test_is_closed(self):
         self.assert_(not self.open_surface.is_closed())
@@ -2129,6 +2152,13 @@ class TestSurfaceMethods(unittest.TestCase):
     def test_area(self):
         self.assert_(fabs(self.closed_surface.area()-8*sqrt(3))<1.e-9)
         self.assert_(fabs(self.open_surface.area()-8*sqrt(3)*0.75)<1.e-9)
+
+
+        # Co-linear points
+        f = gts.Face([0],[1],[2])
+        s = gts.Surface()
+        s.add(f)
+        self.assert_(s.area()==0.)
 
 
     def test_faces(self):

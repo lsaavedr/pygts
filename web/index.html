@@ -38,19 +38,15 @@ CONTENTS:
 <h2>1. Features</h2>
 
 <p>
-Here is a brief summary of the main features of GTS:
+Here are some of the main features:
 <ul>
-<li>Simple object-oriented structure giving easy access to topological properties.</li>
-<li>2D dynamic Delaunay and constrained Delaunay triangulations.</li>
-<li>Robust geometric predicates (orientation, in circle) using fast adaptive floating point arithmetic.</li>
-<li>Robust set operations on surfaces (union, intersection, difference).</li>
-<li>Surface refinement and coarsening (multiresolution models).</li>
-<li>Dynamic view-independent continuous level-of-detail.</li>
-<li>Preliminary support for view-dependent level-of-detail.</li>
-<li>Bounding-boxes trees and Kd-trees for efficient point location and collision/intersection detection.</li>
-<li>Graph operations: traversal, graph partitioning.</li>
+<li>Geometric primitives Point, Vertex, Segment, Edge, Triangle, Face, and Surface.</li>
+<li>Transformations (translate, scale, rotate).</li>
 <li>Metric operations (area, volume, curvature ...).</li>
-<li>Triangle strips generation for fast rendering.</li>
+<li>Geometric predicates (orientation, in circle).</li>
+<li>Set operations on surfaces (union, intersection, difference).</li>
+<li>Isosurface computation from 3D data.</li>
+<li>Surface refinement and coarsening (multiresolution models).</li>
 </ul>
 </p>
 
@@ -58,9 +54,8 @@ Here is a brief summary of the main features of GTS:
 The PyGTS binding has complete support for the objects and methods
 of GTS's 
 <a href="http://gts.sourceforge.net/reference/c2933.html">Geometrical 
-Object Hierarchy</a>.  It also supports surface set operations (union, 
-difference, intersection) that can be used for constructive solid geometry
-(CSG).  Some of the more advanced GTS features (advanced 
+Object Hierarchy</a>.  Some of the more advanced GTS features 
+(certain
 <a href="http://gts.sourceforge.net/reference/c12244.html">Surface 
 Operations</a>, 
 <a href="http://gts.sourceforge.net/reference/c15281.html">Progressive 
@@ -81,7 +76,7 @@ package with a developing API.
 
 <p>
 <ul>
-<li><a href="https://sourceforge.net/project/showfiles.php?group_id=262159">Download</a> - current &quot;alpha&quot; release is 0.2.0</li>
+<li><a href="https://sourceforge.net/project/showfiles.php?group_id=262159">Download</a> - current &quot;alpha&quot; release is 0.3.0</li>
 <li><a href="http://pygts.svn.sourceforge.net/viewvc/pygts/doc/gts.html">API Documentation</a> - generated using pydoc</li>
 <li><a href="http://pygts.svn.sourceforge.net/viewvc/pygts/FAQ">FAQ</a> - frequently asked questions</li>
 <br />
@@ -105,7 +100,7 @@ package with a developing API.
 Contributions are welcome.  Help is needed with:
 <ul>
 <li>Install testing</li>
-<li>User testing</li>
+<li>API testing</li>
 <li>Development of the code (see README.developers)</li>
 <li>The Web site (obviously)</li>
 <li>A tutorial</li>
@@ -122,9 +117,9 @@ Please provide your input via the
 
 <p>Here are some objectives for future development:
 <ul>
-<li>Allow coordinate lists to be used in place of Points, and other UI enhancements</li>
-<li>Fix intersecting surface problem with CSG</li>
-<li>Add Blender support</li>
+<li>UI enhancements: math operations, attributes, etc, for geometric primitives.</li>
+<li>Fix intersecting surface problem with CSG.</li>
+<li>Blender support.</li>
 </ul>
 Please suggest some addition items via the
 <a href="https://sourceforge.net/mail/?group_id=262159">mailing lists</a>.
